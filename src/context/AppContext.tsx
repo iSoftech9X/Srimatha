@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Customer, MenuItem, Order, CartItem, AdminStats } from '../types';
+import { menuAPI, ordersAPI, customersAPI, adminAPI } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
+import toast from 'react-hot-toast';
 
 interface AppContextType {
   // Customer data
@@ -11,6 +14,7 @@ interface AppContextType {
   // Menu data
   menuItems: MenuItem[];
   updateMenuItem: (id: string, item: Partial<MenuItem>) => void;
+  fetchMenuItems: () => Promise<void>;
   
   // Cart functionality
   cart: CartItem[];
@@ -23,13 +27,19 @@ interface AppContextType {
   orders: Order[];
   addOrder: (order: Omit<Order, 'id'>) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  fetchOrders: () => Promise<void>;
   
   // Admin stats
   adminStats: AdminStats;
+  fetchAdminStats: () => Promise<void>;
   
   // Auth
   isAdmin: boolean;
   setIsAdmin: (value: boolean) => void;
+  
+  // Loading states
+  loading: boolean;
+  setLoading: (value: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -43,164 +53,149 @@ export const useApp = () => {
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [customers, setCustomers] = useState<Customer[]>([
-    {
-      id: '1',
-      name: 'Priya Sharma',
-      email: 'priya.sharma@email.com',
-      phone: '+91 98765 43210',
-      address: '123 MG Road, Bangalore, Karnataka 560001',
-      joinDate: '2024-01-15',
-      totalOrders: 12,
-      totalSpent: 8500,
-      status: 'active'
-    },
-    {
-      id: '2',
-      name: 'Raj Patel',
-      email: 'raj.patel@email.com',
-      phone: '+91 87654 32109',
-      address: '456 Park Street, Mumbai, Maharashtra 400001',
-      joinDate: '2024-02-20',
-      totalOrders: 8,
-      totalSpent: 5200,
-      status: 'active'
-    },
-    {
-      id: '3',
-      name: 'Anita Singh',
-      email: 'anita.singh@email.com',
-      phone: '+91 76543 21098',
-      address: '789 Civil Lines, Delhi, Delhi 110001',
-      joinDate: '2024-03-10',
-      totalOrders: 15,
-      totalSpent: 12300,
-      status: 'active'
-    }
-  ]);
-
-  const [menuItems] = useState<MenuItem[]>([
-    {
-      id: '1',
-      name: 'Crispy Calamari',
-      description: 'Fresh squid rings with tangy marinara sauce',
-      price: 450,
-      image: 'https://images.pexels.com/photos/725996/pexels-photo-725996.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
-      category: 'appetizers',
-      popular: true,
-      available: true,
-      ingredients: ['Squid', 'Flour', 'Marinara Sauce', 'Herbs'],
-      allergens: ['Seafood', 'Gluten']
-    },
-    {
-      id: '2',
-      name: 'Paneer Tikka',
-      description: 'Marinated cottage cheese grilled to perfection',
-      price: 420,
-      image: 'https://images.pexels.com/photos/5864474/pexels-photo-5864474.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
-      category: 'appetizers',
-      popular: true,
-      available: true,
-      ingredients: ['Paneer', 'Yogurt', 'Spices', 'Bell Peppers'],
-      allergens: ['Dairy']
-    },
-    {
-      id: '3',
-      name: 'Butter Chicken',
-      description: 'Tender chicken in rich tomato and cream sauce',
-      price: 650,
-      image: 'https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
-      category: 'main-course',
-      popular: true,
-      available: true,
-      ingredients: ['Chicken', 'Tomato', 'Cream', 'Butter', 'Spices'],
-      allergens: ['Dairy']
-    },
-    {
-      id: '4',
-      name: 'Vegetable Biryani',
-      description: 'Aromatic basmati rice with mixed vegetables',
-      price: 480,
-      image: 'https://images.pexels.com/photos/15953175/pexels-photo-15953175.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
-      category: 'main-course',
-      popular: true,
-      available: true,
-      ingredients: ['Basmati Rice', 'Mixed Vegetables', 'Saffron', 'Spices'],
-      allergens: []
-    },
-    {
-      id: '5',
-      name: 'Chocolate Lava Cake',
-      description: 'Warm chocolate cake with molten center',
-      price: 320,
-      image: 'https://images.pexels.com/photos/8844893/pexels-photo-8844893.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
-      category: 'desserts',
-      popular: true,
-      available: true,
-      ingredients: ['Dark Chocolate', 'Butter', 'Eggs', 'Sugar', 'Flour'],
-      allergens: ['Eggs', 'Gluten', 'Dairy']
-    },
-    {
-      id: '6',
-      name: 'Mango Lassi',
-      description: 'Traditional yogurt drink with fresh mango',
-      price: 180,
-      image: 'https://images.pexels.com/photos/19764735/pexels-photo-19764735.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop',
-      category: 'beverages',
-      popular: true,
-      available: true,
-      ingredients: ['Fresh Mango', 'Yogurt', 'Sugar', 'Cardamom'],
-      allergens: ['Dairy']
-    }
-  ]);
-
+  const { user, isAuthenticated } = useAuth();
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: 'ORD001',
-      customerId: '1',
-      customerName: 'Priya Sharma',
-      customerPhone: '+91 98765 43210',
-      customerEmail: 'priya.sharma@email.com',
-      items: [
-        {
-          id: '1',
-          menuItem: menuItems[0],
-          quantity: 2,
-          specialInstructions: 'Extra spicy'
-        }
-      ],
-      totalAmount: 900,
-      status: 'preparing',
-      orderType: 'dine-in',
-      orderDate: new Date().toISOString(),
-      paymentStatus: 'paid',
-      paymentMethod: 'card'
-    }
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [adminStats, setAdminStats] = useState<AdminStats>({
+    totalCustomers: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    todayOrders: 0,
+    pendingOrders: 0,
+    popularItems: []
+  });
+  const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const addCustomer = (customer: Omit<Customer, 'id'>) => {
-    const newCustomer = {
-      ...customer,
-      id: Date.now().toString()
-    };
-    setCustomers(prev => [...prev, newCustomer]);
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (error) {
+        console.error('Error loading cart from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
+
+  // Fetch initial data
+  useEffect(() => {
+    fetchMenuItems();
+    if (user?.role === 'admin') {
+      fetchAdminStats();
+      fetchOrders();
+      fetchCustomers();
+    }
+  }, [user]);
+
+  const fetchMenuItems = async () => {
+    try {
+      setLoading(true);
+      const response = await menuAPI.getItems({ limit: 100 });
+      setMenuItems(response.data.data.items);
+    } catch (error) {
+      console.error('Error fetching menu items:', error);
+      toast.error('Failed to load menu items');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateCustomer = (id: string, customerUpdate: Partial<Customer>) => {
-    setCustomers(prev => prev.map(customer => 
-      customer.id === id ? { ...customer, ...customerUpdate } : customer
-    ));
+  const fetchOrders = async () => {
+    try {
+      const response = await ordersAPI.getAllOrders({ limit: 100 });
+      setOrders(response.data.data.orders);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast.error('Failed to load orders');
+    }
   };
 
-  const deleteCustomer = (id: string) => {
-    setCustomers(prev => prev.filter(customer => customer.id !== id));
+  const fetchCustomers = async () => {
+    try {
+      const response = await customersAPI.getCustomers({ limit: 100 });
+      setCustomers(response.data.data.customers);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      toast.error('Failed to load customers');
+    }
   };
 
-  const updateMenuItem = (id: string, itemUpdate: Partial<MenuItem>) => {
-    // In a real app, this would update the menu items
-    console.log('Update menu item:', id, itemUpdate);
+  const fetchAdminStats = async () => {
+    try {
+      const response = await adminAPI.getDashboard();
+      const data = response.data.data;
+      
+      setAdminStats({
+        totalCustomers: data.overview.totalCustomers,
+        totalOrders: data.overview.totalOrders,
+        totalRevenue: data.overview.totalRevenue,
+        todayOrders: data.overview.todayOrders,
+        pendingOrders: data.overview.pendingOrders,
+        popularItems: data.popularItems
+      });
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+      toast.error('Failed to load dashboard statistics');
+    }
+  };
+
+  const addCustomer = async (customerData: Omit<Customer, 'id'>) => {
+    try {
+      // This would be implemented when we have a customer creation API
+      const newCustomer = {
+        ...customerData,
+        id: Date.now().toString()
+      };
+      setCustomers(prev => [...prev, newCustomer]);
+      toast.success('Customer added successfully');
+    } catch (error) {
+      console.error('Error adding customer:', error);
+      toast.error('Failed to add customer');
+    }
+  };
+
+  const updateCustomer = async (id: string, customerUpdate: Partial<Customer>) => {
+    try {
+      setCustomers(prev => prev.map(customer => 
+        customer.id === id ? { ...customer, ...customerUpdate } : customer
+      ));
+      toast.success('Customer updated successfully');
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      toast.error('Failed to update customer');
+    }
+  };
+
+  const deleteCustomer = async (id: string) => {
+    try {
+      setCustomers(prev => prev.filter(customer => customer.id !== id));
+      toast.success('Customer deleted successfully');
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      toast.error('Failed to delete customer');
+    }
+  };
+
+  const updateMenuItem = async (id: string, itemUpdate: Partial<MenuItem>) => {
+    try {
+      await menuAPI.updateItem(id, itemUpdate);
+      setMenuItems(prev => prev.map(item => 
+        item.id === id ? { ...item, ...itemUpdate } : item
+      ));
+      toast.success('Menu item updated successfully');
+    } catch (error) {
+      console.error('Error updating menu item:', error);
+      toast.error('Failed to update menu item');
+    }
   };
 
   const addToCart = (item: MenuItem, quantity: number, specialInstructions?: string) => {
@@ -221,10 +216,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       setCart(prev => [...prev, cartItem]);
     }
+    
+    toast.success(`${item.name} added to cart`);
   };
 
   const removeFromCart = (itemId: string) => {
     setCart(prev => prev.filter(item => item.id !== itemId));
+    toast.success('Item removed from cart');
   };
 
   const updateCartQuantity = (itemId: string, quantity: number) => {
@@ -240,32 +238,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const clearCart = () => {
     setCart([]);
+    localStorage.removeItem('cart');
   };
 
-  const addOrder = (order: Omit<Order, 'id'>) => {
-    const newOrder = {
-      ...order,
-      id: `ORD${Date.now()}`
-    };
-    setOrders(prev => [...prev, newOrder]);
-    clearCart();
+  const addOrder = async (orderData: any) => {
+    try {
+      const response = await ordersAPI.createOrder(orderData);
+      const newOrder = response.data.data.order;
+      
+      setOrders(prev => [newOrder, ...prev]);
+      clearCart();
+      toast.success('Order placed successfully!');
+      
+      return { success: true, order: newOrder };
+    } catch (error) {
+      console.error('Error creating order:', error);
+      const message = error.response?.data?.message || 'Failed to place order';
+      toast.error(message);
+      return { success: false, error: message };
+    }
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
-    setOrders(prev => prev.map(order =>
-      order.id === orderId ? { ...order, status } : order
-    ));
-  };
-
-  const adminStats: AdminStats = {
-    totalCustomers: customers.length,
-    totalOrders: orders.length,
-    totalRevenue: orders.reduce((sum, order) => sum + order.totalAmount, 0),
-    todayOrders: orders.filter(order => 
-      new Date(order.orderDate).toDateString() === new Date().toDateString()
-    ).length,
-    pendingOrders: orders.filter(order => order.status === 'pending').length,
-    popularItems: menuItems.filter(item => item.popular).slice(0, 5)
+  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+    try {
+      await ordersAPI.updateOrderStatus(orderId, { status });
+      setOrders(prev => prev.map(order =>
+        order.id === orderId ? { ...order, status } : order
+      ));
+      toast.success('Order status updated successfully');
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      toast.error('Failed to update order status');
+    }
   };
 
   return (
@@ -276,6 +280,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteCustomer,
       menuItems,
       updateMenuItem,
+      fetchMenuItems,
       cart,
       addToCart,
       removeFromCart,
@@ -284,9 +289,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       orders,
       addOrder,
       updateOrderStatus,
+      fetchOrders,
       adminStats,
+      fetchAdminStats,
       isAdmin,
-      setIsAdmin
+      setIsAdmin,
+      loading,
+      setLoading
     }}>
       {children}
     </AppContext.Provider>

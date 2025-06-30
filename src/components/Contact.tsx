@@ -1,7 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Calendar, MessageSquare } from 'lucide-react';
+import { contactAPI } from '../services/api';
+import toast from 'react-hot-toast';
 
 const Contact: React.FC = () => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await contactAPI.submitForm(formData);
+      toast.success('Your message has been sent successfully! We will get back to you soon.');
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Contact form error:', error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
   return (
     <section id="contact" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
@@ -45,8 +87,8 @@ const Contact: React.FC = () => {
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-1">Email</h4>
                     <p className="text-gray-600">
-                      info@srimath.com<br />
-                      catering@srimath.com
+                      info@srimatha.com<br />
+                      catering@srimatha.com
                     </p>
                   </div>
                 </div>
@@ -84,7 +126,7 @@ const Contact: React.FC = () => {
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Send us a Message</h3>
             
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="firstName" className="block text-gray-700 font-medium mb-2">
@@ -93,8 +135,12 @@ const Contact: React.FC = () => {
                   <input
                     type="text"
                     id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="Your first name"
+                    required
                   />
                 </div>
                 <div>
@@ -104,8 +150,12 @@ const Contact: React.FC = () => {
                   <input
                     type="text"
                     id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="Your last name"
+                    required
                   />
                 </div>
               </div>
@@ -117,8 +167,12 @@ const Contact: React.FC = () => {
                 <input
                   type="email"
                   id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   placeholder="your.email@example.com"
+                  required
                 />
               </div>
 
@@ -129,8 +183,12 @@ const Contact: React.FC = () => {
                 <input
                   type="tel"
                   id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   placeholder="+91 98765 43210"
+                  required
                 />
               </div>
 
@@ -140,12 +198,17 @@ const Contact: React.FC = () => {
                 </label>
                 <select
                   id="subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  required
                 >
                   <option value="">Select a subject</option>
                   <option value="reservation">Table Reservation</option>
                   <option value="catering">Catering Inquiry</option>
                   <option value="feedback">Feedback</option>
+                  <option value="complaint">Complaint</option>
                   <option value="other">Other</option>
                 </select>
               </div>
@@ -156,17 +219,22 @@ const Contact: React.FC = () => {
                 </label>
                 <textarea
                   id="message"
+                  name="message"
                   rows={4}
+                  value={formData.message}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-vertical"
                   placeholder="Tell us how we can help you..."
+                  required
                 ></textarea>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
+                disabled={loading}
+                className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
               >
-                Send Message
+                {loading ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           </div>
