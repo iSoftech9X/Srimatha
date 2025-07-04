@@ -1,73 +1,60 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
 
-export const authenticate = async (req, res, next) => {
+export const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Access denied. No token provided.' 
+      return res.status(401).json({
+        success: false,
+        message: 'Access denied. No token provided.'
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    const user = await User.findById(decoded.userId).select('-password');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
     
-    if (!user || !user.isActive) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Invalid token or user not found.' 
+    // Find user in mock database
+    const user = await req.db.findUserById(decoded.id);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token. User not found.'
       });
     }
 
-    req.user = user;
+    req.user = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      name: user.name
+    };
+    
     next();
   } catch (error) {
-    res.status(401).json({ 
-      success: false, 
-      message: 'Invalid token.' 
+    console.error('Auth middleware error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid token.'
     });
   }
 };
 
-export const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Authentication required.' 
-      });
-    }
-
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Access denied. Insufficient permissions.' 
-      });
-    }
-
-    next();
-  };
-};
-
-export const optionalAuth = async (req, res, next) => {
+export const adminAuth = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
-    if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-      const user = await User.findById(decoded.userId).select('-password');
-      
-      if (user && user.isActive) {
-        req.user = user;
+    await auth(req, res, () => {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin privileges required.'
+        });
       }
-    }
-    
-    next();
+      next();
+    });
   } catch (error) {
-    // Continue without authentication
-    next();
+    console.error('Admin auth middleware error:', error);
+    res.status(403).json({
+      success: false,
+      message: 'Access denied.'
+    });
   }
 };

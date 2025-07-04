@@ -1,81 +1,39 @@
 import express from 'express';
-import { body, query, validationResult } from 'express-validator';
-import MenuItem from '../models/MenuItem.js';
-import { authenticate, authorize, optionalAuth } from '../middleware/auth.js';
+import { auth, adminAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Get all menu items with filtering and pagination
-router.get('/', [
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-  query('category').optional().isIn(['appetizers', 'main-course', 'desserts', 'beverages', 'specials']),
-  query('search').optional().trim().isLength({ min: 1, max: 100 }),
-  query('sortBy').optional().isIn(['name', 'price', 'rating', 'createdAt']),
-  query('sortOrder').optional().isIn(['asc', 'desc'])
-], optionalAuth, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
     const {
-      page = 1,
-      limit = 20,
       category,
-      search,
       isVegetarian,
-      isVegan,
-      isGlutenFree,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      isAvailable = true
+      isAvailable = true,
+      page = 1,
+      limit = 10,
+      search,
+      sortBy = 'name',
+      sortOrder = 'asc'
     } = req.query;
 
-    // Build filter object
-    const filter = { isAvailable: isAvailable === 'true' };
-    
-    if (category) filter.category = category;
-    if (isVegetarian === 'true') filter.isVegetarian = true;
-    if (isVegan === 'true') filter.isVegan = true;
-    if (isGlutenFree === 'true') filter.isGlutenFree = true;
-    
-    if (search) {
-      filter.$text = { $search: search };
-    }
+    // Build query
+    const query = {};
+    if (category) query.category = category;
+    if (isVegetarian !== undefined) query.isVegetarian = isVegetarian === 'true';
+    if (isAvailable !== undefined) query.isAvailable = isAvailable === 'true';
 
-    // Build sort object
-    const sort = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    // Pagination options
+    const options = {
+      limit: parseInt(limit),
+      skip: (parseInt(page) - 1) * parseInt(limit)
+    };
 
-    // Execute query with pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    
-    const [items, total] = await Promise.all([
-      MenuItem.find(filter)
-        .sort(sort)
-        .skip(skip)
-        .limit(parseInt(limit))
-        .populate('createdBy', 'name'),
-      MenuItem.countDocuments(filter)
-    ]);
+    const result = await req.db.findMenuItems(query, options);
 
     res.json({
       success: true,
-      data: {
-        items,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / parseInt(limit)),
-          totalItems: total,
-          itemsPerPage: parseInt(limit)
-        }
-      }
+      data: result
     });
   } catch (error) {
     console.error('Menu fetch error:', error);
@@ -90,9 +48,8 @@ router.get('/', [
 // Get single menu item
 router.get('/:id', async (req, res) => {
   try {
-    const item = await MenuItem.findById(req.params.id)
-      .populate('createdBy', 'name');
-
+    const item = await req.db.findMenuItemById(req.params.id);
+    
     if (!item) {
       return res.status(404).json({
         success: false,
@@ -114,20 +71,17 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Get popular menu items
+// Get popular/featured items
 router.get('/featured/popular', async (req, res) => {
   try {
-    const items = await MenuItem.find({ 
-      isPopular: true, 
-      isAvailable: true 
-    })
-    .sort({ 'rating.average': -1 })
-    .limit(10)
-    .populate('createdBy', 'name');
+    const result = await req.db.findMenuItems(
+      { isAvailable: true },
+      { limit: 6, skip: 0 }
+    );
 
     res.json({
       success: true,
-      data: { items }
+      data: { items: result.items }
     });
   } catch (error) {
     console.error('Popular items fetch error:', error);
@@ -140,38 +94,19 @@ router.get('/featured/popular', async (req, res) => {
 });
 
 // Create new menu item (Admin only)
-router.post('/', authenticate, authorize('admin'), [
-  body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
-  body('description').trim().isLength({ min: 10, max: 500 }).withMessage('Description must be between 10 and 500 characters'),
-  body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('category').isIn(['appetizers', 'main-course', 'desserts', 'beverages', 'specials']).withMessage('Invalid category'),
-  body('image.url').isURL().withMessage('Valid image URL is required'),
-  body('preparationTime').optional().isInt({ min: 1, max: 180 }).withMessage('Preparation time must be between 1 and 180 minutes')
-], async (req, res) => {
+router.post('/', adminAuth, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
     const itemData = {
       ...req.body,
-      createdBy: req.user._id
+      createdBy: req.user.id
     };
 
-    const item = new MenuItem(itemData);
-    await item.save();
-
-    await item.populate('createdBy', 'name');
+    const newItem = await req.db.createMenuItem(itemData);
 
     res.status(201).json({
       success: true,
       message: 'Menu item created successfully',
-      data: { item }
+      data: { item: newItem }
     });
   } catch (error) {
     console.error('Menu item creation error:', error);
@@ -184,30 +119,14 @@ router.post('/', authenticate, authorize('admin'), [
 });
 
 // Update menu item (Admin only)
-router.put('/:id', authenticate, authorize('admin'), [
-  body('name').optional().trim().isLength({ min: 2, max: 100 }),
-  body('description').optional().trim().isLength({ min: 10, max: 500 }),
-  body('price').optional().isFloat({ min: 0 }),
-  body('category').optional().isIn(['appetizers', 'main-course', 'desserts', 'beverages', 'specials']),
-  body('preparationTime').optional().isInt({ min: 1, max: 180 })
-], async (req, res) => {
+router.put('/:id', adminAuth, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
+    const updatedItem = await req.db.updateMenuItem(req.params.id, {
+      ...req.body,
+      updatedBy: req.user.id
+    });
 
-    const item = await MenuItem.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).populate('createdBy', 'name');
-
-    if (!item) {
+    if (!updatedItem) {
       return res.status(404).json({
         success: false,
         message: 'Menu item not found'
@@ -217,7 +136,7 @@ router.put('/:id', authenticate, authorize('admin'), [
     res.json({
       success: true,
       message: 'Menu item updated successfully',
-      data: { item }
+      data: { item: updatedItem }
     });
   } catch (error) {
     console.error('Menu item update error:', error);
@@ -229,10 +148,10 @@ router.put('/:id', authenticate, authorize('admin'), [
   }
 });
 
-// Toggle menu item availability (Admin only)
-router.patch('/:id/availability', authenticate, authorize('admin'), async (req, res) => {
+// Toggle item availability (Admin only)
+router.patch('/:id/availability', adminAuth, async (req, res) => {
   try {
-    const item = await MenuItem.findById(req.params.id);
+    const item = await req.db.findMenuItemById(req.params.id);
     
     if (!item) {
       return res.status(404).json({
@@ -241,13 +160,15 @@ router.patch('/:id/availability', authenticate, authorize('admin'), async (req, 
       });
     }
 
-    item.isAvailable = !item.isAvailable;
-    await item.save();
+    const updatedItem = await req.db.updateMenuItem(req.params.id, {
+      isAvailable: !item.isAvailable,
+      updatedBy: req.user.id
+    });
 
     res.json({
       success: true,
-      message: `Menu item ${item.isAvailable ? 'enabled' : 'disabled'} successfully`,
-      data: { item }
+      message: `Menu item ${updatedItem.isAvailable ? 'enabled' : 'disabled'} successfully`,
+      data: { item: updatedItem }
     });
   } catch (error) {
     console.error('Menu item availability toggle error:', error);
@@ -260,11 +181,11 @@ router.patch('/:id/availability', authenticate, authorize('admin'), async (req, 
 });
 
 // Delete menu item (Admin only)
-router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.delete('/:id', adminAuth, async (req, res) => {
   try {
-    const item = await MenuItem.findByIdAndDelete(req.params.id);
-    
-    if (!item) {
+    const deletedItem = await req.db.deleteMenuItem(req.params.id);
+
+    if (!deletedItem) {
       return res.status(404).json({
         success: false,
         message: 'Menu item not found'
@@ -273,7 +194,8 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Menu item deleted successfully'
+      message: 'Menu item deleted successfully',
+      data: { item: deletedItem }
     });
   } catch (error) {
     console.error('Menu item deletion error:', error);
