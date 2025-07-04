@@ -1,7 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -9,10 +8,10 @@ const router = express.Router();
 // Register new user
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, phone, address } = req.body;
+    const { name, email, password, phone } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await req.db.findUserByEmail(email);
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -20,17 +19,20 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Create user (password will be hashed by the pre-save middleware)
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Create user
     const userData = {
       name,
       email,
-      password,
+      password: hashedPassword,
       phone,
-      address,
-      role: 'customer'
+      role: 'customer',
+      isActive: true
     };
 
-    const newUser = await User.create(userData);
+    const newUser = await req.db.createUser(userData);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -39,11 +41,14 @@ router.post('/register', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
+    // Remove password from response
+    const { password: _, ...userResponse } = newUser;
+
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
       data: {
-        user: newUser.toJSON(),
+        user: userResponse,
         token
       }
     });
@@ -62,8 +67,8 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user and include password for comparison
-    const user = await User.findOne({ email }).select('+password');
+    // Find user
+    const user = await req.db.findUserByEmail(email);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -72,7 +77,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Check password
-    const isPasswordValid = await user.comparePassword(password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -87,11 +92,14 @@ router.post('/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
+    // Remove password from response
+    const { password: _, ...userResponse } = user;
+
     res.json({
       success: true,
       message: 'Login successful',
       data: {
-        user: user.toJSON(),
+        user: userResponse,
         token
       }
     });
@@ -108,7 +116,7 @@ router.post('/login', async (req, res) => {
 // Get user profile
 router.get('/profile', authenticate, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await req.db.findUserById(req.user.id);
     
     if (!user) {
       return res.status(404).json({
@@ -117,48 +125,18 @@ router.get('/profile', authenticate, async (req, res) => {
       });
     }
 
+    // Remove password from response
+    const { password: _, ...userResponse } = user;
+
     res.json({
       success: true,
-      data: { user: user.toJSON() }
+      data: { user: userResponse }
     });
   } catch (error) {
     console.error('Profile fetch error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch profile',
-      error: error.message
-    });
-  }
-});
-
-// Update user profile
-router.put('/profile', authenticate, async (req, res) => {
-  try {
-    const { name, phone, address } = req.body;
-    
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { name, phone, address },
-      { new: true, runValidators: true }
-    );
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Profile updated successfully',
-      data: { user: user.toJSON() }
-    });
-  } catch (error) {
-    console.error('Profile update error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update profile',
       error: error.message
     });
   }

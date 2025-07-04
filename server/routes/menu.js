@@ -1,6 +1,5 @@
 import express from 'express';
-import MenuItem from '../models/MenuItem.js';
-import { authenticate, authorize, optionalAuth } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -23,35 +22,18 @@ router.get('/', async (req, res) => {
     if (category) query.category = category;
     if (isVegetarian !== undefined) query.isVegetarian = isVegetarian === 'true';
     if (isAvailable !== undefined) query.isAvailable = isAvailable === 'true';
-    
-    if (search) {
-      query.$text = { $search: search };
-    }
 
     // Pagination options
     const options = {
       limit: parseInt(limit),
-      skip: (parseInt(page) - 1) * parseInt(limit),
-      sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 }
+      skip: (parseInt(page) - 1) * parseInt(limit)
     };
 
-    const items = await MenuItem.find(query)
-      .sort(options.sort)
-      .limit(options.limit)
-      .skip(options.skip)
-      .populate('createdBy', 'name');
-
-    const total = await MenuItem.countDocuments(query);
-    const totalPages = Math.ceil(total / parseInt(limit));
+    const result = await req.db.findMenuItems(query, options);
 
     res.json({
       success: true,
-      data: {
-        items,
-        total,
-        page: parseInt(page),
-        totalPages
-      }
+      data: result
     });
   } catch (error) {
     console.error('Menu fetch error:', error);
@@ -66,7 +48,7 @@ router.get('/', async (req, res) => {
 // Get single menu item
 router.get('/:id', async (req, res) => {
   try {
-    const item = await MenuItem.findById(req.params.id).populate('createdBy', 'name');
+    const item = await req.db.findMenuItemById(req.params.id);
     
     if (!item) {
       return res.status(404).json({
@@ -92,16 +74,14 @@ router.get('/:id', async (req, res) => {
 // Get popular/featured items
 router.get('/featured/popular', async (req, res) => {
   try {
-    const items = await MenuItem.find({ 
-      isAvailable: true,
-      isPopular: true 
-    })
-      .limit(6)
-      .populate('createdBy', 'name');
+    const result = await req.db.findMenuItems(
+      { isAvailable: true },
+      { limit: 6, skip: 0 }
+    );
 
     res.json({
       success: true,
-      data: { items }
+      data: { items: result.items }
     });
   } catch (error) {
     console.error('Popular items fetch error:', error);
@@ -121,8 +101,7 @@ router.post('/', authenticate, authorize('admin'), async (req, res) => {
       createdBy: req.user.id
     };
 
-    const newItem = await MenuItem.create(itemData);
-    await newItem.populate('createdBy', 'name');
+    const newItem = await req.db.createMenuItem(itemData);
 
     res.status(201).json({
       success: true,
@@ -142,11 +121,10 @@ router.post('/', authenticate, authorize('admin'), async (req, res) => {
 // Update menu item (Admin only)
 router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const updatedItem = await MenuItem.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).populate('createdBy', 'name');
+    const updatedItem = await req.db.updateMenuItem(req.params.id, {
+      ...req.body,
+      updatedBy: req.user.id
+    });
 
     if (!updatedItem) {
       return res.status(404).json({
@@ -173,7 +151,7 @@ router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
 // Toggle item availability (Admin only)
 router.patch('/:id/availability', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const item = await MenuItem.findById(req.params.id);
+    const item = await req.db.findMenuItemById(req.params.id);
     
     if (!item) {
       return res.status(404).json({
@@ -182,14 +160,15 @@ router.patch('/:id/availability', authenticate, authorize('admin'), async (req, 
       });
     }
 
-    item.isAvailable = !item.isAvailable;
-    await item.save();
-    await item.populate('createdBy', 'name');
+    const updatedItem = await req.db.updateMenuItem(req.params.id, {
+      isAvailable: !item.isAvailable,
+      updatedBy: req.user.id
+    });
 
     res.json({
       success: true,
-      message: `Menu item ${item.isAvailable ? 'enabled' : 'disabled'} successfully`,
-      data: { item }
+      message: `Menu item ${updatedItem.isAvailable ? 'enabled' : 'disabled'} successfully`,
+      data: { item: updatedItem }
     });
   } catch (error) {
     console.error('Menu item availability toggle error:', error);
@@ -204,7 +183,7 @@ router.patch('/:id/availability', authenticate, authorize('admin'), async (req, 
 // Delete menu item (Admin only)
 router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const deletedItem = await MenuItem.findByIdAndDelete(req.params.id);
+    const deletedItem = await req.db.deleteMenuItem(req.params.id);
 
     if (!deletedItem) {
       return res.status(404).json({
