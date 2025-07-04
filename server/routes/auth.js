@@ -1,17 +1,18 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { auth } from '../middleware/auth.js';
+import User from '../models/User.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Register new user
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
     // Check if user already exists
-    const existingUser = await req.db.findUserByEmail(email);
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -19,20 +20,17 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user
+    // Create user (password will be hashed by the pre-save middleware)
     const userData = {
       name,
       email,
-      password: hashedPassword,
+      password,
       phone,
-      role: 'customer',
-      isActive: true
+      address,
+      role: 'customer'
     };
 
-    const newUser = await req.db.createUser(userData);
+    const newUser = await User.create(userData);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -41,14 +39,11 @@ router.post('/register', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
-    // Remove password from response
-    const { password: _, ...userResponse } = newUser;
-
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
       data: {
-        user: userResponse,
+        user: newUser.toJSON(),
         token
       }
     });
@@ -67,8 +62,8 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user
-    const user = await req.db.findUserByEmail(email);
+    // Find user and include password for comparison
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -77,7 +72,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -92,14 +87,11 @@ router.post('/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
-    // Remove password from response
-    const { password: _, ...userResponse } = user;
-
     res.json({
       success: true,
       message: 'Login successful',
       data: {
-        user: userResponse,
+        user: user.toJSON(),
         token
       }
     });
@@ -114,9 +106,9 @@ router.post('/login', async (req, res) => {
 });
 
 // Get user profile
-router.get('/profile', auth, async (req, res) => {
+router.get('/profile', authenticate, async (req, res) => {
   try {
-    const user = await req.db.findUserById(req.user.id);
+    const user = await User.findById(req.user.id);
     
     if (!user) {
       return res.status(404).json({
@@ -125,12 +117,9 @@ router.get('/profile', auth, async (req, res) => {
       });
     }
 
-    // Remove password from response
-    const { password: _, ...userResponse } = user;
-
     res.json({
       success: true,
-      data: { user: userResponse }
+      data: { user: user.toJSON() }
     });
   } catch (error) {
     console.error('Profile fetch error:', error);
@@ -142,8 +131,41 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
+// Update user profile
+router.put('/profile', authenticate, async (req, res) => {
+  try {
+    const { name, phone, address } = req.body;
+    
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name, phone, address },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: { user: user.toJSON() }
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile',
+      error: error.message
+    });
+  }
+});
+
 // Logout (client-side token removal)
-router.post('/logout', auth, (req, res) => {
+router.post('/logout', authenticate, (req, res) => {
   res.json({
     success: true,
     message: 'Logged out successfully'

@@ -3,9 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-
-// Import mock database service
-import mockDB from './services/mockDatabase.js';
+import mongoose from 'mongoose';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -41,21 +39,22 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Initialize mock database
-mockDB.connect()
-  .then(() => {
-    console.log('Database service initialized successfully');
-  })
-  .catch(err => {
-    console.error('Database initialization error:', err);
+// Connect to MongoDB
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/srimatha-restaurant', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
     process.exit(1);
-  });
+  }
+};
 
-// Make mock database available to routes
-app.use((req, res, next) => {
-  req.db = mockDB;
-  next();
-});
+// Initialize database connection
+connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -70,7 +69,7 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Server is running',
-    database: req.db.isConnected() ? 'Connected' : 'Disconnected'
+    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
   });
 });
 

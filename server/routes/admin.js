@@ -1,12 +1,54 @@
 import express from 'express';
-import { adminAuth } from '../middleware/auth.js';
+import User from '../models/User.js';
+import Order from '../models/Order.js';
+import MenuItem from '../models/MenuItem.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Get dashboard statistics
-router.get('/dashboard', adminAuth, async (req, res) => {
+router.get('/dashboard', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const stats = await req.db.getDashboardStats();
+    // Get total customers
+    const totalCustomers = await User.countDocuments({ role: 'customer' });
+    
+    // Get total orders
+    const totalOrders = await Order.countDocuments();
+    
+    // Get total revenue
+    const revenueResult = await Order.aggregate([
+      { $match: { paymentStatus: 'paid' } },
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+    ]);
+    const totalRevenue = revenueResult[0]?.total || 0;
+    
+    // Get today's orders
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const todayOrders = await Order.countDocuments({
+      createdAt: { $gte: today, $lt: tomorrow }
+    });
+    
+    // Get pending orders
+    const pendingOrders = await Order.countDocuments({ status: 'pending' });
+    
+    // Get popular items
+    const popularItems = await MenuItem.find({ 
+      isPopular: true, 
+      isAvailable: true 
+    }).limit(5);
+
+    const stats = {
+      totalCustomers,
+      totalOrders,
+      totalRevenue,
+      todayOrders,
+      pendingOrders,
+      popularItems
+    };
 
     res.json({
       success: true,
@@ -26,30 +68,60 @@ router.get('/dashboard', adminAuth, async (req, res) => {
 });
 
 // Get sales analytics
-router.get('/analytics/sales', adminAuth, async (req, res) => {
+router.get('/analytics/sales', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { period = '7d', startDate, endDate } = req.query;
 
-    // Mock sales data for now
-    const salesData = {
-      totalSales: 15000,
-      totalOrders: 45,
-      averageOrderValue: 333,
-      growthRate: 12.5,
-      dailySales: [
-        { date: '2024-01-01', sales: 2500, orders: 8 },
-        { date: '2024-01-02', sales: 3200, orders: 12 },
-        { date: '2024-01-03', sales: 2800, orders: 9 },
-        { date: '2024-01-04', sales: 3500, orders: 11 },
-        { date: '2024-01-05', sales: 2900, orders: 10 },
-        { date: '2024-01-06', sales: 4100, orders: 15 },
-        { date: '2024-01-07', sales: 3600, orders: 13 }
-      ]
-    };
+    // Calculate date range
+    let dateFilter = {};
+    if (startDate && endDate) {
+      dateFilter = {
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        }
+      };
+    } else {
+      const days = parseInt(period.replace('d', ''));
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - days);
+      dateFilter = {
+        createdAt: { $gte: fromDate }
+      };
+    }
+
+    // Get sales data
+    const salesData = await Order.aggregate([
+      { $match: { ...dateFilter, paymentStatus: 'paid' } },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+          },
+          sales: { $sum: '$totalAmount' },
+          orders: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    const totalSales = salesData.reduce((sum, day) => sum + day.sales, 0);
+    const totalOrders = salesData.reduce((sum, day) => sum + day.orders, 0);
+    const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
 
     res.json({
       success: true,
-      data: salesData
+      data: {
+        totalSales,
+        totalOrders,
+        averageOrderValue,
+        growthRate: 12.5, // This would be calculated based on previous period
+        dailySales: salesData.map(day => ({
+          date: day._id,
+          sales: day.sales,
+          orders: day.orders
+        }))
+      }
     });
   } catch (error) {
     console.error('Sales analytics error:', error);
@@ -62,7 +134,7 @@ router.get('/analytics/sales', adminAuth, async (req, res) => {
 });
 
 // Get system settings
-router.get('/settings', adminAuth, async (req, res) => {
+router.get('/settings', authenticate, authorize('admin'), async (req, res) => {
   try {
     const settings = {
       restaurant: {

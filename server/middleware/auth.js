@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
-export const auth = async (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
@@ -13,8 +14,8 @@ export const auth = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
     
-    // Find user in mock database
-    const user = await req.db.findUserById(decoded.id);
+    // Find user in database
+    const user = await User.findById(decoded.id);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -39,22 +40,47 @@ export const auth = async (req, res, next) => {
   }
 };
 
-export const adminAuth = async (req, res, next) => {
+export const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required.'
+      });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Insufficient privileges.'
+      });
+    }
+
+    next();
+  };
+};
+
+export const optionalAuth = async (req, res, next) => {
   try {
-    await auth(req, res, () => {
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Access denied. Admin privileges required.'
-        });
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+      const user = await User.findById(decoded.id);
+      
+      if (user) {
+        req.user = {
+          id: user._id,
+          email: user.email,
+          role: user.role,
+          name: user.name
+        };
       }
-      next();
-    });
+    }
+    
+    next();
   } catch (error) {
-    console.error('Admin auth middleware error:', error);
-    res.status(403).json({
-      success: false,
-      message: 'Access denied.'
-    });
+    // Continue without authentication if token is invalid
+    next();
   }
 };
