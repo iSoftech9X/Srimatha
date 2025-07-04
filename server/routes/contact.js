@@ -1,5 +1,5 @@
 import express from 'express';
-import { adminAuth } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all contacts (Admin only)
-router.get('/', adminAuth, async (req, res) => {
+router.get('/', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
 

@@ -1,10 +1,10 @@
 import express from 'express';
-import { adminAuth } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Get all customers (Admin only)
-router.get('/', adminAuth, async (req, res) => {
+router.get('/', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { page = 1, limit = 10, search, status } = req.query;
 
@@ -61,7 +61,7 @@ router.get('/', adminAuth, async (req, res) => {
 });
 
 // Get customer analytics
-router.get('/analytics/overview', adminAuth, async (req, res) => {
+router.get('/analytics/overview', authenticate, authorize('admin'), async (req, res) => {
   try {
     const analytics = {
       totalCustomers: 150,
