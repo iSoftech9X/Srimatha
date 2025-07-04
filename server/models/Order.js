@@ -170,17 +170,6 @@ orderSchema.pre('save', async function(next) {
   next();
 });
 
-// Add status to history when status changes
-orderSchema.pre('save', function(next) {
-  if (this.isModified('status') && !this.isNew) {
-    this.statusHistory.push({
-      status: this.status,
-      timestamp: new Date()
-    });
-  }
-  next();
-});
-
 // Indexes for better query performance
 orderSchema.index({ customer: 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });
