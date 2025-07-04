@@ -1,4 +1,5 @@
 import express from 'express';
+import User from '../models/User.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -8,43 +9,46 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { page = 1, limit = 10, search, status } = req.query;
 
-    // Mock customer data for now
-    const customers = [
-      {
-        _id: '1',
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '+91 9876543210',
-        role: 'customer',
-        isActive: true,
-        totalOrders: 5,
-        totalSpent: 1250,
-        lastOrderDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        _id: '2',
-        name: 'Jane Smith',
-        email: 'jane@example.com',
-        phone: '+91 9876543211',
-        role: 'customer',
-        isActive: true,
-        totalOrders: 3,
-        totalSpent: 890,
-        lastOrderDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ];
+    // Build query
+    const query = { role: 'customer' };
+    if (status) query.isActive = status === 'active';
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+    }
 
-    const total = customers.length;
+    // Get customers with pagination
+    const customers = await User.find(query)
+      .select('-password')
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    const total = await User.countDocuments(query);
     const totalPages = Math.ceil(total / parseInt(limit));
+
+    // Transform data to match frontend expectations
+    const transformedCustomers = customers.map(customer => ({
+      id: customer._id,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      role: customer.role,
+      isActive: customer.isActive,
+      totalOrders: 0, // This would come from Order aggregation
+      totalSpent: 0, // This would come from Order aggregation
+      lastOrderDate: new Date(),
+      createdAt: customer.createdAt,
+      updatedAt: customer.updatedAt
+    }));
 
     res.json({
       success: true,
       data: {
-        customers,
+        customers: transformedCustomers,
         total,
         page: parseInt(page),
         totalPages
@@ -63,13 +67,26 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
 // Get customer analytics
 router.get('/analytics/overview', authenticate, authorize('admin'), async (req, res) => {
   try {
+    const totalCustomers = await User.countDocuments({ role: 'customer' });
+    const activeCustomers = await User.countDocuments({ role: 'customer', isActive: true });
+    
+    // Get new customers this month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    
+    const newCustomersThisMonth = await User.countDocuments({
+      role: 'customer',
+      createdAt: { $gte: startOfMonth }
+    });
+
     const analytics = {
-      totalCustomers: 150,
-      activeCustomers: 142,
-      newCustomersThisMonth: 23,
-      customerGrowthRate: 15.3,
-      averageOrderValue: 325,
-      customerRetentionRate: 78.5
+      totalCustomers,
+      activeCustomers,
+      newCustomersThisMonth,
+      customerGrowthRate: totalCustomers > 0 ? (newCustomersThisMonth / totalCustomers) * 100 : 0,
+      averageOrderValue: 325, // This would come from Order aggregation
+      customerRetentionRate: 78.5 // This would be calculated from Order data
     };
 
     res.json({

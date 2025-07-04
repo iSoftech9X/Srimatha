@@ -84,3 +84,12 @@ export const optionalAuth = async (req, res, next) => {
     next();
   }
 };
+
+// Legacy support - keeping the old function names as aliases
+export const auth = authenticate;
+export const adminAuth = (req, res, next) => {
+  authenticate(req, res, (err) => {
+    if (err) return next(err);
+    authorize('admin')(req, res, next);
+  });
+};
