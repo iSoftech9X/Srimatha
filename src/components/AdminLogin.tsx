@@ -1,47 +1,61 @@
 import React, { useState } from 'react';
-import { Lock, User } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { Lock, User, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const AdminLogin: React.FC = () => {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-  const { setIsAdmin } = useApp();
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Simple authentication (in production, use proper authentication)
-    if (credentials.username === 'admin' && credentials.password === 'admin123') {
-      setIsAdmin(true);
-      setError('');
-    } else {
-      setError('Invalid credentials. Use admin/admin123');
+    setError('');
+    setLoading(true);
+
+    try {
+      const result = await login(credentials.email, credentials.password);
+      
+      if (result.success && result.user?.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (result.success) {
+        setError('Access denied. Admin privileges required.');
+      } else {
+        setError(result.error || 'Invalid credentials');
+      }
+    } catch (error) {
+      setError('Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock className="text-white" size={32} />
+          <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="text-white" size={40} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Admin Login</h2>
-          <p className="text-gray-600">Access the admin dashboard</p>
+          <h2 className="text-3xl font-bold text-gray-800">Admin Portal</h2>
+          <p className="text-gray-600 mt-2">Access the restaurant management dashboard</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">Username</label>
+            <label className="block text-gray-700 font-medium mb-2">Email Address</label>
             <div className="relative">
               <User className="absolute left-3 top-3 text-gray-400" size={20} />
               <input
-                type="text"
-                value={credentials.username}
-                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Enter username"
+                type="email"
+                value={credentials.email}
+                onChange={(e) => setCredentials(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Enter admin email"
                 required
+                disabled={loading}
               />
             </div>
           </div>
@@ -54,33 +68,54 @@ const AdminLogin: React.FC = () => {
                 type="password"
                 value={credentials.password}
                 onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="Enter password"
                 required
+                disabled={loading}
               />
             </div>
           </div>
 
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+              <AlertCircle size={20} className="mr-2 flex-shrink-0" />
+              <span className="text-sm">{error}</span>
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 disabled:scale-100"
           >
-            Login to Admin Panel
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Signing In...
+              </div>
+            ) : (
+              'Access Admin Dashboard'
+            )}
           </button>
         </form>
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600 text-center">
-            <strong>Demo Credentials:</strong><br />
-            Username: admin<br />
-            Password: admin123
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-600 text-center mb-2">
+            <strong>Demo Admin Credentials:</strong>
           </p>
+          <div className="text-xs text-gray-500 text-center space-y-1">
+            <p>Email: admin@srimatha.com</p>
+            <p>Password: admin123</p>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => navigate('/')}
+            className="text-orange-600 hover:text-orange-700 font-medium text-sm transition-colors duration-200"
+          >
+            ← Back to Main Site
+          </button>
         </div>
       </div>
     </div>
