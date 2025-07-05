@@ -20,16 +20,25 @@ const AdminLogin: React.FC = () => {
       
       if (result.success && result.user?.role === 'admin') {
         navigate('/admin/dashboard');
-      } else if (result.success) {
+      } else if (result.success && result.user?.role === 'customer') {
         setError('Access denied. Admin privileges required.');
       } else {
-        setError(result.error || 'Invalid credentials');
+        setError(result.error || 'Invalid credentials. Please check your email and password.');
       }
     } catch (error) {
+      console.error('Login error:', error);
       setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fillDemoCredentials = () => {
+    setCredentials({
+      email: 'admin@srimatha.com',
+      password: 'admin123'
+    });
+    setError('');
   };
 
   return (
@@ -100,13 +109,20 @@ const AdminLogin: React.FC = () => {
         </form>
 
         <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600 text-center mb-2">
+          <p className="text-sm text-gray-600 text-center mb-3">
             <strong>Demo Admin Credentials:</strong>
           </p>
-          <div className="text-xs text-gray-500 text-center space-y-1">
+          <div className="text-xs text-gray-500 text-center space-y-1 mb-3">
             <p>Email: admin@srimatha.com</p>
             <p>Password: admin123</p>
           </div>
+          <button
+            type="button"
+            onClick={fillDemoCredentials}
+            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+          >
+            Use Demo Credentials
+          </button>
         </div>
 
         <div className="mt-6 text-center">

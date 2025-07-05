@@ -4,13 +4,13 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'customer';
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -33,50 +33,100 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for stored user data on mount
     const storedUser = localStorage.getItem('srimatha_user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('srimatha_user');
+      }
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Demo credentials - in production, this would connect to your backend
-    const adminCredentials = { email: 'admin@srimatha.com', password: 'admin123' };
-    const demoUser = { email: 'user@example.com', password: 'user123' };
+  const login = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
+    try {
+      // Demo credentials - exact match required
+      const adminCredentials = { 
+        email: 'admin@srimatha.com', 
+        password: 'admin123' 
+      };
+      const demoUserCredentials = { 
+        email: 'user@example.com', 
+        password: 'user123' 
+      };
 
-    if (email === adminCredentials.email && password === adminCredentials.password) {
-      const adminUser: User = {
-        id: '1',
-        name: 'Srimatha Admin',
-        email: adminCredentials.email,
-        role: 'admin'
+      // Trim whitespace and convert to lowercase for email comparison
+      const trimmedEmail = email.trim().toLowerCase();
+      const trimmedPassword = password.trim();
+
+      if (trimmedEmail === adminCredentials.email.toLowerCase() && trimmedPassword === adminCredentials.password) {
+        const adminUser: User = {
+          id: 'admin_1',
+          name: 'Srimatha Admin',
+          email: adminCredentials.email,
+          role: 'admin'
+        };
+        setUser(adminUser);
+        localStorage.setItem('srimatha_user', JSON.stringify(adminUser));
+        return { success: true, user: adminUser };
+      } 
+      else if (trimmedEmail === demoUserCredentials.email.toLowerCase() && trimmedPassword === demoUserCredentials.password) {
+        const regularUser: User = {
+          id: 'user_1',
+          name: 'Demo User',
+          email: demoUserCredentials.email,
+          role: 'customer'
+        };
+        setUser(regularUser);
+        localStorage.setItem('srimatha_user', JSON.stringify(regularUser));
+        return { success: true, user: regularUser };
+      } 
+      else {
+        return { 
+          success: false, 
+          error: 'Invalid email or password. Please check your credentials.' 
+        };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        error: 'Login failed. Please try again.' 
       };
-      setUser(adminUser);
-      localStorage.setItem('srimatha_user', JSON.stringify(adminUser));
-      return true;
-    } else if (email === demoUser.email && password === demoUser.password) {
-      const regularUser: User = {
-        id: '2',
-        name: 'Demo User',
-        email: demoUser.email,
-        role: 'user'
-      };
-      setUser(regularUser);
-      localStorage.setItem('srimatha_user', JSON.stringify(regularUser));
-      return true;
     }
-    return false;
   };
 
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    // Demo registration - in production, this would connect to your backend
-    const newUser: User = {
-      id: Date.now().toString(),
-      name,
-      email,
-      role: 'user'
-    };
-    setUser(newUser);
-    localStorage.setItem('srimatha_user', JSON.stringify(newUser));
-    return true;
+  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
+    try {
+      // Check if user already exists (simple check for demo)
+      const existingUser = localStorage.getItem('srimatha_user');
+      if (existingUser) {
+        const parsed = JSON.parse(existingUser);
+        if (parsed.email.toLowerCase() === email.trim().toLowerCase()) {
+          return { 
+            success: false, 
+            error: 'User with this email already exists.' 
+          };
+        }
+      }
+
+      // Create new user
+      const newUser: User = {
+        id: `user_${Date.now()}`,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        role: 'customer'
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('srimatha_user', JSON.stringify(newUser));
+      return { success: true, user: newUser };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { 
+        success: false, 
+        error: 'Registration failed. Please try again.' 
+      };
+    }
   };
 
   const logout = () => {
