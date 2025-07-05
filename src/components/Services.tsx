@@ -73,7 +73,7 @@ const Services: React.FC = () => {
                   ))}
                 </div>
                 <button className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-full font-semibold transition-colors duration-300">
-                  Learn More
+                  Order Now
                 </button>
               </div>
             </div>
