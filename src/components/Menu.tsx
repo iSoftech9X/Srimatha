@@ -173,7 +173,7 @@ const Menu: React.FC = () => {
                 Download Menu
               </button>
               <button className="border-2 border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white px-8 py-3 rounded-full font-semibold transition-all duration-300">
-                Make Reservation
+                Order Catering
               </button>
             </div>
           </div>
