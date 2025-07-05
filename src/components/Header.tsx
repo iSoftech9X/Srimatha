@@ -6,7 +6,14 @@ const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  
+  const navItems = [
+    { name: 'Home', href: '#home' },
+    { name: 'About', href: '#about' },
+    { name: 'Services', href: '#services' },
+    { name: 'Menu', href: '#menu' },
+    { name: 'Gallery', href: '#gallery' },
+    { name: 'Contact', href: '#contact' }
+  ];
 
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
@@ -59,31 +66,38 @@ const Header: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">Srimatha</h1>
-               
               </div>
             </div>
-             <p className="text-base text-gray-600 flex gap-4 items-center">
-  <span className="flex items-center gap-1">
-    <span className="w-2 h-2 rounded-full bg-red-500"></span>
-    Restaurant
-  </span>
-  <span className="flex items-center gap-1">
-    <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-    Food Court
-  </span>
-  <span className="flex items-center gap-1">
-    <span className="w-2 h-2 rounded-full bg-green-500"></span>
-    Catering
-  </span>
-</p>
 
-
-
-
-
+            {/* Services Indicator */}
+            <div className="hidden lg:flex items-center gap-6">
+              <p className="text-base text-gray-600 flex gap-4 items-center">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                  Restaurant
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                  Food Court
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  Catering
+                </span>
+              </p>
+            </div>
 
             {/* Desktop Navigation */}
-           
+            <div className="hidden md:flex items-center space-x-8">
+              {navItems.map((item) => (
+                <button
+                  key={item.name}
+                  onClick={() => scrollToSection(item.href)}
+                  className="text-gray-700 hover:text-orange-600 font-medium transition-colors duration-200"
+                >
+                  {item.name}
+                </button>
+              ))}
               
               <button 
                 onClick={handleOrderOnline}
@@ -91,7 +105,7 @@ const Header: React.FC = () => {
               >
                 Order Online
               </button>
-            
+            </div>
 
             {/* Mobile Menu Button */}
             <button
