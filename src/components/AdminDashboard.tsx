@@ -8,13 +8,18 @@ import {
   LogOut,
   BarChart3,
   Settings,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  Package,
+  UserCheck,
+  Percent
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import CustomerManagement from './CustomerManagement';
 import OrderManagement from './OrderManagement';
 import MenuManagement from './MenuManagement';
+import InventoryManagement from './InventoryManagement';
+import StaffManagement from './StaffManagement';
 
 const AdminDashboard: React.FC = () => {
   const { user, logout, isAdmin } = useAuth();
@@ -94,6 +99,9 @@ const AdminDashboard: React.FC = () => {
     { id: 'customers', name: 'Customers', icon: Users },
     { id: 'orders', name: 'Orders', icon: ShoppingBag },
     { id: 'menu', name: 'Menu', icon: MenuIcon },
+    { id: 'inventory', name: 'Inventory', icon: Package },
+    { id: 'staff', name: 'Staff', icon: UserCheck },
+    { id: 'promotions', name: 'Promotions', icon: Percent },
     { id: 'settings', name: 'Settings', icon: Settings }
   ];
 
@@ -329,6 +337,19 @@ const AdminDashboard: React.FC = () => {
           {activeTab === 'customers' && <CustomerManagement />}
           {activeTab === 'orders' && <OrderManagement />}
           {activeTab === 'menu' && <MenuManagement />}
+          {activeTab === 'inventory' && <InventoryManagement />}
+          {activeTab === 'staff' && <StaffManagement />}
+          
+          {activeTab === 'promotions' && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-6">Promotions & Offers</h3>
+              <div className="text-center py-12">
+                <Percent size={48} className="mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500 text-lg">Promotions Management</p>
+                <p className="text-gray-400 text-sm">Coming soon...</p>
+              </div>
+            </div>
+          )}
           
           {activeTab === 'settings' && (
             <div className="bg-white rounded-lg shadow-md p-6">
