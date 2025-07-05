@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, Download } from 'lucide-react';
 
 const Menu: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('appetizers');
@@ -100,6 +100,164 @@ const Menu: React.FC = () => {
     ]
   };
 
+  const generateDummyPDF = () => {
+    // Create a simple HTML content for the PDF
+    const menuContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Srimatha Restaurant Menu</title>
+        <style>
+          body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            color: #333;
+            line-height: 1.6;
+          }
+          .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            border-bottom: 3px solid #ea580c;
+            padding-bottom: 20px;
+          }
+          .restaurant-name { 
+            font-size: 36px; 
+            font-weight: bold; 
+            color: #ea580c; 
+            margin-bottom: 10px;
+          }
+          .tagline { 
+            font-size: 16px; 
+            color: #666; 
+            font-style: italic;
+          }
+          .category { 
+            margin: 30px 0; 
+            page-break-inside: avoid;
+          }
+          .category-title { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #ea580c; 
+            border-bottom: 2px solid #ea580c; 
+            padding-bottom: 10px; 
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .menu-item { 
+            margin: 15px 0; 
+            padding: 15px; 
+            border: 1px solid #eee; 
+            border-radius: 8px;
+            background: #fafafa;
+          }
+          .item-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 8px;
+          }
+          .item-name { 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #333;
+          }
+          .item-price { 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #ea580c;
+          }
+          .item-description { 
+            color: #666; 
+            font-size: 14px;
+            margin-top: 5px;
+          }
+          .popular-badge { 
+            background: #ea580c; 
+            color: white; 
+            padding: 3px 8px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            font-weight: bold;
+            margin-left: 10px;
+          }
+          .footer { 
+            margin-top: 40px; 
+            text-align: center; 
+            border-top: 2px solid #ea580c; 
+            padding-top: 20px;
+            color: #666;
+          }
+          .contact-info { 
+            margin: 10px 0; 
+            font-size: 14px;
+          }
+          @media print {
+            body { margin: 0; }
+            .category { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="restaurant-name">SRIMATHA</div>
+          <div class="tagline">Restaurant • Food Court • Catering Services</div>
+        </div>
+        
+        ${Object.entries(menuItems).map(([categoryId, items]) => `
+          <div class="category">
+            <div class="category-title">${categories.find(c => c.id === categoryId)?.name}</div>
+            ${items.map(item => `
+              <div class="menu-item">
+                <div class="item-header">
+                  <span class="item-name">
+                    ${item.name}
+                    ${item.popular ? '<span class="popular-badge">POPULAR</span>' : ''}
+                  </span>
+                  <span class="item-price">${item.price}</span>
+                </div>
+                <div class="item-description">${item.description}</div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+        
+        <div class="footer">
+          <div class="contact-info">
+            <strong>📍 Address:</strong> 123 Food Street, Gourmet District, Culinary City, CC 560001
+          </div>
+          <div class="contact-info">
+            <strong>📞 Phone:</strong> +91 98765 43210 | <strong>✉️ Email:</strong> info@srimatha.com
+          </div>
+          <div class="contact-info">
+            <strong>🕒 Hours:</strong> Monday - Sunday: 11:00 AM - 11:00 PM
+          </div>
+          <div style="margin-top: 20px; font-style: italic;">
+            Thank you for choosing Srimatha Restaurant!
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Create a blob with the HTML content
+    const blob = new Blob([menuContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    
+    // Create a temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Srimatha-Restaurant-Menu-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    // Show success message
+    alert('Menu downloaded successfully! The file will open in your browser where you can print or save as PDF.');
+  };
+
   return (
     <section id="menu" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
@@ -169,7 +327,11 @@ const Menu: React.FC = () => {
               Download our complete menu or visit us to explore our seasonal specials and chef's recommendations
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-full font-semibold transition-colors duration-300">
+              <button 
+                onClick={generateDummyPDF}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
+              >
+                <Download size={20} />
                 Download Menu
               </button>
               <button className="border-2 border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white px-8 py-3 rounded-full font-semibold transition-all duration-300">
