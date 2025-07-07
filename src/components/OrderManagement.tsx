@@ -13,6 +13,7 @@ const OrderManagement: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [realTimeOrders, setRealTimeOrders] = useState<any[]>([]);
+  const [realTimeQuotes, setRealTimeQuotes] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
   // Set up real-time connection for catering orders
@@ -20,7 +21,7 @@ const OrderManagement: React.FC = () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    const eventSource = new EventSource(`/api/orders/stream`, {
+    const eventSource = new EventSource(`/api/catering/stream`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -28,7 +29,7 @@ const OrderManagement: React.FC = () => {
 
     eventSource.onopen = () => {
       setIsConnected(true);
-      console.log('Real-time order updates connected');
+      console.log('Real-time catering updates connected');
     };
 
     eventSource.onmessage = (event) => {
@@ -45,6 +46,9 @@ const OrderManagement: React.FC = () => {
             )
           );
           toast.success(`Catering order ${data.order.id} updated`);
+        } else if (data.type === 'new_quote_request') {
+          setRealTimeQuotes(prev => [data.quote, ...prev]);
+          toast.success(`New quote request received: ${data.quote.id}`);
         }
       } catch (error) {
         console.error('Error parsing SSE data:', error);
@@ -127,7 +131,7 @@ const OrderManagement: React.FC = () => {
     try {
       // Check if it's a catering order
       if (orderId.startsWith('CATERING-')) {
-        const response = await fetch(`/api/orders/${orderId}/status`, {
+        const response = await fetch(`/api/catering/orders/${orderId}/status`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -159,8 +163,9 @@ const OrderManagement: React.FC = () => {
     const delivered = filteredOrders.filter(o => o.status === 'delivered').length;
     const catering = filteredOrders.filter(o => o.orderType === 'catering').length;
     const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const quotes = realTimeQuotes.length;
     
-    return { total, pending, preparing, ready, delivered, catering, totalRevenue };
+    return { total, pending, preparing, ready, delivered, catering, totalRevenue, quotes };
   };
 
   const stats = getOrderStats();
@@ -229,7 +234,7 @@ const OrderManagement: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
         <div className="bg-white p-4 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
           <div className="text-sm text-gray-600">Total Orders</div>
@@ -253,6 +258,10 @@ const OrderManagement: React.FC = () => {
         <div className="bg-white p-4 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-purple-600">{stats.catering}</div>
           <div className="text-sm text-gray-600">Catering</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <div className="text-2xl font-bold text-pink-600">{stats.quotes}</div>
+          <div className="text-sm text-gray-600">Quotes</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-indigo-600">₹{stats.totalRevenue.toLocaleString()}</div>
@@ -309,6 +318,41 @@ const OrderManagement: React.FC = () => {
           </select>
         </div>
       </div>
+
+      {/* Quote Requests Section */}
+      {realTimeQuotes.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Quote Requests</h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {realTimeQuotes.slice(0, 6).map((quote) => (
+              <div key={quote.id} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-semibold text-gray-800">{quote.id}</h4>
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">
+                    Quote Request
+                  </span>
+                </div>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p><strong>Event:</strong> {quote.eventType}</p>
+                  <p><strong>Guests:</strong> {quote.guestCount}</p>
+                  <p><strong>Date:</strong> {new Date(quote.eventDate).toLocaleDateString()}</p>
+                  <p><strong>Contact:</strong> {quote.contactName}</p>
+                  <p><strong>Phone:</strong> {quote.contactPhone}</p>
+                  <p><strong>Estimated Cost:</strong> ₹{quote.estimatedCost?.toLocaleString()}</p>
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded text-xs font-medium transition-colors duration-200">
+                    Send Quote
+                  </button>
+                  <button className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-3 rounded text-xs font-medium transition-colors duration-200">
+                    Call Customer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Orders List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">

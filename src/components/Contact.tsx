@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Calendar, MessageSquare } from 'lucide-react';
-import { contactAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const Contact: React.FC = () => {
@@ -19,19 +18,38 @@ const Contact: React.FC = () => {
     setLoading(true);
 
     try {
-      await contactAPI.submitForm(formData);
-      toast.success('Your message has been sent successfully! We will get back to you soon.');
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message
+        })
       });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(result.message);
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+      } else {
+        throw new Error(result.message || 'Failed to send message');
+      }
     } catch (error) {
       console.error('Contact form error:', error);
-      toast.error('Failed to send message. Please try again.');
+      toast.error(error.message || 'Failed to send message. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -42,6 +60,14 @@ const Contact: React.FC = () => {
       ...prev,
       [e.target.name]: e.target.value
     }));
+  };
+
+  const handleOrderNow = () => {
+    window.open('https://srimatha.co.in/', '_blank');
+  };
+
+  const handleCateringQuote = () => {
+    window.location.href = '/catering';
   };
 
   return (
@@ -110,11 +136,17 @@ const Contact: React.FC = () => {
             <div className="space-y-4">
               <h4 className="text-xl font-bold text-gray-800">Quick Actions</h4>
               <div className="grid grid-cols-2 gap-4">
-                <button className="flex items-center justify-center bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-lg font-semibold transition-colors duration-300">
+                <button 
+                  onClick={handleOrderNow}
+                  className="flex items-center justify-center bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-lg font-semibold transition-colors duration-300"
+                >
                   <Calendar className="mr-2" size={20} />
-                  Book Table
+                  Order Now
                 </button>
-                <button className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg font-semibold transition-colors duration-300">
+                <button 
+                  onClick={handleCateringQuote}
+                  className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg font-semibold transition-colors duration-300"
+                >
                   <MessageSquare className="mr-2" size={20} />
                   Catering Quote
                 </button>
@@ -141,6 +173,7 @@ const Contact: React.FC = () => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="Your first name"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div>
@@ -156,6 +189,7 @@ const Contact: React.FC = () => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="Your last name"
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -173,6 +207,7 @@ const Contact: React.FC = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   placeholder="your.email@example.com"
                   required
+                  disabled={loading}
                 />
               </div>
 
@@ -189,6 +224,7 @@ const Contact: React.FC = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   placeholder="+91 98765 43210"
                   required
+                  disabled={loading}
                 />
               </div>
 
@@ -203,6 +239,7 @@ const Contact: React.FC = () => {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
+                  disabled={loading}
                 >
                   <option value="">Select a subject</option>
                   <option value="reservation">Table Reservation</option>
@@ -226,6 +263,7 @@ const Contact: React.FC = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-vertical"
                   placeholder="Tell us how we can help you..."
                   required
+                  disabled={loading}
                 ></textarea>
               </div>
 

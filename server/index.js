@@ -14,6 +14,7 @@ import menuRoutes from './routes/menu.js';
 import orderRoutes from './routes/orders.js';
 import adminRoutes from './routes/admin.js';
 import contactRoutes from './routes/contact.js';
+import cateringRoutes from './routes/catering.js';
 
 dotenv.config();
 
@@ -64,6 +65,7 @@ app.use('/api/menu', menuRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/catering', cateringRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -94,4 +96,5 @@ app.use('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log('Real-time catering system ready!');
 });

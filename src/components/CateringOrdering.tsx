@@ -21,6 +21,7 @@ const CateringOrdering: React.FC = () => {
   const { menuItems, cart, addToCart, removeFromCart, updateCartQuantity, clearCart } = useApp();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<CateringPackage | null>(null);
   const [orderDetails, setOrderDetails] = useState({
     eventDate: '',
@@ -33,6 +34,16 @@ const CateringOrdering: React.FC = () => {
     contactEmail: '',
     specialRequirements: ''
   });
+  const [quoteForm, setQuoteForm] = useState({
+    eventType: '',
+    guestCount: '',
+    eventDate: '',
+    contactName: '',
+    contactPhone: '',
+    contactEmail: '',
+    specialRequirements: ''
+  });
+  const [loading, setLoading] = useState(false);
 
   const cateringPackages: CateringPackage[] = [
     {
@@ -138,6 +149,7 @@ const CateringOrdering: React.FC = () => {
       contactEmail: '',
       specialRequirements: ''
     });
+    toast.success('Package added to cart!');
   };
 
   const handlePlaceOrder = async () => {
@@ -151,24 +163,20 @@ const CateringOrdering: React.FC = () => {
       return;
     }
 
-    // Create real-time order
-    const orderData = {
-      customerId: user?.id,
-      customerName: user?.name,
-      customerPhone: orderDetails.contactPhone || user?.phone,
-      customerEmail: user?.email,
-      items: cart,
-      totalAmount: cartTotal,
-      orderType: 'catering',
-      eventDetails: orderDetails,
-      specialInstructions: orderDetails.specialRequirements,
-      paymentStatus: 'pending',
-      status: 'pending'
-    };
+    setLoading(true);
 
     try {
-      // Simulate real-time order creation
-      const response = await fetch('/api/orders/catering', {
+      // Create catering order data
+      const orderData = {
+        items: cart,
+        totalAmount: cartTotal,
+        eventDetails: orderDetails,
+        specialInstructions: orderDetails.specialRequirements,
+        paymentStatus: 'pending',
+        status: 'pending'
+      };
+
+      const response = await fetch('/api/catering/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,28 +185,71 @@ const CateringOrdering: React.FC = () => {
         body: JSON.stringify(orderData)
       });
 
-      if (response.ok) {
-        toast.success('Catering order placed successfully! We will contact you shortly.');
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(result.message);
         clearCart();
         setShowCart(false);
         
-        // Real-time notification to admin (simulate WebSocket)
-        if (window.EventSource) {
-          const eventSource = new EventSource('/api/orders/stream');
-          eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'new_catering_order') {
-              // This would notify admin in real-time
-              console.log('New catering order received:', data.order);
-            }
-          };
-        }
+        // Reset order details
+        setOrderDetails({
+          eventDate: '',
+          eventTime: '',
+          guestCount: '',
+          eventType: '',
+          venue: '',
+          contactPerson: '',
+          contactPhone: '',
+          contactEmail: '',
+          specialRequirements: ''
+        });
       } else {
-        throw new Error('Failed to place order');
+        throw new Error(result.message || 'Failed to place order');
       }
     } catch (error) {
       console.error('Order placement error:', error);
-      toast.error('Failed to place order. Please try again.');
+      toast.error(error.message || 'Failed to place order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuoteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/catering/quotes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(quoteForm)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(result.message);
+        setShowQuoteModal(false);
+        setQuoteForm({
+          eventType: '',
+          guestCount: '',
+          eventDate: '',
+          contactName: '',
+          contactPhone: '',
+          contactEmail: '',
+          specialRequirements: ''
+        });
+      } else {
+        throw new Error(result.message || 'Failed to submit quote request');
+      }
+    } catch (error) {
+      console.error('Quote submission error:', error);
+      toast.error(error.message || 'Failed to submit quote request. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -360,25 +411,12 @@ const CateringOrdering: React.FC = () => {
             </div>
             <div className="bg-gray-50 p-6 rounded-lg">
               <h4 className="font-semibold text-gray-800 mb-4">Quick Quote Request</h4>
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Event Type"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-                <input
-                  type="number"
-                  placeholder="Number of Guests"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-                <input
-                  type="date"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-                <button className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-lg font-semibold transition-colors duration-300">
-                  Get Quote
-                </button>
-              </div>
+              <button
+                onClick={() => setShowQuoteModal(true)}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
+              >
+                Get Custom Quote
+              </button>
             </div>
           </div>
         </div>
@@ -546,6 +584,133 @@ const CateringOrdering: React.FC = () => {
         </div>
       )}
 
+      {/* Quote Modal */}
+      {showQuoteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-800">Request Custom Quote</h3>
+                <button
+                  onClick={() => setShowQuoteModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleQuoteSubmit} className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">Event Type *</label>
+                    <select
+                      value={quoteForm.eventType}
+                      onChange={(e) => setQuoteForm(prev => ({ ...prev, eventType: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      required
+                    >
+                      <option value="">Select Event Type</option>
+                      {eventTypes.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">Number of Guests *</label>
+                    <input
+                      type="number"
+                      value={quoteForm.guestCount}
+                      onChange={(e) => setQuoteForm(prev => ({ ...prev, guestCount: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Number of guests"
+                      min="1"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Event Date *</label>
+                  <input
+                    type="date"
+                    value={quoteForm.eventDate}
+                    onChange={(e) => setQuoteForm(prev => ({ ...prev, eventDate: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    min={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">Contact Name *</label>
+                    <input
+                      type="text"
+                      value={quoteForm.contactName}
+                      onChange={(e) => setQuoteForm(prev => ({ ...prev, contactName: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Your name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">Contact Phone *</label>
+                    <input
+                      type="tel"
+                      value={quoteForm.contactPhone}
+                      onChange={(e) => setQuoteForm(prev => ({ ...prev, contactPhone: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Your phone number"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Contact Email *</label>
+                  <input
+                    type="email"
+                    value={quoteForm.contactEmail}
+                    onChange={(e) => setQuoteForm(prev => ({ ...prev, contactEmail: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Your email address"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Special Requirements</label>
+                  <textarea
+                    value={quoteForm.specialRequirements}
+                    onChange={(e) => setQuoteForm(prev => ({ ...prev, specialRequirements: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    rows={3}
+                    placeholder="Any specific requirements, dietary restrictions, budget range, etc."
+                  />
+                </div>
+
+                <div className="flex gap-4 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowQuoteModal(false)}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg font-semibold transition-colors duration-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
+                  >
+                    {loading ? 'Submitting...' : 'Get Quote'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cart Sidebar */}
       {showCart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
@@ -609,9 +774,10 @@ const CateringOrdering: React.FC = () => {
                 </div>
                 <button
                   onClick={handlePlaceOrder}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
+                  disabled={loading}
+                  className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
                 >
-                  Place Catering Order
+                  {loading ? 'Placing Order...' : 'Place Catering Order'}
                 </button>
                 <p className="text-xs text-gray-500 text-center mt-2">
                   Our team will contact you within 2 hours to confirm details
