@@ -13,7 +13,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
-import UserOrdering from './components/UserOrdering';
+import CateringOrdering from './components/CateringOrdering';
 import AuthModal from './components/AuthModal';
 
 const HomePage: React.FC = () => (
@@ -34,7 +34,7 @@ const AppContent: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/order" element={<UserOrdering />} />
+        <Route path="/catering" element={<CateringOrdering />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />

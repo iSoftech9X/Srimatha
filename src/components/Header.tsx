@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Menu, X, Phone, MapPin } from 'lucide-react';
+import { Menu, X, Phone, MapPin, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const navItems = [
     { name: 'Home', href: '#home' },
@@ -23,8 +25,24 @@ const Header: React.FC = () => {
     setIsMenuOpen(false);
   };
 
-  const handleOrderOnline = () => {
-    navigate('/order');
+  const handleRestaurantOrder = () => {
+    window.location.href = 'https://srimatha.co.in/';
+  };
+
+  const handleFoodCourtOrder = () => {
+    window.location.href = 'https://srimatha.co.in/';
+  };
+
+  const handleCateringOrder = () => {
+    navigate('/catering');
+  };
+
+  const handleAuthAction = () => {
+    if (isAuthenticated) {
+      logout();
+    } else {
+      (window as any).openAuthModal?.('login');
+    }
   };
 
   return (
@@ -99,12 +117,54 @@ const Header: React.FC = () => {
                 </button>
               ))}
               
-              <button 
-                onClick={handleOrderOnline}
-                className="bg-orange-600 text-white px-6 py-2 rounded-full hover:bg-orange-700 transition-colors duration-200 font-medium"
-              >
-                Order Online
-              </button>
+              {/* Order Buttons */}
+              <div className="flex items-center gap-2">
+                <div className="relative group">
+                  <button className="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700 transition-colors duration-200 font-medium">
+                    Order Now
+                  </button>
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="py-2">
+                      <button
+                        onClick={handleRestaurantOrder}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200"
+                      >
+                        Restaurant
+                      </button>
+                      <button
+                        onClick={handleFoodCourtOrder}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200"
+                      >
+                        Food Court
+                      </button>
+                      <button
+                        onClick={handleCateringOrder}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200"
+                      >
+                        Catering
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* User Auth */}
+                <button
+                  onClick={handleAuthAction}
+                  className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition-colors duration-200 font-medium"
+                >
+                  {isAuthenticated ? (
+                    <>
+                      <LogOut size={16} />
+                      Logout
+                    </>
+                  ) : (
+                    <>
+                      <User size={16} />
+                      Login
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
@@ -130,15 +190,48 @@ const Header: React.FC = () => {
                   {item.name}
                 </button>
               ))}
-              <button 
-                onClick={handleOrderOnline}
-                className="w-full bg-orange-600 text-white py-2 rounded-full hover:bg-orange-700 transition-colors duration-200 font-medium mt-4"
-              >
-                Order Online
-              </button>
+              
+              {/* Mobile Order Buttons */}
+              <div className="pt-4 space-y-2">
+                <button 
+                  onClick={handleRestaurantOrder}
+                  className="w-full bg-red-600 text-white py-2 rounded-full hover:bg-red-700 transition-colors duration-200 font-medium"
+                >
+                  Restaurant Order
+                </button>
+                <button 
+                  onClick={handleFoodCourtOrder}
+                  className="w-full bg-yellow-600 text-white py-2 rounded-full hover:bg-yellow-700 transition-colors duration-200 font-medium"
+                >
+                  Food Court Order
+                </button>
+                <button 
+                  onClick={handleCateringOrder}
+                  className="w-full bg-green-600 text-white py-2 rounded-full hover:bg-green-700 transition-colors duration-200 font-medium"
+                >
+                  Catering Order
+                </button>
+                <button
+                  onClick={handleAuthAction}
+                  className="w-full bg-gray-600 text-white py-2 rounded-full hover:bg-gray-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2"
+                >
+                  {isAuthenticated ? (
+                    <>
+                      <LogOut size={16} />
+                      Logout ({user?.name})
+                    </>
+                  ) : (
+                    <>
+                      <User size={16} />
+                      Login
+                    </>
+                  )}
+                </button>
+              </div>
+              
               <button
                 onClick={() => navigate('/admin')}
-                className="w-full bg-gray-600 text-white py-2 rounded-full hover:bg-gray-700 transition-colors duration-200 font-medium"
+                className="w-full bg-gray-800 text-white py-2 rounded-full hover:bg-gray-900 transition-colors duration-200 font-medium mt-2"
               >
                 Admin Panel
               </button>

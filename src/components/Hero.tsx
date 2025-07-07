@@ -1,9 +1,16 @@
 import React from 'react';
 import { ChefHat, Users, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero: React.FC = () => {
-  const handleExternalNavigation = () => {
+  const navigate = useNavigate();
+
+  const handleRestaurantOrder = () => {
     window.location.href = 'https://srimatha.co.in/';
+  };
+
+  const handleCateringOrder = () => {
+    navigate('/catering');
   };
 
   return (
@@ -57,16 +64,38 @@ const Hero: React.FC = () => {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button 
-            onClick={handleExternalNavigation}
+            onClick={handleRestaurantOrder}
             className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105"
           >
             Order Food Online
           </button>
           <button 
-            onClick={handleExternalNavigation}
+            onClick={handleCateringOrder}
             className="border-2 border-white text-white hover:bg-white hover:text-gray-800 px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300"
           >
-            Choose Your Catering Menu
+            Book Catering Service
+          </button>
+        </div>
+
+        {/* Quick Service Links */}
+        <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm">
+          <button 
+            onClick={handleRestaurantOrder}
+            className="bg-red-600 bg-opacity-80 hover:bg-opacity-100 text-white px-4 py-2 rounded-full transition-all duration-300"
+          >
+            🍽️ Restaurant Menu
+          </button>
+          <button 
+            onClick={handleRestaurantOrder}
+            className="bg-yellow-600 bg-opacity-80 hover:bg-opacity-100 text-white px-4 py-2 rounded-full transition-all duration-300"
+          >
+            🍕 Food Court
+          </button>
+          <button 
+            onClick={handleCateringOrder}
+            className="bg-green-600 bg-opacity-80 hover:bg-opacity-100 text-white px-4 py-2 rounded-full transition-all duration-300"
+          >
+            🎉 Event Catering
           </button>
         </div>
       </div>

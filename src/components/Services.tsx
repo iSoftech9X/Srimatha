@@ -1,35 +1,74 @@
 import React from 'react';
 import { ChefHat, Users, Calendar, Utensils, Coffee, PartyPopper } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Services: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleRestaurantOrder = () => {
+    window.location.href = 'https://srimatha.co.in/';
+  };
+
+  const handleFoodCourtOrder = () => {
+    window.location.href = 'https://srimatha.co.in/';
+  };
+
+  const handleCateringOrder = () => {
+    navigate('/catering');
+  };
+
   const services = [
     {
       icon: ChefHat,
       title: 'Fine Dining Restaurant',
       description: 'Experience culinary excellence in our elegant dining space with carefully crafted dishes and impeccable service.',
       features: ['Premium Ambiance', 'Gourmet Menu', 'Wine Selection', 'Private Dining'],
-      image: 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop'
+      image: 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      action: handleRestaurantOrder,
+      buttonText: 'Order from Restaurant',
+      buttonColor: 'bg-red-600 hover:bg-red-700'
     },
     {
       icon: Users,
       title: 'Food Court Experience',
       description: 'Diverse culinary options under one roof, perfect for families and groups with varying tastes and preferences.',
       features: ['Multiple Cuisines', 'Quick Service', 'Family Friendly', 'Affordable Pricing'],
-      image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop'
+      image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      action: handleFoodCourtOrder,
+      buttonText: 'Order from Food Court',
+      buttonColor: 'bg-yellow-600 hover:bg-yellow-700'
     },
     {
       icon: Calendar,
       title: 'Premium Catering',
       description: 'Make your special events unforgettable with our comprehensive catering services and event management.',
       features: ['Custom Menus', 'Event Planning', 'Full Service', 'Any Occasion'],
-      image: 'https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop'
+      image: 'https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      action: handleCateringOrder,
+      buttonText: 'Book Catering Service',
+      buttonColor: 'bg-green-600 hover:bg-green-700'
     }
   ];
 
   const additionalServices = [
-    { icon: Utensils, title: 'Corporate Catering', description: 'Professional catering for business events and meetings' },
-    { icon: Coffee, title: 'Breakfast & Brunch', description: 'Start your day with our delicious morning selections' },
-    { icon: PartyPopper, title: 'Party Packages', description: 'Complete party solutions for birthdays and celebrations' }
+    { 
+      icon: Utensils, 
+      title: 'Corporate Catering', 
+      description: 'Professional catering for business events and meetings',
+      action: handleCateringOrder
+    },
+    { 
+      icon: Coffee, 
+      title: 'Breakfast & Brunch', 
+      description: 'Start your day with our delicious morning selections',
+      action: handleRestaurantOrder
+    },
+    { 
+      icon: PartyPopper, 
+      title: 'Party Packages', 
+      description: 'Complete party solutions for birthdays and celebrations',
+      action: handleCateringOrder
+    }
   ];
 
   return (
@@ -72,8 +111,11 @@ const Services: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <button className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-full font-semibold transition-colors duration-300">
-                  Order Now
+                <button 
+                  onClick={service.action}
+                  className={`${service.buttonColor} text-white px-8 py-3 rounded-full font-semibold transition-colors duration-300`}
+                >
+                  {service.buttonText}
                 </button>
               </div>
             </div>
@@ -85,12 +127,46 @@ const Services: React.FC = () => {
           <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">Additional Services</h3>
           <div className="grid md:grid-cols-3 gap-8">
             {additionalServices.map((service, index) => (
-              <div key={index} className="text-center bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+              <div 
+                key={index} 
+                className="text-center bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+                onClick={service.action}
+              >
                 <service.icon className="mx-auto text-orange-600 mb-4" size={48} />
                 <h4 className="text-xl font-bold text-gray-800 mb-3">{service.title}</h4>
-                <p className="text-gray-600">{service.description}</p>
+                <p className="text-gray-600 mb-4">{service.description}</p>
+                <button 
+                  onClick={service.action}
+                  className="text-orange-600 hover:text-orange-700 font-semibold transition-colors duration-300"
+                >
+                  Learn More →
+                </button>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="text-center mt-16">
+          <div className="bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-8 md:p-12 text-white">
+            <h3 className="text-3xl font-bold mb-4">Ready to Experience Srimatha?</h3>
+            <p className="text-xl mb-8 max-w-2xl mx-auto">
+              Whether you're craving a quick bite, planning a special dinner, or organizing a grand event, we're here to serve you.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={handleRestaurantOrder}
+                className="bg-white text-orange-600 hover:bg-gray-100 px-8 py-3 rounded-full font-semibold transition-colors duration-300"
+              >
+                Order Food Now
+              </button>
+              <button 
+                onClick={handleCateringOrder}
+                className="border-2 border-white text-white hover:bg-white hover:text-orange-600 px-8 py-3 rounded-full font-semibold transition-all duration-300"
+              >
+                Plan Your Event
+              </button>
+            </div>
           </div>
         </div>
       </div>

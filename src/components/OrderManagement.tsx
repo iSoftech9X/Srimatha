@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Eye, Clock, CheckCircle, XCircle, Truck, Filter, Download, RefreshCw, Phone, Mail } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Eye, Clock, CheckCircle, XCircle, Truck, Filter, Download, RefreshCw, Phone, Mail, Calendar, Users, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Order } from '../types';
 import toast from 'react-hot-toast';
@@ -12,8 +12,60 @@ const OrderManagement: React.FC = () => {
   const [dateFilter, setDateFilter] = useState('today');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [realTimeOrders, setRealTimeOrders] = useState<any[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
 
-  const filteredOrders = orders.filter(order => {
+  // Set up real-time connection for catering orders
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const eventSource = new EventSource(`/api/orders/stream`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    eventSource.onopen = () => {
+      setIsConnected(true);
+      console.log('Real-time order updates connected');
+    };
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'new_catering_order') {
+          setRealTimeOrders(prev => [data.order, ...prev]);
+          toast.success(`New catering order received: ${data.order.id}`);
+        } else if (data.type === 'catering_order_updated') {
+          setRealTimeOrders(prev => 
+            prev.map(order => 
+              order.id === data.order.id ? data.order : order
+            )
+          );
+          toast.success(`Catering order ${data.order.id} updated`);
+        }
+      } catch (error) {
+        console.error('Error parsing SSE data:', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      setIsConnected(false);
+    };
+
+    return () => {
+      eventSource.close();
+      setIsConnected(false);
+    };
+  }, []);
+
+  // Combine regular orders with real-time catering orders
+  const allOrders = [...orders, ...realTimeOrders];
+
+  const filteredOrders = allOrders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.customerPhone.includes(searchTerm);
@@ -21,7 +73,7 @@ const OrderManagement: React.FC = () => {
     const matchesType = typeFilter === 'all' || order.orderType === typeFilter;
     
     // Date filtering logic
-    const orderDate = new Date(order.orderDate);
+    const orderDate = new Date(order.orderDate || order.createdAt);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -71,9 +123,32 @@ const OrderManagement: React.FC = () => {
     }
   };
 
-  const handleStatusUpdate = (orderId: string, newStatus: Order['status']) => {
-    updateOrderStatus(orderId, newStatus);
-    toast.success(`Order status updated to ${newStatus}`);
+  const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      // Check if it's a catering order
+      if (orderId.startsWith('CATERING-')) {
+        const response = await fetch(`/api/orders/${orderId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+          toast.success(`Catering order status updated to ${newStatus}`);
+        } else {
+          throw new Error('Failed to update catering order status');
+        }
+      } else {
+        // Regular order
+        updateOrderStatus(orderId, newStatus);
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      toast.error('Failed to update order status');
+    }
   };
 
   const getOrderStats = () => {
@@ -82,9 +157,10 @@ const OrderManagement: React.FC = () => {
     const preparing = filteredOrders.filter(o => o.status === 'preparing').length;
     const ready = filteredOrders.filter(o => o.status === 'ready').length;
     const delivered = filteredOrders.filter(o => o.status === 'delivered').length;
+    const catering = filteredOrders.filter(o => o.orderType === 'catering').length;
     const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.totalAmount, 0);
     
-    return { total, pending, preparing, ready, delivered, totalRevenue };
+    return { total, pending, preparing, ready, delivered, catering, totalRevenue };
   };
 
   const stats = getOrderStats();
@@ -99,7 +175,7 @@ const OrderManagement: React.FC = () => {
         order.orderType,
         order.status,
         order.totalAmount,
-        new Date(order.orderDate).toLocaleDateString()
+        new Date(order.orderDate || order.createdAt).toLocaleDateString()
       ].join(','))
     ].join('\n');
     
@@ -119,7 +195,13 @@ const OrderManagement: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Order Management</h2>
-          <p className="text-gray-600">Track and manage customer orders</p>
+          <div className="flex items-center gap-4 mt-1">
+            <p className="text-gray-600">Track and manage customer orders</p>
+            <div className={`flex items-center gap-2 text-sm ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              {isConnected ? 'Real-time Connected' : 'Disconnected'}
+            </div>
+          </div>
         </div>
         <div className="flex gap-2">
           <button
@@ -147,7 +229,7 @@ const OrderManagement: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
         <div className="bg-white p-4 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
           <div className="text-sm text-gray-600">Total Orders</div>
@@ -169,7 +251,11 @@ const OrderManagement: React.FC = () => {
           <div className="text-sm text-gray-600">Delivered</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-md">
-          <div className="text-2xl font-bold text-purple-600">₹{stats.totalRevenue.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-purple-600">{stats.catering}</div>
+          <div className="text-sm text-gray-600">Catering</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <div className="text-2xl font-bold text-indigo-600">₹{stats.totalRevenue.toLocaleString()}</div>
           <div className="text-sm text-gray-600">Revenue</div>
         </div>
       </div>
@@ -209,6 +295,7 @@ const OrderManagement: React.FC = () => {
             <option value="dine-in">Dine In</option>
             <option value="takeaway">Takeaway</option>
             <option value="delivery">Delivery</option>
+            <option value="catering">Catering</option>
           </select>
           <select
             value={dateFilter}
@@ -221,47 +308,6 @@ const OrderManagement: React.FC = () => {
             <option value="all">All Time</option>
           </select>
         </div>
-
-        {showFilters && (
-          <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-800 mb-3">Advanced Filters</h4>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-                  <option value="all">All Payment Status</option>
-                  <option value="pending">Payment Pending</option>
-                  <option value="paid">Paid</option>
-                  <option value="failed">Failed</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Amount Range</label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Customer Type</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-                  <option value="all">All Customers</option>
-                  <option value="new">New Customers</option>
-                  <option value="returning">Returning Customers</option>
-                  <option value="vip">VIP Customers</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Orders List */}
@@ -289,14 +335,28 @@ const OrderManagement: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-200">
+                <tr key={order.id} className={`hover:bg-gray-50 transition-colors duration-200 ${
+                  order.orderType === 'catering' ? 'bg-green-50' : ''
+                }`}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{order.id}</div>
-                      <div className="text-sm text-gray-500">
-                        {new Date(order.orderDate).toLocaleDateString()} at{' '}
-                        {new Date(order.orderDate).toLocaleTimeString()}
+                      <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                        {order.id}
+                        {order.orderType === 'catering' && (
+                          <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">
+                            CATERING
+                          </span>
+                        )}
                       </div>
+                      <div className="text-sm text-gray-500">
+                        {new Date(order.orderDate || order.createdAt).toLocaleDateString()} at{' '}
+                        {new Date(order.orderDate || order.createdAt).toLocaleTimeString()}
+                      </div>
+                      {order.orderType === 'catering' && order.eventDetails && (
+                        <div className="text-xs text-green-600 mt-1">
+                          Event: {order.eventDetails.eventType} | {order.eventDetails.guestCount} guests
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -310,12 +370,18 @@ const OrderManagement: React.FC = () => {
                         <Mail size={12} />
                         {order.customerEmail}
                       </div>
+                      {order.orderType === 'catering' && order.eventDetails?.eventDate && (
+                        <div className="text-sm text-green-600 flex items-center gap-2 mt-1">
+                          <Calendar size={12} />
+                          {order.eventDetails.eventDate}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm text-gray-900">
-                        {order.items.length} item{order.items.length > 1 ? 's' : ''}
+                        {order.items?.length || 1} item{(order.items?.length || 1) > 1 ? 's' : ''}
                       </div>
                       <div className="text-sm font-medium text-gray-900">
                         ₹{order.totalAmount.toLocaleString()}
@@ -331,7 +397,11 @@ const OrderManagement: React.FC = () => {
                         {getStatusIcon(order.status)}
                         <span className="ml-1 capitalize">{order.status}</span>
                       </span>
-                      <div className="text-xs text-gray-500 capitalize">{order.orderType}</div>
+                      <div className={`text-xs capitalize ${
+                        order.orderType === 'catering' ? 'text-green-600 font-semibold' : 'text-gray-500'
+                      }`}>
+                        {order.orderType}
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -377,7 +447,14 @@ const OrderManagement: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-800">Order Details - {selectedOrder.id}</h3>
+                <h3 className="text-xl font-semibold text-gray-800">
+                  Order Details - {selectedOrder.id}
+                  {selectedOrder.orderType === 'catering' && (
+                    <span className="ml-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      CATERING ORDER
+                    </span>
+                  )}
+                </h3>
                 <button
                   onClick={() => setSelectedOrder(null)}
                   className="text-gray-400 hover:text-gray-600"
@@ -397,7 +474,7 @@ const OrderManagement: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Date & Time:</span>
-                      <span>{new Date(selectedOrder.orderDate).toLocaleString()}</span>
+                      <span>{new Date(selectedOrder.orderDate || selectedOrder.createdAt).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Type:</span>
@@ -446,34 +523,67 @@ const OrderManagement: React.FC = () => {
                 </div>
               </div>
 
+              {/* Catering Event Details */}
+              {selectedOrder.orderType === 'catering' && selectedOrder.eventDetails && (
+                <div className="mb-6 bg-green-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-3">Event Details</h4>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Event Type:</span>
+                      <span>{selectedOrder.eventDetails.eventType}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Guest Count:</span>
+                      <span>{selectedOrder.eventDetails.guestCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Event Date:</span>
+                      <span>{selectedOrder.eventDetails.eventDate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Event Time:</span>
+                      <span>{selectedOrder.eventDetails.eventTime}</span>
+                    </div>
+                    {selectedOrder.eventDetails.venue && (
+                      <div className="md:col-span-2">
+                        <span className="font-medium">Venue:</span>
+                        <p className="text-gray-600 mt-1">{selectedOrder.eventDetails.venue}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Order Items */}
-              <div className="mb-6">
-                <h4 className="font-semibold text-gray-800 mb-3">Order Items</h4>
-                <div className="space-y-3">
-                  {selectedOrder.items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                      <div className="flex items-center">
-                        <img
-                          src={item.menuItem.image}
-                          alt={item.menuItem.name}
-                          className="w-12 h-12 rounded-lg object-cover mr-3"
-                        />
-                        <div>
-                          <p className="font-medium text-gray-800">{item.menuItem.name}</p>
-                          <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                          {item.specialInstructions && (
-                            <p className="text-xs text-orange-600">Note: {item.specialInstructions}</p>
-                          )}
+              {selectedOrder.items && selectedOrder.items.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-800 mb-3">Order Items</h4>
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center">
+                          <img
+                            src={item.menuItem.image}
+                            alt={item.menuItem.name}
+                            className="w-12 h-12 rounded-lg object-cover mr-3"
+                          />
+                          <div>
+                            <p className="font-medium text-gray-800">{item.menuItem.name}</p>
+                            <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                            {item.specialInstructions && (
+                              <p className="text-xs text-orange-600">Note: {item.specialInstructions}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">₹{(item.menuItem.price * item.quantity).toLocaleString()}</p>
+                          <p className="text-sm text-gray-600">₹{item.menuItem.price} each</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">₹{(item.menuItem.price * item.quantity).toLocaleString()}</p>
-                        <p className="text-sm text-gray-600">₹{item.menuItem.price} each</p>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Total and Special Instructions */}
               <div className="border-t pt-4">
