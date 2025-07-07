@@ -5,12 +5,13 @@ interface User {
   name: string;
   email: string;
   role: 'admin' | 'customer';
+  phone?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+  register: (userData: any) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -32,18 +33,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Check for stored user data on mount
     const storedUser = localStorage.getItem('srimatha_user');
-    if (storedUser) {
+    const storedToken = localStorage.getItem('token');
+    
+    if (storedUser && storedToken) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        console.log('Restored user session:', parsedUser);
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem('srimatha_user');
+        localStorage.removeItem('token');
       }
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
     try {
+      console.log('Login attempt:', { email, password });
+      
       // Demo credentials - exact match required
       const adminCredentials = { 
         email: 'admin@srimatha.com', 
@@ -58,15 +66,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const trimmedEmail = email.trim().toLowerCase();
       const trimmedPassword = password.trim();
 
+      console.log('Checking credentials:', { trimmedEmail, trimmedPassword });
+
       if (trimmedEmail === adminCredentials.email.toLowerCase() && trimmedPassword === adminCredentials.password) {
         const adminUser: User = {
           id: 'admin_1',
           name: 'Srimatha Admin',
           email: adminCredentials.email,
-          role: 'admin'
+          role: 'admin',
+          phone: '+91 98765 43210'
         };
+        
         setUser(adminUser);
         localStorage.setItem('srimatha_user', JSON.stringify(adminUser));
+        localStorage.setItem('token', 'demo_admin_token_' + Date.now());
+        
+        console.log('Admin login successful:', adminUser);
         return { success: true, user: adminUser };
       } 
       else if (trimmedEmail === demoUserCredentials.email.toLowerCase() && trimmedPassword === demoUserCredentials.password) {
@@ -74,13 +89,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: 'user_1',
           name: 'Demo User',
           email: demoUserCredentials.email,
-          role: 'customer'
+          role: 'customer',
+          phone: '+91 87654 32109'
         };
+        
         setUser(regularUser);
         localStorage.setItem('srimatha_user', JSON.stringify(regularUser));
+        localStorage.setItem('token', 'demo_user_token_' + Date.now());
+        
+        console.log('User login successful:', regularUser);
         return { success: true, user: regularUser };
       } 
       else {
+        console.log('Invalid credentials provided');
         return { 
           success: false, 
           error: 'Invalid email or password. Please check your credentials.' 
@@ -95,13 +116,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
+  const register = async (userData: any): Promise<{ success: boolean; user?: User; error?: string }> => {
     try {
+      console.log('Registration attempt:', userData);
+      
       // Check if user already exists (simple check for demo)
       const existingUser = localStorage.getItem('srimatha_user');
       if (existingUser) {
         const parsed = JSON.parse(existingUser);
-        if (parsed.email.toLowerCase() === email.trim().toLowerCase()) {
+        if (parsed.email.toLowerCase() === userData.email.trim().toLowerCase()) {
           return { 
             success: false, 
             error: 'User with this email already exists.' 
@@ -112,13 +135,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Create new user
       const newUser: User = {
         id: `user_${Date.now()}`,
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        role: 'customer'
+        name: userData.name.trim(),
+        email: userData.email.trim().toLowerCase(),
+        role: 'customer',
+        phone: userData.phone?.trim()
       };
       
       setUser(newUser);
       localStorage.setItem('srimatha_user', JSON.stringify(newUser));
+      localStorage.setItem('token', 'demo_token_' + Date.now());
+      
+      console.log('Registration successful:', newUser);
       return { success: true, user: newUser };
     } catch (error) {
       console.error('Registration error:', error);
@@ -130,8 +157,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    console.log('Logging out user:', user);
     setUser(null);
     localStorage.removeItem('srimatha_user');
+    localStorage.removeItem('token');
   };
 
   const value: AuthContextType = {

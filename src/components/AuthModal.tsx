@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, User, Mail, Phone, MapPin, Lock } from 'lucide-react';
+import { X, User, Mail, Phone, MapPin, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,29 +24,59 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     }
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { login, register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
 
     try {
       if (mode === 'login') {
-        const result = await login({
-          email: formData.email,
-          password: formData.password
-        });
+        console.log('Attempting login with:', { email: formData.email, password: formData.password });
+        const result = await login(formData.email, formData.password);
+        
         if (result.success) {
+          toast.success(`Welcome back, ${result.user?.name}!`);
           onClose();
+          // Reset form
+          setFormData({
+            name: '',
+            email: '',
+            password: '',
+            phone: '',
+            address: { street: '', city: '', state: '', zipCode: '' }
+          });
+        } else {
+          setError(result.error || 'Login failed');
+          toast.error(result.error || 'Login failed');
         }
       } else {
+        console.log('Attempting registration with:', formData);
         const result = await register(formData);
+        
         if (result.success) {
+          toast.success(`Welcome to Srimatha, ${result.user?.name}!`);
           onClose();
+          // Reset form
+          setFormData({
+            name: '',
+            email: '',
+            password: '',
+            phone: '',
+            address: { street: '', city: '', state: '', zipCode: '' }
+          });
+        } else {
+          setError(result.error || 'Registration failed');
+          toast.error(result.error || 'Registration failed');
         }
       }
     } catch (error) {
       console.error('Auth error:', error);
+      const errorMessage = 'An unexpected error occurred. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -70,6 +101,35 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     }
   };
 
+  const switchMode = () => {
+    setMode(mode === 'login' ? 'register' : 'login');
+    setError('');
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      phone: '',
+      address: { street: '', city: '', state: '', zipCode: '' }
+    });
+  };
+
+  const fillDemoCredentials = (type: 'admin' | 'user') => {
+    if (type === 'admin') {
+      setFormData(prev => ({
+        ...prev,
+        email: 'admin@srimatha.com',
+        password: 'admin123'
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        email: 'user@example.com',
+        password: 'user123'
+      }));
+    }
+    setError('');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -88,6 +148,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             </button>
           </div>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center mb-4">
+              <AlertCircle size={20} className="mr-2 flex-shrink-0" />
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <div>
@@ -102,6 +169,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="Enter your full name"
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -119,6 +187,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   placeholder="Enter your email"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -135,6 +204,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   placeholder="Enter your password"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -153,6 +223,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                       placeholder="+91 98765 43210"
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -170,6 +241,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                         placeholder="Street address"
                         required
+                        disabled={loading}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -181,6 +253,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                         placeholder="City"
                         required
+                        disabled={loading}
                       />
                       <input
                         type="text"
@@ -190,6 +263,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                         placeholder="State"
                         required
+                        disabled={loading}
                       />
                     </div>
                     <input
@@ -200,6 +274,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                       placeholder="ZIP Code"
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -211,7 +286,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
               disabled={loading}
               className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
             >
-              {loading ? 'Please wait...' : (mode === 'login' ? 'Login' : 'Create Account')}
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  {mode === 'login' ? 'Signing In...' : 'Creating Account...'}
+                </div>
+              ) : (
+                mode === 'login' ? 'Login' : 'Create Account'
+              )}
             </button>
           </form>
 
@@ -219,8 +301,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             <p className="text-gray-600">
               {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
               <button
-                onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+                onClick={switchMode}
                 className="text-orange-600 hover:text-orange-700 font-semibold"
+                disabled={loading}
               >
                 {mode === 'login' ? 'Sign up' : 'Login'}
               </button>
@@ -229,11 +312,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
           {mode === 'login' && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 text-center">
-                <strong>Demo Credentials:</strong><br />
-                Admin: admin@srimatha.com / admin123<br />
-                User: user@example.com / user123
+              <p className="text-sm text-gray-600 text-center mb-3">
+                <strong>Demo Credentials:</strong>
               </p>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => fillDemoCredentials('admin')}
+                  className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                  disabled={loading}
+                >
+                  Use Admin Login (admin@srimatha.com)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillDemoCredentials('user')}
+                  className="w-full bg-green-100 hover:bg-green-200 text-green-800 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                  disabled={loading}
+                >
+                  Use Customer Login (user@example.com)
+                </button>
+              </div>
             </div>
           )}
         </div>
