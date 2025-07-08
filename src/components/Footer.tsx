@@ -1,5 +1,6 @@
 import React from 'react';
 import { Facebook, Instagram, Twitter, Youtube, Phone, Mail, MapPin } from 'lucide-react';
+import { restaurantInfo } from '../data/menuData';
 
 const Footer: React.FC = () => {
   return (
@@ -13,12 +14,12 @@ const Footer: React.FC = () => {
                 <span className="text-white font-bold text-xl">S</span>
               </div>
               <div>
-                <h3 className="text-2xl font-bold">Srimath</h3>
-                <p className="text-gray-400 text-sm">Restaurant • Food Court • Catering</p>
+                <h3 className="text-2xl font-bold">{restaurantInfo.name}</h3>
+                <p className="text-gray-400 text-sm">{restaurantInfo.tagline}</p>
               </div>
             </div>
             <p className="text-gray-300 mb-6 leading-relaxed">
-              Experience the finest culinary journey with our exceptional restaurant, diverse food court, and premium catering services. We're committed to creating memorable dining experiences for every occasion.
+              {restaurantInfo.tagline} We're committed to creating memorable dining experiences for every occasion with authentic flavors and exceptional service.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="bg-gray-700 hover:bg-orange-600 p-3 rounded-full transition-colors duration-300">
@@ -55,15 +56,22 @@ const Footer: React.FC = () => {
             <ul className="space-y-4">
               <li className="flex items-start">
                 <MapPin className="mr-3 mt-1 flex-shrink-0 text-orange-400" size={18} />
-                <span className="text-gray-300 text-sm">123 Food Street, Gourmet District, Culinary City, CC 560001</span>
+                <span className="text-gray-300 text-sm">
+                  {restaurantInfo.address.line1}<br />
+                  {restaurantInfo.address.line2}<br />
+                  {restaurantInfo.address.line3}
+                </span>
               </li>
               <li className="flex items-center">
                 <Phone className="mr-3 flex-shrink-0 text-orange-400" size={18} />
-                <span className="text-gray-300 text-sm">+91 98765 43210</span>
+                <div className="text-gray-300 text-sm">
+                  <div>{restaurantInfo.phone}</div>
+                  <div>{restaurantInfo.mobile}</div>
+                </div>
               </li>
               <li className="flex items-center">
                 <Mail className="mr-3 flex-shrink-0 text-orange-400" size={18} />
-                <span className="text-gray-300 text-sm">info@srimath.com</span>
+                <span className="text-gray-300 text-sm">info@srimatha.com</span>
               </li>
             </ul>
             
@@ -81,7 +89,7 @@ const Footer: React.FC = () => {
         <div className="border-t border-gray-700 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm mb-4 md:mb-0">
-              © 2024 Srimath Restaurant. All rights reserved.
+              © 2024 {restaurantInfo.name} Restaurant. All rights reserved.
             </p>
             <div className="flex space-x-6 text-sm">
               <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Privacy Policy</a>

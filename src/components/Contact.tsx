@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Calendar, MessageSquare } from 'lucide-react';
+import { restaurantInfo } from '../data/menuData';
 import toast from 'react-hot-toast';
 
 const Contact: React.FC = () => {
@@ -93,7 +94,11 @@ const Contact: React.FC = () => {
                   <MapPin className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-1">Address</h4>
-                    <p className="text-gray-600">123 Food Street, Gourmet District<br />Culinary City, CC 560001</p>
+                    <p className="text-gray-600">
+                      {restaurantInfo.address.line1}<br />
+                      {restaurantInfo.address.line2}<br />
+                      {restaurantInfo.address.line3}
+                    </p>
                   </div>
                 </div>
 
@@ -102,8 +107,8 @@ const Contact: React.FC = () => {
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-1">Phone</h4>
                     <p className="text-gray-600">
-                      Restaurant: +91 98765 43210<br />
-                      Catering: +91 98765 43211
+                      Restaurant: {restaurantInfo.phone}<br />
+                      Catering: {restaurantInfo.mobile}
                     </p>
                   </div>
                 </div>
@@ -284,8 +289,8 @@ const Contact: React.FC = () => {
             <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
               <div className="text-center text-gray-600">
                 <MapPin size={48} className="mx-auto mb-4" />
-                <p className="font-semibold">Interactive Map</p>
-                <p className="text-sm">123 Food Street, Gourmet District, Culinary City</p>
+                <p className="font-semibold">{restaurantInfo.name} Location</p>
+                <p className="text-sm">{restaurantInfo.address.line1}, {restaurantInfo.address.line2}</p>
               </div>
             </div>
           </div>

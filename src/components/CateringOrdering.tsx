@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Minus, Star, X, Calendar, Users, Clock, MapPin, Phone, Mail, User } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Star, X, Calendar, Users, Clock, MapPin, Phone, Mail, User, Crown, Award, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-import { MenuItem } from '../types';
+import { srimathaMenu, menuCategories, restaurantInfo } from '../data/menuData';
 import toast from 'react-hot-toast';
 
 interface CateringPackage {
@@ -14,15 +14,21 @@ interface CateringPackage {
   image: string;
   items: string[];
   popular?: boolean;
+  premium?: boolean;
+  icon: React.ComponentType<any>;
+  color: string;
+  features: string[];
 }
 
 const CateringOrdering: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const { menuItems, cart, addToCart, removeFromCart, updateCartQuantity, clearCart } = useApp();
+  const { cart, addToCart, removeFromCart, updateCartQuantity, clearCart } = useApp();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<CateringPackage | null>(null);
+  const [showMenuModal, setShowMenuModal] = useState(false);
+  const [activeMenuCategory, setActiveMenuCategory] = useState('non-veg-starters');
   const [orderDetails, setOrderDetails] = useState({
     eventDate: '',
     eventTime: '',
@@ -47,33 +53,80 @@ const CateringOrdering: React.FC = () => {
 
   const cateringPackages: CateringPackage[] = [
     {
-      id: 'wedding-deluxe',
-      name: 'Wedding Deluxe Package',
-      description: 'Complete wedding feast with premium dishes and desserts',
+      id: 'premium-wedding',
+      name: 'Premium Wedding Package',
+      description: 'Luxurious wedding feast with premium dishes, live counters, and royal service',
+      pricePerPerson: 1200,
+      minimumGuests: 100,
+      image: 'https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      items: ['Welcome Drinks', 'Live Chaat Counter', 'Premium Appetizers', 'Main Course (5 options)', 'Live Dosa Counter', 'Dessert Station', 'Ice Cream Counter'],
+      popular: true,
+      premium: true,
+      icon: Crown,
+      color: 'from-purple-600 to-pink-600',
+      features: ['Royal Service', 'Live Counters', 'Premium Ingredients', 'Decoration Included']
+    },
+    {
+      id: 'deluxe-wedding',
+      name: 'Deluxe Wedding Package',
+      description: 'Complete wedding feast with traditional dishes and excellent service',
       pricePerPerson: 850,
       minimumGuests: 100,
       image: 'https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-      items: ['Welcome Drinks', 'Appetizer Platter', 'Main Course (3 options)', 'Dessert Station', 'Live Counters'],
-      popular: true
+      items: ['Welcome Drinks', 'Appetizer Platter', 'Main Course (3 options)', 'Dessert Station', 'Traditional Sweets'],
+      popular: true,
+      icon: Award,
+      color: 'from-orange-600 to-red-600',
+      features: ['Traditional Menu', 'Professional Service', 'Quality Ingredients', 'Setup Included']
     },
     {
-      id: 'corporate-lunch',
-      name: 'Corporate Lunch Package',
+      id: 'corporate-premium',
+      name: 'Corporate Premium Package',
+      description: 'Professional catering for high-end business events and conferences',
+      pricePerPerson: 650,
+      minimumGuests: 25,
+      image: 'https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      items: ['Welcome Coffee/Tea', 'Premium Snacks', 'Buffet Setup', 'Vegetarian & Non-Veg Options', 'Beverages', 'Service Staff'],
+      icon: Sparkles,
+      color: 'from-blue-600 to-indigo-600',
+      features: ['Professional Setup', 'Business Friendly', 'Flexible Timing', 'Corporate Service']
+    },
+    {
+      id: 'corporate-standard',
+      name: 'Corporate Standard Package',
       description: 'Professional catering for business events and meetings',
       pricePerPerson: 450,
       minimumGuests: 25,
       image: 'https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-      items: ['Buffet Setup', 'Vegetarian & Non-Veg Options', 'Beverages', 'Service Staff'],
-      popular: true
+      items: ['Tea/Coffee', 'Snacks', 'Buffet Setup', 'Vegetarian & Non-Veg Options', 'Beverages', 'Service Staff'],
+      popular: true,
+      icon: Users,
+      color: 'from-green-600 to-teal-600',
+      features: ['Cost Effective', 'Quality Food', 'Professional Service', 'Quick Setup']
     },
     {
-      id: 'birthday-celebration',
-      name: 'Birthday Celebration Package',
+      id: 'birthday-deluxe',
+      name: 'Birthday Deluxe Package',
+      description: 'Special birthday celebration with cake, decorations and festive menu',
+      pricePerPerson: 420,
+      minimumGuests: 15,
+      image: 'https://images.pexels.com/photos/1729797/pexels-photo-1729797.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      items: ['Custom Birthday Cake', 'Party Snacks', 'Main Course', 'Beverages', 'Decoration Setup', 'Party Games Setup'],
+      icon: Star,
+      color: 'from-pink-600 to-rose-600',
+      features: ['Custom Cake', 'Decorations', 'Party Setup', 'Fun Activities']
+    },
+    {
+      id: 'birthday-standard',
+      name: 'Birthday Standard Package',
       description: 'Fun and festive catering for birthday parties',
       pricePerPerson: 320,
       minimumGuests: 15,
       image: 'https://images.pexels.com/photos/1729797/pexels-photo-1729797.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-      items: ['Birthday Cake', 'Party Snacks', 'Beverages', 'Decoration Setup']
+      items: ['Birthday Cake', 'Party Snacks', 'Beverages', 'Basic Decoration'],
+      icon: Star,
+      color: 'from-yellow-600 to-orange-600',
+      features: ['Birthday Cake', 'Party Food', 'Decorations', 'Affordable']
     },
     {
       id: 'festival-special',
@@ -82,7 +135,22 @@ const CateringOrdering: React.FC = () => {
       pricePerPerson: 380,
       minimumGuests: 50,
       image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-      items: ['Traditional Sweets', 'Regional Specialties', 'Prasadam Items', 'Cultural Setup']
+      items: ['Traditional Sweets', 'Regional Specialties', 'Prasadam Items', 'Cultural Setup', 'Traditional Decorations'],
+      icon: Award,
+      color: 'from-amber-600 to-yellow-600',
+      features: ['Traditional Menu', 'Cultural Setup', 'Religious Friendly', 'Authentic Taste']
+    },
+    {
+      id: 'family-gathering',
+      name: 'Family Gathering Package',
+      description: 'Warm and comfortable catering for family events and reunions',
+      pricePerPerson: 280,
+      minimumGuests: 20,
+      image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      items: ['Home Style Cooking', 'Comfort Food', 'Traditional Dishes', 'Family Friendly Service'],
+      icon: Users,
+      color: 'from-emerald-600 to-green-600',
+      features: ['Home Style', 'Comfort Food', 'Family Friendly', 'Affordable']
     }
   ];
 
@@ -96,6 +164,10 @@ const CateringOrdering: React.FC = () => {
   );
 
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+
+  const filteredMenuItems = srimathaMenu.filter(item => 
+    item.category === activeMenuCategory && item.isAvailable
+  );
 
   // Check authentication on component mount
   useEffect(() => {
@@ -125,7 +197,7 @@ const CateringOrdering: React.FC = () => {
     }
 
     // Create a menu item from the package
-    const packageMenuItem: MenuItem = {
+    const packageMenuItem = {
       id: selectedPackage.id,
       name: selectedPackage.name,
       description: `${selectedPackage.description} (${guestCount} guests)`,
@@ -150,6 +222,17 @@ const CateringOrdering: React.FC = () => {
       specialRequirements: ''
     });
     toast.success('Package added to cart!');
+  };
+
+  const handleAddMenuItemToCart = (item: any) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add items to cart');
+      (window as any).openAuthModal?.('login');
+      return;
+    }
+    
+    addToCart(item, 1);
+    toast.success(`${item.name} added to cart!`);
   };
 
   const handlePlaceOrder = async () => {
@@ -286,6 +369,12 @@ const CateringOrdering: React.FC = () => {
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
               <button
+                onClick={() => setShowMenuModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-300"
+              >
+                Browse Menu
+              </button>
+              <button
                 onClick={() => setShowCart(true)}
                 className="relative bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition-colors duration-300"
               >
@@ -329,29 +418,62 @@ const CateringOrdering: React.FC = () => {
           </div>
         </div>
 
+        {/* Restaurant Info */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-orange-600 mb-2">{restaurantInfo.name}</h2>
+            <p className="text-gray-600 mb-4">{restaurantInfo.tagline}</p>
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-center justify-center gap-2">
+                <Phone size={16} className="text-orange-600" />
+                <span>{restaurantInfo.phone}</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Phone size={16} className="text-orange-600" />
+                <span>{restaurantInfo.mobile}</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <MapPin size={16} className="text-orange-600" />
+                <span>{restaurantInfo.address.line1}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Catering Packages */}
         <div className="mb-12">
-          <h3 className="text-2xl font-bold text-gray-800 mb-8">Our Catering Packages</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-8 text-center">Our Catering Packages</h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {cateringPackages.map((pkg) => (
-              <div key={pkg.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div key={pkg.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                 <div className="relative">
                   <img
                     src={pkg.image}
                     alt={pkg.name}
                     className="w-full h-48 object-cover"
                   />
-                  {pkg.popular && (
-                    <div className="absolute top-4 left-4 bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
-                      <Star size={14} fill="currentColor" />
-                      Popular
-                    </div>
-                  )}
+                  <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                    {pkg.popular && (
+                      <div className="bg-orange-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                        <Star size={12} fill="currentColor" />
+                        Popular
+                      </div>
+                    )}
+                    {pkg.premium && (
+                      <div className="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                        <Crown size={12} fill="currentColor" />
+                        Premium
+                      </div>
+                    )}
+                  </div>
+                  <div className={`absolute top-4 right-4 w-12 h-12 bg-gradient-to-r ${pkg.color} rounded-full flex items-center justify-center`}>
+                    <pkg.icon className="text-white" size={20} />
+                  </div>
                 </div>
                 
                 <div className="p-6">
                   <h4 className="text-xl font-bold text-gray-800 mb-2">{pkg.name}</h4>
-                  <p className="text-gray-600 mb-4">{pkg.description}</p>
+                  <p className="text-gray-600 mb-4 text-sm">{pkg.description}</p>
                   
                   <div className="mb-4">
                     <div className="text-lg font-bold text-orange-600 mb-2">
@@ -363,20 +485,34 @@ const CateringOrdering: React.FC = () => {
                   </div>
 
                   <div className="mb-4">
+                    <h5 className="font-semibold text-gray-800 mb-2">Features:</h5>
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {pkg.features.map((feature, index) => (
+                        <span key={index} className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
                     <h5 className="font-semibold text-gray-800 mb-2">Includes:</h5>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {pkg.items.map((item, index) => (
+                      {pkg.items.slice(0, 3).map((item, index) => (
                         <li key={index} className="flex items-center">
                           <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mr-2"></div>
                           {item}
                         </li>
                       ))}
+                      {pkg.items.length > 3 && (
+                        <li className="text-orange-600 text-xs">+{pkg.items.length - 3} more items</li>
+                      )}
                     </ul>
                   </div>
 
                   <button
                     onClick={() => handlePackageSelect(pkg)}
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
+                    className={`w-full bg-gradient-to-r ${pkg.color} hover:opacity-90 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105`}
                   >
                     Select Package
                   </button>
@@ -397,7 +533,11 @@ const CateringOrdering: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Phone className="text-orange-600" size={20} />
-                  <span className="text-gray-700">+91 98765 43211 (Catering)</span>
+                  <span className="text-gray-700">{restaurantInfo.phone}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="text-orange-600" size={20} />
+                  <span className="text-gray-700">{restaurantInfo.mobile}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="text-orange-600" size={20} />
@@ -406,6 +546,14 @@ const CateringOrdering: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <Clock className="text-orange-600" size={20} />
                   <span className="text-gray-700">24/7 Catering Support</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="text-orange-600 mt-1" size={20} />
+                  <span className="text-gray-700">
+                    {restaurantInfo.address.line1}<br />
+                    {restaurantInfo.address.line2}<br />
+                    {restaurantInfo.address.line3}
+                  </span>
                 </div>
               </div>
             </div>
@@ -421,6 +569,77 @@ const CateringOrdering: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Menu Modal */}
+      {showMenuModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-800">Browse Our Menu</h3>
+                <button
+                  onClick={() => setShowMenuModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Category Tabs */}
+              <div className="flex flex-wrap gap-2 mb-6 max-h-32 overflow-y-auto">
+                {menuCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setActiveMenuCategory(category.id)}
+                    className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
+                      activeMenuCategory === category.id
+                        ? 'bg-orange-600 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600'
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Menu Items */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                {filteredMenuItems.map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-300">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-gray-800 text-sm">{item.name}</h4>
+                      <span className="text-orange-600 font-bold">₹{item.price}</span>
+                    </div>
+                    <p className="text-gray-600 text-xs mb-3">{item.description}</p>
+                    <div className="flex justify-between items-center">
+                      <div className="flex gap-1">
+                        {item.isVegetarian && (
+                          <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">VEG</span>
+                        )}
+                        {item.popular && (
+                          <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">Popular</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleAddMenuItemToCart(item)}
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded-full text-xs font-medium transition-colors duration-300"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {filteredMenuItems.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No items available in this category</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Package Selection Modal */}
       {selectedPackage && (
@@ -438,11 +657,16 @@ const CateringOrdering: React.FC = () => {
               </div>
 
               <div className="mb-6">
-                <img
-                  src={selectedPackage.image}
-                  alt={selectedPackage.name}
-                  className="w-full h-32 object-cover rounded-lg mb-4"
-                />
+                <div className="relative mb-4">
+                  <img
+                    src={selectedPackage.image}
+                    alt={selectedPackage.name}
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                  <div className={`absolute top-2 right-2 w-10 h-10 bg-gradient-to-r ${selectedPackage.color} rounded-full flex items-center justify-center`}>
+                    <selectedPackage.icon className="text-white" size={16} />
+                  </div>
+                </div>
                 <h4 className="font-semibold text-gray-800">{selectedPackage.name}</h4>
                 <p className="text-gray-600 text-sm">{selectedPackage.description}</p>
                 <p className="text-lg font-bold text-orange-600 mt-2">

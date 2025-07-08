@@ -53,15 +53,15 @@ const Header: React.FC = () => {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <Phone size={14} />
-              <span>+91 98765 43210</span>
+              <span>040-4859 5886/7</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin size={14} />
-              <span>123 Food Street, Gourmet City</span>
+              <span>Secunderabad-500 003</span>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span>Open Daily: 11:00 AM - 11:00 PM</span>
+            <span>24/7 Catering Service Available</span>
             <button
               onClick={() => navigate('/admin')}
               className="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded text-xs font-medium transition-colors duration-200"
