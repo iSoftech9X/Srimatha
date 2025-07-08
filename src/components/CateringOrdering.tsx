@@ -67,18 +67,7 @@ const CateringOrdering: React.FC = () => {
       features: ['Royal Service', 'Live Counters', 'Premium Ingredients', 'Decoration Included']
     },
     
-    {
-      id: 'corporate-premium',
-      name: 'Corporate Premium Package',
-      description: 'Professional catering for high-end business events and conferences',
-      pricePerPerson: 650,
-      minimumGuests: 25,
-      image: 'https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-      items: ['Welcome Coffee/Tea', 'Premium Snacks', 'Buffet Setup', 'Vegetarian & Non-Veg Options', 'Beverages', 'Service Staff'],
-      icon: Sparkles,
-      color: 'from-blue-600 to-indigo-600',
-      features: ['Professional Setup', 'Business Friendly', 'Flexible Timing', 'Corporate Service']
-    },
+   
     {
       id: 'corporate-standard',
       name: 'Corporate Standard Package',
@@ -92,18 +81,7 @@ const CateringOrdering: React.FC = () => {
       color: 'from-green-600 to-teal-600',
       features: ['Cost Effective', 'Quality Food', 'Professional Service', 'Quick Setup']
     },
-    {
-      id: 'birthday-deluxe',
-      name: 'Birthday Deluxe Package',
-      description: 'Special birthday celebration with cake, decorations and festive menu',
-      pricePerPerson: 420,
-      minimumGuests: 15,
-      image: 'https://images.pexels.com/photos/1729797/pexels-photo-1729797.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-      items: ['Custom Birthday Cake', 'Party Snacks', 'Main Course', 'Beverages', 'Decoration Setup', 'Party Games Setup'],
-      icon: Star,
-      color: 'from-pink-600 to-rose-600',
-      features: ['Custom Cake', 'Decorations', 'Party Setup', 'Fun Activities']
-    },
+    
     {
       id: 'birthday-standard',
       name: 'Birthday Standard Package',
@@ -116,18 +94,7 @@ const CateringOrdering: React.FC = () => {
       color: 'from-yellow-600 to-orange-600',
       features: ['Birthday Cake', 'Party Food', 'Decorations', 'Affordable']
     },
-    {
-      id: 'festival-special',
-      name: 'Festival Special Package',
-      description: 'Traditional dishes for religious and cultural celebrations',
-      pricePerPerson: 380,
-      minimumGuests: 50,
-      image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-      items: ['Traditional Sweets', 'Regional Specialties', 'Prasadam Items', 'Cultural Setup', 'Traditional Decorations'],
-      icon: Award,
-      color: 'from-amber-600 to-yellow-600',
-      features: ['Traditional Menu', 'Cultural Setup', 'Religious Friendly', 'Authentic Taste']
-    },
+    
     {
       id: 'family-gathering',
       name: 'Family Gathering Package',
