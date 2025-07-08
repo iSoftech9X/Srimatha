@@ -66,19 +66,7 @@ const CateringOrdering: React.FC = () => {
       color: 'from-purple-600 to-pink-600',
       features: ['Royal Service', 'Live Counters', 'Premium Ingredients', 'Decoration Included']
     },
-    {
-      id: 'deluxe-wedding',
-      name: 'Deluxe Wedding Package',
-      description: 'Complete wedding feast with traditional dishes and excellent service',
-      pricePerPerson: 850,
-      minimumGuests: 100,
-      image: 'https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-      items: ['Welcome Drinks', 'Appetizer Platter', 'Main Course (3 options)', 'Dessert Station', 'Traditional Sweets'],
-      popular: true,
-      icon: Award,
-      color: 'from-orange-600 to-red-600',
-      features: ['Traditional Menu', 'Professional Service', 'Quality Ingredients', 'Setup Included']
-    },
+    
     {
       id: 'corporate-premium',
       name: 'Corporate Premium Package',
