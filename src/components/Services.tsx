@@ -6,11 +6,11 @@ const Services: React.FC = () => {
   const navigate = useNavigate();
 
   const handleRestaurantOrder = () => {
-    window.location.href = 'https://srimatha.co.in/';
+    navigate('/order');
   };
 
   const handleFoodCourtOrder = () => {
-    window.location.href = 'https://srimatha.co.in/';
+    navigate('/order');
   };
 
   const handleCateringOrder = () => {

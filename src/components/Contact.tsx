@@ -63,7 +63,7 @@ const Contact: React.FC = () => {
   };
 
   const handleOrderNow = () => {
-    window.open('https://srimatha.co.in/', '_blank');
+    window.location.href = '/order';
   };
 
   const handleCateringQuote = () => {
