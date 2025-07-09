@@ -1,28 +1,62 @@
 import React, { useState } from 'react';
-import { Star, Download, ShoppingCart, Plus } from 'lucide-react';
-import { srimathaMenu, menuCategories, restaurantInfo } from '../data/menuData';
-import { useApp } from '../context/AppContext';
-import { useAuth } from '../context/AuthContext';
+import { Star, Download, Plus } from 'lucide-react';
+import { restaurantInfo } from '../data/menuData';
+// @ts-ignore
+import { menuAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
+
+// Add a type for menu items
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  category: string;
+  isAvailable: boolean;
+  isVegetarian?: boolean;
+  popular?: boolean;
+  spiceLevel?: string;
+  preparationTime?: string;
+}
+
 const Menu: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState('non-veg-starters');
-  const { addToCart } = useApp();
-  const { isAuthenticated } = useAuth();
 
-  const filteredItems = srimathaMenu.filter(item => 
-    item.category === activeCategory && item.isAvailable
-  );
+  const [menuCategories, setMenuCategories] = React.useState<{id: string, name: string}[]>([]);
+  const [activeCategory, setActiveCategory] = useState('');
+  const [menuItems, setMenuItems] = React.useState<MenuItem[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
 
+  // Fetch categories and menu items from backend
+  React.useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      menuAPI.getCategories(),
+      menuAPI.getItems({ isAvailable: true })
+    ])
+      .then(([catRes, itemRes]) => {
+        const categories = catRes.data.data || [];
+        setMenuCategories(categories);
+        setMenuItems(itemRes.data.items || itemRes.data.data?.items || []);
+        // Set default active category to first available
+        if (categories.length > 0) setActiveCategory(categories[0].id);
+        setError('');
+      })
+      .catch(() => {
+        setError('Failed to load menu or categories');
+        setMenuCategories([]);
+        setMenuItems([]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredItems = menuItems.filter(item => item.category === activeCategory && item.isAvailable);
+
+  // Navigate to catering page with selected item (for real ordering)
   const handleAddToCart = (item: any) => {
-    if (!isAuthenticated) {
-      toast.error('Please login to add items to cart');
-      (window as any).openAuthModal?.('login');
-      return;
-    }
-    
-    addToCart(item, 1);
-    toast.success(`${item.name} added to cart!`);
+    window.location.href = `/catering?item=${encodeURIComponent(item.id)}`;
   };
 
   const generateMenuPDF = () => {
@@ -149,7 +183,7 @@ const Menu: React.FC = () => {
         </div>
         
         ${menuCategories.map(category => {
-          const categoryItems = srimathaMenu.filter(item => item.category === category.id);
+          const categoryItems = menuItems.filter(item => item.category === category.id);
           if (categoryItems.length === 0) return '';
           
           return `
@@ -207,6 +241,8 @@ const Menu: React.FC = () => {
     toast.success('Menu downloaded successfully!');
   };
 
+
+
   return (
     <section id="menu" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
@@ -244,62 +280,69 @@ const Menu: React.FC = () => {
           ))}
         </div>
 
+
         {/* Menu Items */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              <div className="relative">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                  {item.popular && (
-                    <span className="bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                      <Star size={12} fill="currentColor" />
-                      Popular
-                    </span>
-                  )}
-                  {item.isVegetarian && (
-                    <span className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                      VEG
-                    </span>
-                  )}
-                  {item.spiceLevel && item.spiceLevel !== 'none' && (
-                    <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                      {item.spiceLevel.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                  <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
-                </div>
-                <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
-                
-                {item.preparationTime && (
-                  <div className="text-xs text-gray-500 mb-3">
-                    ⏱️ {item.preparationTime} mins
+        {loading ? (
+          <div className="text-center py-20 text-xl text-gray-500">Loading menu...</div>
+        ) : error ? (
+          <div className="text-center py-20 text-xl text-red-500">{error}</div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {filteredItems.map((item) => (
+              <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                <div className="relative">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                    {item.popular && (
+                      <span className="bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                        <Star size={12} fill="currentColor" />
+                        Popular
+                      </span>
+                    )}
+                    {item.isVegetarian && (
+                      <span className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                        VEG
+                      </span>
+                    )}
+                    {item.spiceLevel && item.spiceLevel !== 'none' && (
+                      <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                        {item.spiceLevel.toUpperCase()}
+                      </span>
+                    )}
                   </div>
-                )}
+                </div>
+                
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
+                    <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
+                  </div>
+                  <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
+                  
+                  {item.preparationTime && (
+                    <div className="text-xs text-gray-500 mb-3">
+                      ⏱️ {item.preparationTime} mins
+                    </div>
+                  )}
 
-                <button
-                  onClick={() => handleAddToCart(item)}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
-                >
-                  <Plus size={16} />
-                  Add to Cart
-                </button>
+                  <button
+                    onClick={() => handleAddToCart(item)}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
+                  >
+                    <Plus size={16} />
+                    Add to Cart
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {filteredItems.length === 0 && (
+        {filteredItems.length === 0 && !loading && !error && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No items available in this category</p>
           </div>
@@ -309,9 +352,6 @@ const Menu: React.FC = () => {
         <div className="text-center mt-16">
           <div className="bg-white rounded-2xl p-8 md:p-12 shadow-lg">
             <h3 className="text-3xl font-bold text-gray-800 mb-4">Download Our Complete Menu</h3>
-            <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-              Get our full menu with all categories, prices, and contact information for easy reference
-            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
                 onClick={generateMenuPDF}
@@ -326,15 +366,6 @@ const Menu: React.FC = () => {
               >
                 Order Catering
               </button>
-            </div>
-            
-            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-semibold text-gray-800 mb-2">Contact Us for Orders</h4>
-              <div className="grid md:grid-cols-2 gap-2 text-sm text-gray-600">
-                <div>📞 {restaurantInfo.phone}</div>
-                <div>📱 {restaurantInfo.mobile}</div>
-                <div className="md:col-span-2">📍 {restaurantInfo.address.line1}, {restaurantInfo.address.line2} {restaurantInfo.address.line3}</div>
-              </div>
             </div>
           </div>
         </div>

@@ -26,11 +26,11 @@ const Header: React.FC = () => {
   };
 
   const handleRestaurantOrder = () => {
-    navigate('/order');
+    window.location.href = 'https://srimatha.co.in/';
   };
 
   const handleFoodCourtOrder = () => {
-    navigate('/order');
+    window.location.href = 'https://srimatha.co.in/';
   };
 
   const handleCateringOrder = () => {

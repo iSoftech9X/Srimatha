@@ -11,23 +11,17 @@ let orderCounter = 1000;
 let sseConnections = [];
 
 // Get user's orders
+import { findOrders, createOrder, updateOrder } from '../models/orderQueries.js';
+
+// ...existing code...
+
 router.get('/my-orders', authenticate, async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
-
-    const query = { customerId: req.user.id };
-    if (status) query.status = status;
-
-    const options = {
-      limit: parseInt(limit),
-      skip: (parseInt(page) - 1) * parseInt(limit)
-    };
-
-    const result = await req.db.findOrders(query, options);
-
+    const orders = await findOrders({ customerId: req.user.id, status, limit: parseInt(limit), skip: (parseInt(page) - 1) * parseInt(limit) });
     res.json({
       success: true,
-      data: result
+      data: { orders }
     });
   } catch (error) {
     console.error('User orders fetch error:', error);
@@ -58,8 +52,14 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
     let allOrders = [];
     
     // Get regular orders from database
-    const dbResult = await req.db.findOrders(query, options);
-    allOrders = [...dbResult.orders];
+    const dbOrders = await findOrders({
+      customerId: customerId,
+      status: status,
+      orderType: orderType,
+      limit: parseInt(limit),
+      skip: (parseInt(page) - 1) * parseInt(limit)
+    });
+    allOrders = [...dbOrders];
 
     // Add catering orders if no specific filters or if catering is requested
     if (!orderType || orderType === 'catering') {
@@ -147,17 +147,18 @@ router.post('/catering', authenticate, async (req, res) => {
 // Create new regular order
 router.post('/', authenticate, async (req, res) => {
   try {
+    const { items, subtotal, total, paymentStatus, orderType } = req.body;
     const orderData = {
-      ...req.body,
+      orderNumber: `ORD${Date.now()}`,
       customerId: req.user.id,
       status: 'pending',
-      orderNumber: `ORD${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      subtotal,
+      total,
+      paymentStatus: paymentStatus || 'pending',
+      orderType: orderType || 'regular',
+      items
     };
-
-    const newOrder = await req.db.createOrder(orderData);
-
+    const newOrder = await createOrder(orderData);
     res.status(201).json({
       success: true,
       message: 'Order placed successfully',
@@ -210,9 +211,9 @@ router.patch('/:id/status', authenticate, authorize('admin'), async (req, res) =
       }
     } else {
       // Regular order
-      updatedOrder = await req.db.updateOrder(orderId, {
+      updatedOrder = await updateOrder(orderId, {
         status,
-        updatedBy: req.user.id
+        updated_by: req.user.id
       });
     }
 

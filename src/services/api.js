@@ -53,6 +53,7 @@ export const menuAPI = {
   getItems: (params) => api.get('/menu', { params }),
   getItem: (id) => api.get(`/menu/${id}`),
   getPopularItems: () => api.get('/menu/featured/popular'),
+  getCategories: () => api.get('/menu/categories'),
   createItem: (itemData) => api.post('/menu', itemData),
   updateItem: (id, itemData) => api.put(`/menu/${id}`, itemData),
   toggleAvailability: (id) => api.patch(`/menu/${id}/availability`),

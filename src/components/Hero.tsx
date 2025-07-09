@@ -3,13 +3,13 @@ import { ChefHat, Users, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Hero: React.FC = () => {
-  const navigate = useNavigate();
-
+  // Direct navigation to external site for restaurant/food court
   const handleRestaurantOrder = () => {
-    navigate('/order');
+    window.location.href = 'https://srimatha.co.in/';
   };
 
   const handleCateringOrder = () => {
+    // Keep catering booking as is, or update if needed
     navigate('/catering');
   };
 
