@@ -94,12 +94,11 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
 });
 
 // Create new catering order
-router.post('/catering', authenticate, async (req, res) => {
+router.post('/catering', async (req, res) => {
   try {
     const orderData = {
       id: `CATERING-${orderCounter++}`,
       ...req.body,
-      customerId: req.user.id,
       orderType: 'catering',
       status: 'pending',
       paymentStatus: 'pending',
@@ -145,12 +144,11 @@ router.post('/catering', authenticate, async (req, res) => {
 });
 
 // Create new regular order
-router.post('/', authenticate, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { items, subtotal, total, paymentStatus, orderType } = req.body;
     const orderData = {
       orderNumber: `ORD${Date.now()}`,
-      customerId: req.user.id,
       status: 'pending',
       subtotal,
       total,

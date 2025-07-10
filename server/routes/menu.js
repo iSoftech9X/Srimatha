@@ -1,3 +1,9 @@
+
+import express from 'express';
+import { authenticate, authorize } from '../middleware/auth.js';
+
+const router = express.Router();
+
 // Get all unique menu categories
 router.get('/categories', async (req, res) => {
   try {
@@ -12,11 +18,6 @@ router.get('/categories', async (req, res) => {
     });
   }
 });
-import express from 'express';
-import { authenticate, authorize } from '../middleware/auth.js';
-
-const router = express.Router();
-
 // Get all menu items with filtering and pagination
 router.get('/', async (req, res) => {
   try {

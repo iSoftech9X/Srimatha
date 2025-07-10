@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { getUserById } from '../models/userQueries.js';
 
 export const authenticate = async (req, res, next) => {
   try {
@@ -37,7 +38,7 @@ export const authenticate = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
       
       // Find user in database (for production)
-      const user = await req.db?.findUserById?.(decoded.id);
+      const user = await getUserById(decoded.id);
       if (!user && !token.startsWith('demo_')) {
         return res.status(401).json({
           success: false,
@@ -114,7 +115,7 @@ export const optionalAuth = async (req, res, next) => {
       } else {
         // Handle JWT tokens
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
-        const user = await req.db?.findUserById?.(decoded.id);
+        const user = await getUserById(decoded.id);
         
         if (user) {
           req.user = {

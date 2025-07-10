@@ -61,3 +61,33 @@ export async function findMenuItems(query = {}, options = {}) {
     totalPages: Math.ceil(result.rowCount / limit)
   };
 }
+
+export async function getDashboardStats() {
+  // Get total customers
+  const [{ count: totalCustomers }] = (await db.query('SELECT COUNT(*) FROM users')).rows;
+  // Get total orders
+  const [{ count: totalOrders }] = (await db.query('SELECT COUNT(*) FROM orders')).rows;
+  // Get total revenue
+  //const [{ sum: totalRevenue }] = (await db.query('SELECT SUM(total) FROM orders')).rows;
+  // Get today's orders
+  const [{ count: todayOrders }] = (await db.query("SELECT COUNT(*) FROM orders WHERE created_at::date = CURRENT_DATE")).rows;
+  // Get pending orders
+  const [{ count: pendingOrders }] = (await db.query("SELECT COUNT(*) FROM orders WHERE status = 'pending' ")).rows;
+  // Get popular items
+  const popularItems = (await db.query(
+    `SELECT menu_item_id, COUNT(*) as order_count
+     FROM order_items
+     GROUP BY menu_item_id
+     ORDER BY order_count DESC
+     LIMIT 5`
+  )).rows;
+
+  return {
+    totalCustomers: parseInt(totalCustomers, 10) || 0,
+    totalOrders: parseInt(totalOrders, 10) || 0,
+    //totalRevenue: parseFloat(totalRevenue) || 0,
+    todayOrders: parseInt(todayOrders, 10) || 0,
+    pendingOrders: parseInt(pendingOrders, 10) || 0,
+    popularItems
+  };
+}

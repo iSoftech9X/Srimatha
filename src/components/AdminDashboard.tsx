@@ -1,76 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Users, 
   ShoppingBag, 
-  DollarSign, 
-  TrendingUp, 
-  Clock, 
-  LogOut,
-  BarChart3,
-  Settings,
-  Menu as MenuIcon,
-  Package,
-  UserCheck,
-  Percent
+  BarChart3, 
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import CustomerManagement from './CustomerManagement';
 import OrderManagement from './OrderManagement';
-import MenuManagement from './MenuManagement';
-import InventoryManagement from './InventoryManagement';
-import StaffManagement from './StaffManagement';
+import { useApp } from '../context/AppContext';
 
 const AdminDashboard: React.FC = () => {
   const { user, logout, isAdmin } = useAuth();
+  const { adminStats } = useApp();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [dashboardStats, setDashboardStats] = useState({
-    totalCustomers: 150,
-    totalOrders: 1250,
-    totalRevenue: 125000,
-    todayOrders: 45,
-    pendingOrders: 12,
-    popularItems: [
-      {
-        id: '1',
-        name: 'Butter Chicken',
-        price: 650,
-        image: 'https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop'
-      },
-      {
-        id: '2',
-        name: 'Paneer Tikka',
-        price: 420,
-        image: 'https://images.pexels.com/photos/5864474/pexels-photo-5864474.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop'
-      },
-      {
-        id: '3',
-        name: 'Biryani',
-        price: 480,
-        image: 'https://images.pexels.com/photos/15953175/pexels-photo-15953175.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop'
-      }
-    ]
-  });
 
-  // Check if user is admin, redirect if not
-  useEffect(() => {
-    if (!user) {
-      navigate('/admin');
-      return;
-    }
-    if (!isAdmin) {
-      navigate('/');
-      return;
-    }
-  }, [user, isAdmin, navigate]);
+  // Only keep dashboard, customers, orders
+  const sidebarItems = [
+    { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
+    { id: 'customers', name: 'Customers', icon: Users },
+    { id: 'orders', name: 'Orders', icon: ShoppingBag }
+  ];
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
+  // Don't render if not admin
+  if (!user || !isAdmin) {
+    return null;
+  }
+
+  // StatCard component
   const StatCard: React.FC<{
     title: string;
     value: string | number;
@@ -94,22 +59,6 @@ const AdminDashboard: React.FC = () => {
     </div>
   );
 
-  const sidebarItems = [
-    { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
-    { id: 'customers', name: 'Customers', icon: Users },
-    { id: 'orders', name: 'Orders', icon: ShoppingBag },
-    { id: 'menu', name: 'Menu', icon: MenuIcon },
-    { id: 'inventory', name: 'Inventory', icon: Package },
-    { id: 'staff', name: 'Staff', icon: UserCheck },
-    { id: 'promotions', name: 'Promotions', icon: Percent },
-    { id: 'settings', name: 'Settings', icon: Settings }
-  ];
-
-  // Don't render if not admin
-  if (!user || !isAdmin) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
@@ -127,7 +76,6 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-
         <nav className="mt-8">
           {sidebarItems.map((item) => (
             <button
@@ -144,7 +92,6 @@ const AdminDashboard: React.FC = () => {
             </button>
           ))}
         </nav>
-
         <div className="absolute bottom-4 left-4 right-4">
           <button
             onClick={handleLogout}
@@ -157,7 +104,6 @@ const AdminDashboard: React.FC = () => {
           </button>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
@@ -168,7 +114,7 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="md:hidden text-gray-600 hover:text-gray-800 mr-4"
               >
-                <MenuIcon size={24} />
+                <BarChart3 size={24} />
               </button>
               <h1 className="text-2xl font-bold text-gray-800">
                 {sidebarItems.find(item => item.id === activeTab)?.name || 'Dashboard'}
@@ -177,10 +123,7 @@ const AdminDashboard: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-600">
                 {new Date().toLocaleDateString('en-IN', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
                 })}
               </div>
               <div className="w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center">
@@ -191,50 +134,40 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </header>
-
         {/* Content */}
         <main className="flex-1 p-6 overflow-y-auto">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <StatCard
                   title="Total Customers"
-                  value={dashboardStats.totalCustomers.toLocaleString()}
+                  value={adminStats.totalCustomers.toLocaleString()}
                   icon={<Users className="text-blue-600" size={24} />}
                   color="bg-blue-100"
-                  trend="+12%"
+                  trend=""
                 />
                 <StatCard
                   title="Total Orders"
-                  value={dashboardStats.totalOrders.toLocaleString()}
+                  value={adminStats.totalOrders.toLocaleString()}
                   icon={<ShoppingBag className="text-green-600" size={24} />}
                   color="bg-green-100"
-                  trend="+8%"
+                  trend=""
                 />
                 <StatCard
                   title="Total Revenue"
-                  value={`₹${dashboardStats.totalRevenue.toLocaleString()}`}
-                  icon={<DollarSign className="text-yellow-600" size={24} />}
+                  value={`₹${adminStats.totalRevenue.toLocaleString()}`}
+                  icon={<BarChart3 className="text-yellow-600" size={24} />}
                   color="bg-yellow-100"
-                  trend="+15%"
-                />
-                <StatCard
-                  title="Today's Orders"
-                  value={dashboardStats.todayOrders}
-                  icon={<TrendingUp className="text-purple-600" size={24} />}
-                  color="bg-purple-100"
-                  trend="+5%"
+                  trend=""
                 />
               </div>
-
-              {/* Charts and Recent Activity */}
-              <div className="grid lg:grid-cols-2 gap-6">
-                {/* Popular Items */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Popular Items</h3>
-                  <div className="space-y-4">
-                    {dashboardStats.popularItems.map((item, index) => (
+              {/* Popular Items */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Popular Items</h3>
+                <div className="space-y-4">
+                  {adminStats.popularItems && adminStats.popularItems.length > 0 ? (
+                    adminStats.popularItems.map((item: any, index: number) => (
                       <div key={item.id} className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
@@ -252,163 +185,16 @@ const AdminDashboard: React.FC = () => {
                         </div>
                         <span className="text-green-600 font-semibold">Popular</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Quick Stats */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
-                      <div className="flex items-center">
-                        <Clock className="text-orange-600 mr-3" size={20} />
-                        <span className="text-gray-700 font-medium">Pending Orders</span>
-                      </div>
-                      <span className="font-bold text-orange-600 text-xl">
-                        {dashboardStats.pendingOrders}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                      <div className="flex items-center">
-                        <Users className="text-blue-600 mr-3" size={20} />
-                        <span className="text-gray-700 font-medium">Active Customers</span>
-                      </div>
-                      <span className="font-bold text-blue-600 text-xl">
-                        {Math.floor(dashboardStats.totalCustomers * 0.85)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                      <div className="flex items-center">
-                        <TrendingUp className="text-green-600 mr-3" size={20} />
-                        <span className="text-gray-700 font-medium">Monthly Growth</span>
-                      </div>
-                      <span className="font-bold text-green-600 text-xl">+12%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Orders */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Orders</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Order ID</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Customer</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Amount</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Status</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Time</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {[
-                        { id: 'ORD001', customer: 'John Doe', amount: 850, status: 'preparing', time: '10 mins ago' },
-                        { id: 'ORD002', customer: 'Jane Smith', amount: 650, status: 'ready', time: '15 mins ago' },
-                        { id: 'ORD003', customer: 'Mike Johnson', amount: 1200, status: 'delivered', time: '25 mins ago' },
-                        { id: 'ORD004', customer: 'Sarah Wilson', amount: 450, status: 'pending', time: '30 mins ago' },
-                      ].map((order) => (
-                        <tr key={order.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{order.id}</td>
-                          <td className="px-4 py-3 text-sm text-gray-700">{order.customer}</td>
-                          <td className="px-4 py-3 text-sm text-gray-700">₹{order.amount}</td>
-                          <td className="px-4 py-3">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                              order.status === 'ready' ? 'bg-blue-100 text-blue-800' :
-                              order.status === 'preparing' ? 'bg-orange-100 text-orange-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {order.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-500">{order.time}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                    ))
+                  ) : (
+                    <p className="text-gray-500">No popular items data available.</p>
+                  )}
                 </div>
               </div>
             </div>
           )}
-
           {activeTab === 'customers' && <CustomerManagement />}
           {activeTab === 'orders' && <OrderManagement />}
-          {activeTab === 'menu' && <MenuManagement />}
-          {activeTab === 'inventory' && <InventoryManagement />}
-          {activeTab === 'staff' && <StaffManagement />}
-          
-          {activeTab === 'promotions' && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6">Promotions & Offers</h3>
-              <div className="text-center py-12">
-                <Percent size={48} className="mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500 text-lg">Promotions Management</p>
-                <p className="text-gray-400 text-sm">Coming soon...</p>
-              </div>
-            </div>
-          )}
-          
-          {activeTab === 'settings' && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6">Restaurant Settings</h3>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium text-gray-800 mb-3">Restaurant Information</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Restaurant Name</label>
-                      <input 
-                        type="text" 
-                        defaultValue="Srimatha Restaurant"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                      <input 
-                        type="tel" 
-                        defaultValue="+91 98765 43210"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                      <input 
-                        type="email" 
-                        defaultValue="info@srimatha.com"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-800 mb-3">Operating Hours</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">Monday - Thursday</span>
-                      <span className="text-sm font-medium">11:00 AM - 10:00 PM</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">Friday - Saturday</span>
-                      <span className="text-sm font-medium">11:00 AM - 11:00 PM</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">Sunday</span>
-                      <span className="text-sm font-medium">12:00 PM - 10:00 PM</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6">
-                <button className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors duration-300">
-                  Save Settings
-                </button>
-              </div>
-            </div>
-          )}
         </main>
       </div>
     </div>

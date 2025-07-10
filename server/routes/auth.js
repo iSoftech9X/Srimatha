@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 import { authenticate } from '../middleware/auth.js';
-import { createUser, getUserByEmail } from '../models/userQueries.js';
+import { createUser, getUserByEmail, getUserById } from '../models/userQueries.js';
 
 const router = express.Router();
 
@@ -52,24 +52,44 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login user
-// Login authentication temporarily disabled. Always allow login for ordering.
+// Login user (SECURE: checks password)
 router.post('/login', async (req, res) => {
   try {
-    const { email } = req.body;
-    // Find user or create a guest user object
-    let user = await getUserByEmail(email);
-    if (!user) {
-      // Optionally, auto-register the user or return a guest user
-      user = { id: null, email, role: 'guest', name: 'Guest' };
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required.'
+      });
     }
-    // Generate a dummy token (not used for auth)
-    const token = 'guest-token';
+    const user = await getUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password.'
+      });
+    }
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password.'
+      });
+    }
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'fallback-secret',
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+    // Remove password from response
+    const { password: _, ...userResponse } = user;
     res.json({
       success: true,
-      message: 'Login bypassed for ordering',
+      message: 'Login successful',
       data: {
-        user,
+        user: userResponse,
         token
       }
     });
@@ -86,7 +106,7 @@ router.post('/login', async (req, res) => {
 // Get user profile
 router.get('/profile', authenticate, async (req, res) => {
   try {
-    const user = await req.db.findUserById(req.user.id);
+    const user = await getUserById(req.user.id);
     
     if (!user) {
       return res.status(404).json({

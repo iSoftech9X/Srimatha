@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -26,6 +27,23 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login, register } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If just logged in and user is admin, redirect to /admin
+    if (!loading && !error && mode === 'login') {
+      const storedUser = localStorage.getItem('srimatha_user');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          if (user.role === 'admin') {
+            navigate('/admin');
+          }
+        } catch {}
+      }
+    }
+    // eslint-disable-next-line
+  }, [loading, error, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -578,6 +578,8 @@ export const srimathaMenu = [
   }
 ];
 
+export const menuItems = srimathaMenu;
+
 // Restaurant contact details from the menu
 export const restaurantInfo = {
   name: 'Srimatha',

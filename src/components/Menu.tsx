@@ -1,64 +1,10 @@
-import React, { useState } from 'react';
-import { Star, Download, Plus } from 'lucide-react';
-import { restaurantInfo } from '../data/menuData';
-// @ts-ignore
-import { menuAPI } from '../services/api';
+import React from 'react';
+import { Download } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-
-// Add a type for menu items
-interface MenuItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
-  isAvailable: boolean;
-  isVegetarian?: boolean;
-  popular?: boolean;
-  spiceLevel?: string;
-  preparationTime?: string;
-}
+import { restaurantInfo, menuCategories, menuItems } from '../data/menuData';
 
 const Menu: React.FC = () => {
-
-  const [menuCategories, setMenuCategories] = React.useState<{id: string, name: string}[]>([]);
-  const [activeCategory, setActiveCategory] = useState('');
-  const [menuItems, setMenuItems] = React.useState<MenuItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState('');
-
-  // Fetch categories and menu items from backend
-  React.useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      menuAPI.getCategories(),
-      menuAPI.getItems({ isAvailable: true })
-    ])
-      .then(([catRes, itemRes]) => {
-        const categories = catRes.data.data || [];
-        setMenuCategories(categories);
-        setMenuItems(itemRes.data.items || itemRes.data.data?.items || []);
-        // Set default active category to first available
-        if (categories.length > 0) setActiveCategory(categories[0].id);
-        setError('');
-      })
-      .catch(() => {
-        setError('Failed to load menu or categories');
-        setMenuCategories([]);
-        setMenuItems([]);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  const filteredItems = menuItems.filter(item => item.category === activeCategory && item.isAvailable);
-
-  // Navigate to catering page with selected item (for real ordering)
-  const handleAddToCart = (item: any) => {
-    window.location.href = `/catering?item=${encodeURIComponent(item.id)}`;
-  };
-
+  // Download menu handler
   const generateMenuPDF = () => {
     const menuContent = `
       <!DOCTYPE html>
@@ -241,133 +187,31 @@ const Menu: React.FC = () => {
     toast.success('Menu downloaded successfully!');
   };
 
-
+  // Order catering handler
+  const handleOrderCatering = () => {
+    window.location.href = '/catering';
+  };
 
   return (
     <section id="menu" className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-            Our <span className="text-orange-600">Menu</span>
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="bg-white rounded-2xl p-12 shadow-xl flex flex-col items-center justify-center">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-800 mb-8 text-center">
+            Download Our <span className="text-orange-600">Complete Menu</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-            {restaurantInfo.tagline}
-          </p>
-          <div className="bg-white rounded-lg p-6 shadow-md max-w-2xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
-              <div>📞 {restaurantInfo.phone}</div>
-              <div>📱 {restaurantInfo.mobile}</div>
-              <div>🌐 {restaurantInfo.website}</div>
-              <div>📍 {restaurantInfo.address.line1}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12 max-w-6xl mx-auto">
-          {menuCategories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setActiveCategory(category.id)}
-              className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
-                activeCategory === category.id
-                  ? 'bg-orange-600 text-white shadow-lg'
-                  : 'bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600'
-              }`}
-            >
-              {category.name}
-            </button>
-          ))}
-        </div>
-
-
-        {/* Menu Items */}
-        {loading ? (
-          <div className="text-center py-20 text-xl text-gray-500">Loading menu...</div>
-        ) : error ? (
-          <div className="text-center py-20 text-xl text-red-500">{error}</div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {filteredItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <div className="relative">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                    {item.popular && (
-                      <span className="bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                        <Star size={12} fill="currentColor" />
-                        Popular
-                      </span>
-                    )}
-                    {item.isVegetarian && (
-                      <span className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                        VEG
-                      </span>
-                    )}
-                    {item.spiceLevel && item.spiceLevel !== 'none' && (
-                      <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                        {item.spiceLevel.toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                    <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
-                  </div>
-                  <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
-                  
-                  {item.preparationTime && (
-                    <div className="text-xs text-gray-500 mb-3">
-                      ⏱️ {item.preparationTime} mins
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => handleAddToCart(item)}
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
-                  >
-                    <Plus size={16} />
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {filteredItems.length === 0 && !loading && !error && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No items available in this category</p>
-          </div>
-        )}
-
-        {/* Call to Action */}
-        <div className="text-center mt-16">
-          <div className="bg-white rounded-2xl p-8 md:p-12 shadow-lg">
-            <h3 className="text-3xl font-bold text-gray-800 mb-4">Download Our Complete Menu</h3>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={generateMenuPDF}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
-              >
-                <Download size={20} />
-                Download Complete Menu
-              </button>
-              <button 
-                onClick={() => window.location.href = '/catering'}
-                className="border-2 border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white px-8 py-3 rounded-full font-semibold transition-all duration-300"
-              >
-                Order Catering
-              </button>
-            </div>
-          </div>
+          <button 
+            onClick={generateMenuPDF}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-lg flex items-center gap-3 transition-all duration-300 mb-6"
+          >
+            <Download size={24} />
+            Download Complete Menu
+          </button>
+          <button
+            onClick={handleOrderCatering}
+            className="bg-green-600 hover:bg-green-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-lg flex items-center gap-3 transition-all duration-300"
+          >
+            Order Catering
+          </button>
         </div>
       </div>
     </section>
