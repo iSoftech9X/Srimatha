@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Clock, CheckCircle, XCircle, Truck, Filter, Download, RefreshCw, Phone, Mail, Calendar, Users, MapPin } from 'lucide-react';
+import { Search, Eye, Clock, CheckCircle, XCircle, Truck, Filter, Download, RefreshCw, Phone, Mail, Calendar } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Order } from '../types';
 import toast from 'react-hot-toast';
+
 
 const OrderManagement: React.FC = () => {
   const { orders, updateOrderStatus } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState('today');
+  const [dateFilter, setDateFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [realTimeOrders, setRealTimeOrders] = useState<any[]>([]);
@@ -19,13 +20,7 @@ const OrderManagement: React.FC = () => {
   // Set up real-time connection for catering orders
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) return;
-
-    const eventSource = new EventSource(`/api/catering/stream`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+const eventSource = new EventSource(`http://localhost:5000/api/orders?token=${token}`);
 
     eventSource.onopen = () => {
       setIsConnected(true);
@@ -70,9 +65,12 @@ const OrderManagement: React.FC = () => {
   const allOrders = [...orders, ...realTimeOrders];
 
   const filteredOrders = allOrders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerPhone.includes(searchTerm);
+    if (!order || typeof order.id !== 'string') {
+      return false;
+    }
+    const matchesSearch = (order.id?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (order.customerName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (order.customerPhone || '').includes(searchTerm);
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     const matchesType = typeFilter === 'all' || order.orderType === typeFilter;
     
@@ -393,8 +391,7 @@ const OrderManagement: React.FC = () => {
                         )}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {new Date(order.orderDate || order.createdAt).toLocaleDateString()} at{' '}
-                        {new Date(order.orderDate || order.createdAt).toLocaleTimeString()}
+                        {(order.orderDate || order.createdAt) ? new Date((order.orderDate || order.createdAt) as string).toLocaleString() : 'N/A'}
                       </div>
                       {order.orderType === 'catering' && order.eventDetails && (
                         <div className="text-xs text-green-600 mt-1">
@@ -476,211 +473,91 @@ const OrderManagement: React.FC = () => {
             </tbody>
           </table>
         </div>
-        
-        {filteredOrders.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-500 text-lg">No orders found</div>
-            <div className="text-gray-400 text-sm">Try adjusting your filters</div>
-          </div>
-        )}
       </div>
 
       {/* Order Details Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-black opacity-30"></div>
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full z-10">
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-800">
-                  Order Details - {selectedOrder.id}
-                  {selectedOrder.orderType === 'catering' && (
-                    <span className="ml-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                      CATERING ORDER
-                    </span>
-                  )}
-                </h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Order Details</h3>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-500 hover:text-gray-700"
                 >
-                  <XCircle size={24} />
+                  <XCircle size={20} />
                 </button>
               </div>
-
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                {/* Order Information */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-gray-800 mb-3">Order Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Order ID:</span>
-                      <span>{selectedOrder.id}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Date & Time:</span>
-                      <span>{new Date(selectedOrder.orderDate || selectedOrder.createdAt).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Type:</span>
-                      <span className="capitalize">{selectedOrder.orderType}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Status:</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedOrder.status)}`}>
-                        {selectedOrder.status}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Payment:</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        selectedOrder.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {selectedOrder.paymentStatus}
-                      </span>
+              <div className="space-y-4">
+                <div>
+                  <span className="text-sm text-gray-500">Order ID:</span>
+                  <span className="text-gray-800 font-semibold"> {selectedOrder.id}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Customer:</span>
+                  <span className="text-gray-800 font-semibold"> {selectedOrder.customerName}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Phone:</span>
+                  <span className="text-gray-800 font-semibold"> {selectedOrder.customerPhone}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Email:</span>
+                  <span className="text-gray-800 font-semibold"> {selectedOrder.customerEmail}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Order Date:</span>
+                  <span className="text-gray-800 font-semibold"> {new Date(selectedOrder.orderDate || selectedOrder.createdAt).toLocaleString()}</span>
+                </div>
+                {selectedOrder.orderType === 'catering' && selectedOrder.eventDetails && (
+                  <div>
+                    <span className="text-sm text-gray-500">Event Details:</span>
+                    <div className="text-gray-800 font-semibold text-sm mt-1">
+                      <p><strong>Type:</strong> {selectedOrder.eventDetails.eventType}</p>
+                      <p><strong>Guests:</strong> {selectedOrder.eventDetails.guestCount}</p>
+                      <p><strong>Date:</strong> {new Date(selectedOrder.eventDetails.eventDate).toLocaleDateString()}</p>
                     </div>
                   </div>
+                )}
+                <div>
+                  <span className="text-sm text-gray-500">Status:</span>
+                  <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(selectedOrder.status)}`}>
+                    {getStatusIcon(selectedOrder.status)}
+                    <span className="ml-1 capitalize">{selectedOrder.status}</span>
+                  </span>
                 </div>
-
-                {/* Customer Information */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-gray-800 mb-3">Customer Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Name:</span>
-                      <span>{selectedOrder.customerName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Phone:</span>
-                      <span>{selectedOrder.customerPhone}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Email:</span>
-                      <span>{selectedOrder.customerEmail}</span>
-                    </div>
-                    {selectedOrder.deliveryAddress && (
-                      <div>
-                        <span className="font-medium">Address:</span>
-                        <p className="text-gray-600 mt-1">{selectedOrder.deliveryAddress}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Catering Event Details */}
-              {selectedOrder.orderType === 'catering' && selectedOrder.eventDetails && (
-                <div className="mb-6 bg-green-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-gray-800 mb-3">Event Details</h4>
-                  <div className="grid md:grid-cols-2 gap-4 text-sm">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Event Type:</span>
-                      <span>{selectedOrder.eventDetails.eventType}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Guest Count:</span>
-                      <span>{selectedOrder.eventDetails.guestCount}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Event Date:</span>
-                      <span>{selectedOrder.eventDetails.eventDate}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Event Time:</span>
-                      <span>{selectedOrder.eventDetails.eventTime}</span>
-                    </div>
-                    {selectedOrder.eventDetails.venue && (
-                      <div className="md:col-span-2">
-                        <span className="font-medium">Venue:</span>
-                        <p className="text-gray-600 mt-1">{selectedOrder.eventDetails.venue}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Order Items */}
-              {selectedOrder.items && selectedOrder.items.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="font-semibold text-gray-800 mb-3">Order Items</h4>
-                  <div className="space-y-3">
-                    {selectedOrder.items.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                        <div className="flex items-center">
-                          <img
-                            src={item.menuItem.image}
-                            alt={item.menuItem.name}
-                            className="w-12 h-12 rounded-lg object-cover mr-3"
-                          />
-                          <div>
-                            <p className="font-medium text-gray-800">{item.menuItem.name}</p>
-                            <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                            {item.specialInstructions && (
-                              <p className="text-xs text-orange-600">Note: {item.specialInstructions}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">₹{(item.menuItem.price * item.quantity).toLocaleString()}</p>
-                          <p className="text-sm text-gray-600">₹{item.menuItem.price} each</p>
-                        </div>
+                <div>
+                  <span className="text-sm text-gray-500">Items:</span>
+                  <div className="mt-1">
+                    {selectedOrder.items?.map(item => (
+                      <div key={item.id} className="flex justify-between text-sm text-gray-700 py-1">
+                        <span>{item.name} (x{item.quantity})</span>
+                        <span>₹{item.price.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
-
-              {/* Total and Special Instructions */}
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
-                  <span className="text-xl font-bold text-orange-600">
-                    ₹{selectedOrder.totalAmount.toLocaleString()}
-                  </span>
-                </div>
-
-                {selectedOrder.specialInstructions && (
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">Special Instructions</h4>
-                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                      {selectedOrder.specialInstructions}
-                    </p>
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                  <div className="flex justify-between text-sm font-semibold text-gray-800">
+                    <span>Total Amount:</span>
+                    <span>₹{selectedOrder.totalAmount.toLocaleString()}</span>
                   </div>
-                )}
-
-                {/* Quick Actions */}
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => handleStatusUpdate(selectedOrder.id, 'confirmed')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                  >
-                    Confirm Order
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate(selectedOrder.id, 'preparing')}
-                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                  >
-                    Start Preparing
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate(selectedOrder.id, 'ready')}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                  >
-                    Mark Ready
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate(selectedOrder.id, 'delivered')}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                  >
-                    Mark Delivered
-                  </button>
-                  <button
-                    onClick={() => window.print()}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                  >
-                    Print Receipt
-                  </button>
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Payment Status:</span>
+                    <span>{selectedOrder.paymentStatus === 'paid' ? '✓ Paid' : '⏳ Pending Payment'}</span>
+                  </div>
                 </div>
               </div>
+            </div>
+            <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end gap-2">
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg font-semibold transition-colors duration-300"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import CustomerManagement from './CustomerManagement';
 import OrderManagement from './OrderManagement';
+import MenuManagement from './MenuManagement'; // Import MenuManagement
 import { useApp } from '../context/AppContext';
 
 const AdminDashboard: React.FC = () => {
@@ -18,11 +19,12 @@ const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Only keep dashboard, customers, orders
+  // Only keep dashboard, customers, orders, menu
   const sidebarItems = [
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
     { id: 'customers', name: 'Customers', icon: Users },
-    { id: 'orders', name: 'Orders', icon: ShoppingBag }
+    { id: 'orders', name: 'Orders', icon: ShoppingBag },
+    { id: 'menu', name: 'Menu', icon: ShoppingBag } // Add Menu tab
   ];
 
   const handleLogout = () => {
@@ -163,7 +165,8 @@ const AdminDashboard: React.FC = () => {
                 />
               </div>
               {/* Popular Items */}
-              <div className="bg-white rounded-lg shadow-md p-6">
+           
+            {/*<div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Popular Items</h3>
                 <div className="space-y-4">
                   {adminStats.popularItems && adminStats.popularItems.length > 0 ? (
@@ -190,11 +193,13 @@ const AdminDashboard: React.FC = () => {
                     <p className="text-gray-500">No popular items data available.</p>
                   )}
                 </div>
-              </div>
-            </div>
+              </div>*/}
+              
+            </div> 
           )}
           {activeTab === 'customers' && <CustomerManagement />}
           {activeTab === 'orders' && <OrderManagement />}
+          {activeTab === 'menu' && <MenuManagement />} {/* Add MenuManagement for Menu tab */}
         </main>
       </div>
     </div>

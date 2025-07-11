@@ -76,6 +76,9 @@ export const ordersAPI = {
 export const customersAPI = {
   getCustomers: (params) => api.get('/customers', { params }),
   getCustomer: (id) => api.get(`/customers/${id}`),
+  createCustomer: (customerData) => api.post('/customers', customerData),
+  updateCustomer: (id, customerData) => api.put(`/customers/${id}`, customerData),
+  deleteCustomer: (id) => api.delete(`/customers/${id}`),
   updateCustomerStatus: (id, statusData) => api.patch(`/customers/${id}/status`, statusData),
   getAnalytics: () => api.get('/customers/analytics/overview'),
 };
@@ -83,8 +86,9 @@ export const customersAPI = {
 // Admin API
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
-  getSalesAnalytics: (params) => api.get('/admin/analytics/sales', { params }),
+  //getSalesAnalytics: (params) => api.get('/admin/analytics/sales', { params }),
   getSettings: () => api.get('/admin/settings'),
+  getAllOrders: (params) => api.get('/admin/orders', { params }),
 };
 
 // Contact API

@@ -144,33 +144,57 @@ router.post('/catering', async (req, res) => {
 });
 
 // Create new regular order
-router.post('/', async (req, res) => {
+// POST /api/orders
+router.post('/', authenticate, async (req, res) => {
   try {
-    const { items, subtotal, total, paymentStatus, orderType } = req.body;
+    const user = req.user;
+
+    if (!user || !user.id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const { items, subtotal, total, orderType = 'catering', paymentStatus = 'pending' } = req.body;
+
     const orderData = {
-      orderNumber: `ORD${Date.now()}`,
-      status: 'pending',
+      id: `CATERING-${Date.now()}`, // or use auto-increment logic
+      items,
       subtotal,
       total,
-      paymentStatus: paymentStatus || 'pending',
-      orderType: orderType || 'regular',
-      items
+      orderType,
+      paymentStatus,
+      status: 'pending',
+      orderDate: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+
+      // ✅ Important: Attach from authenticated user, not from body
+      user_id: user.id,
+      customer_id: user.id,
+      customer_name: user.name,
+      customer_email: user.email,
+      customer_phone: user.phone
     };
-    const newOrder = await createOrder(orderData);
-    res.status(201).json({
+
+    // Save in-memory or to DB
+    cateringOrders.unshift(orderData); // ← your in-memory array
+
+    res.status(200).json({
       success: true,
       message: 'Order placed successfully',
-      data: { order: newOrder }
+      data: {
+        order: orderData
+      }
     });
   } catch (error) {
-    console.error('Order creation error:', error);
+    console.error('Order place error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create order',
+      message: 'Failed to place order',
       error: error.message
     });
   }
 });
+
 
 // Update order status (Admin only)
 router.patch('/:id/status', authenticate, authorize('admin'), async (req, res) => {

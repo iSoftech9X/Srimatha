@@ -24,17 +24,17 @@ const PORT = process.env.PORT || 5000;
 // Security middleware
 app.use(helmet());
 
-// Rate limiting
+// Rate limiting (relaxed for development)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 1000, // allow 1000 requests per minute for dev
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration (always allow localhost:5173 for dev)
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: [process.env.CLIENT_URL || 'http://localhost:5173', 'http://localhost:5173'],
   credentials: true
 }));
 

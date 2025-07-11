@@ -63,6 +63,7 @@ router.post('/login', async (req, res) => {
       });
     }
     const user = await getUserByEmail(email);
+    console.log('LOGIN DEBUG:', { email, user }); // DEBUG
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -71,6 +72,7 @@ router.post('/login', async (req, res) => {
     }
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('BCRYPT COMPARE:', { password, hash: user.password, isMatch }); // DEBUG
     if (!isMatch) {
       return res.status(401).json({
         success: false,

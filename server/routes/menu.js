@@ -19,12 +19,51 @@ router.get('/categories', async (req, res) => {
   }
 });
 // Get all menu items with filtering and pagination
-router.get('/', async (req, res) => {
+// router.get('/', async (req, res) => {
+//   try {
+//     const {
+//       category,
+//       isVegetarian,
+//       isAvailable = true,
+//       page = 1,
+//       limit = 10,
+//       search,
+//       sortBy = 'name',
+//       sortOrder = 'asc'
+//     } = req.query;
+
+//     // Build query
+//     const query = {};
+//     if (category) query.category = category;
+//     if (isVegetarian !== undefined) query.isVegetarian = isVegetarian === 'true';
+//     if (isAvailable !== undefined) query.isAvailable = isAvailable === 'true';
+
+//     // Pagination options
+//     const options = {
+//       limit: parseInt(limit),
+//       skip: (parseInt(page) - 1) * parseInt(limit)
+//     };
+
+//     const result = await req.db.findMenuItems(query, options);
+//     res.json({
+//       success: true,
+//       data: result
+//     });
+//   } catch (error) {
+//     console.error('Menu fetch error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch menu items',
+//       error: error.message
+//     });
+//   }
+// });
+router.get('/', authenticate, async (req, res) => {
   try {
     const {
       category,
       isVegetarian,
-      isAvailable = true,
+      isAvailable,
       page = 1,
       limit = 10,
       search,
@@ -32,19 +71,37 @@ router.get('/', async (req, res) => {
       sortOrder = 'asc'
     } = req.query;
 
-    // Build query
     const query = {};
+
+    // Category & Veg filter
     if (category) query.category = category;
     if (isVegetarian !== undefined) query.isVegetarian = isVegetarian === 'true';
-    if (isAvailable !== undefined) query.isAvailable = isAvailable === 'true';
 
-    // Pagination options
+    // 🔐 Role-based filtering for isAvailable
+    const isAdmin = req.user?.role === 'admin';
+
+    if (!isAdmin) {
+      // Force filter only available items for non-admins
+      query.isAvailable = true;
+    } else if (isAvailable !== undefined) {
+      // For admins: allow override if explicitly passed
+      query.isAvailable = isAvailable === 'true';
+    }
+
+    // Search (if implemented)
+    if (search) {
+      query.name = { $regex: search, $options: 'i' };
+    }
+
+    // Pagination and sorting
     const options = {
       limit: parseInt(limit),
-      skip: (parseInt(page) - 1) * parseInt(limit)
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 }
     };
 
     const result = await req.db.findMenuItems(query, options);
+
     res.json({
       success: true,
       data: result
@@ -58,7 +115,6 @@ router.get('/', async (req, res) => {
     });
   }
 });
-
 // Get single menu item
 router.get('/:id', async (req, res) => {
   try {

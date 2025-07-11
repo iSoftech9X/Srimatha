@@ -46,39 +46,84 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
-    try {
-      const response = await authAPI.login({ email, password });
-      if (response.data && response.data.success && response.data.data) {
-        const { user, token } = response.data.data;
-        setUser(user);
-        localStorage.setItem('srimatha_user', JSON.stringify(user));
-        localStorage.setItem('token', token);
-        return { success: true, user };
-      } else {
-        return { success: false, error: response.data?.message || 'Login failed' };
-      }
-    } catch (error: any) {
-      return { success: false, error: error.response?.data?.message || 'Login failed' };
-    }
-  };
+  // const login = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
+  //   try {
+  //     const response = await authAPI.login({ email, password });
+  //     if (response.data && response.data.success && response.data.data) {
+  //       const { user, token } = response.data.data;
+  //       setUser(user);
+  //       localStorage.setItem('srimatha_user', JSON.stringify(user));
+  //       localStorage.setItem('token', token);
+  //       return { success: true, user };
+  //     } else {
+  //       return { success: false, error: response.data?.message || 'Login failed' };
+  //     }
+  //   } catch (error: any) {
+  //     return { success: false, error: error.response?.data?.message || 'Login failed' };
+  //   }
+  // };
 
-  const register = async (userData: any): Promise<{ success: boolean; user?: User; error?: string }> => {
-    try {
-      const response = await authAPI.register(userData);
-      if (response.data && response.data.success && response.data.data) {
-        const { user, token } = response.data.data;
-        setUser(user);
-        localStorage.setItem('srimatha_user', JSON.stringify(user));
-        localStorage.setItem('token', token);
-        return { success: true, user };
-      } else {
-        return { success: false, error: response.data?.message || 'Registration failed' };
-      }
-    } catch (error: any) {
-      return { success: false, error: error.response?.data?.message || 'Registration failed' };
+  // const register = async (userData: any): Promise<{ success: boolean; user?: User; error?: string }> => {
+  //   try {
+  //     const response = await authAPI.register(userData);
+  //     if (response.data && response.data.success && response.data.data) {
+  //       const { user, token } = response.data.data;
+  //       setUser(user);
+  //       localStorage.setItem('srimatha_user', JSON.stringify(user));
+  //       localStorage.setItem('token', token);
+  //       return { success: true, user };
+  //     } else {
+  //       return { success: false, error: response.data?.message || 'Registration failed' };
+  //     }
+  //   } catch (error: any) {
+  //     return { success: false, error: error.response?.data?.message || 'Registration failed' };
+  //   }
+  // };
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
+  try {
+    const response = await authAPI.login({ email, password });
+    if (response.data && response.data.success && response.data.data) {
+      let { user, token } = response.data.data;
+      // Normalize user object to always have 'id'
+      user = {
+        ...user,
+        id: user.id || user._id || user.user_id,
+      };
+      console.log('Login successful:', user);
+      setUser(user);
+      localStorage.setItem('srimatha_user', JSON.stringify(user));
+      localStorage.setItem('token', token);
+      return { success: true, user };
+    } else {
+      return { success: false, error: response.data?.message || 'Login failed' };
     }
-  };
+  } catch (error: any) {
+    return { success: false, error: error.response?.data?.message || 'Login failed' };
+  }
+};
+
+const register = async (userData: any): Promise<{ success: boolean; user?: User; error?: string }> => {
+  try {
+    const response = await authAPI.register(userData);
+    if (response.data && response.data.success && response.data.data) {
+      let { user, token } = response.data.data;
+      // Normalize user object to always have 'id'
+      user = {
+        ...user,
+        id: user.id || user._id || user.user_id,
+      };
+      setUser(user);
+      localStorage.setItem('srimatha_user', JSON.stringify(user));
+      localStorage.setItem('token', token);
+      return { success: true, user };
+    } else {
+      return { success: false, error: response.data?.message || 'Registration failed' };
+    }
+  } catch (error: any) {
+    return { success: false, error: error.response?.data?.message || 'Registration failed' };
+  }
+};
 
   const logout = () => {
     setUser(null);

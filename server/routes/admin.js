@@ -1,18 +1,38 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
+import db from '../services/postgres.js';
 
 const router = express.Router();
 
 // Get dashboard statistics
 router.get('/dashboard', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const stats = await req.db.getDashboardStats();
+    // Get stats from DB
+    const [{ count: totalCustomers }] = (await db.query("SELECT COUNT(*) FROM users WHERE role = 'customer' ")).rows;
+    const [{ count: totalOrders }] = (await db.query("SELECT COUNT(*) FROM orders")).rows;
+    const [{ sum: totalRevenue }] = (await db.query("SELECT SUM(total) FROM orders WHERE status = 'completed' ")).rows;
+    const [{ count: todayOrders }] = (await db.query("SELECT COUNT(*) FROM orders WHERE created_at::date = CURRENT_DATE")).rows;
+    const [{ count: pendingOrders }] = (await db.query("SELECT COUNT(*) FROM orders WHERE status = 'pending' ")).rows;
+    // Example: get top 5 popular items
+    const popularItems = (await db.query(
+      `SELECT menu_item_id, COUNT(*) as order_count
+       FROM order_items
+       GROUP BY menu_item_id
+       ORDER BY order_count DESC
+       LIMIT 5`
+    )).rows;
 
     res.json({
       success: true,
       data: {
-        overview: stats,
-        popularItems: stats.popularItems
+        overview: {
+          totalCustomers: Number(totalCustomers) || 0,
+          totalOrders: Number(totalOrders) || 0,
+          totalRevenue: Number(totalRevenue) || 0,
+          todayOrders: Number(todayOrders) || 0,
+          pendingOrders: Number(pendingOrders) || 0,
+        },
+        popularItems
       }
     });
   } catch (error) {

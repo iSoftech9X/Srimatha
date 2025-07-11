@@ -5,7 +5,7 @@ import { MenuItem } from '../types';
 import toast from 'react-hot-toast';
 
 const MenuManagement: React.FC = () => {
-  const { menuItems, updateMenuItem } = useApp();
+  const { menuItems, updateMenuItem, addMenuItem, deleteMenuItem } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -63,15 +63,15 @@ const MenuManagement: React.FC = () => {
       price: parseFloat(formData.price),
       preparationTime: parseInt(formData.preparationTime),
       ingredients: formData.ingredients.split(',').map(i => i.trim()).filter(i => i),
-      allergens: formData.allergens.split(',').map(a => a.trim()).filter(a => a)
+      allergens: formData.allergens.split(',').map(a => a.trim()).filter(a => a),
+      spiceLevel: formData.spiceLevel as 'none' | 'mild' | 'medium' | 'hot' | 'very-hot',
     };
 
     if (editingItem) {
       updateMenuItem(editingItem.id, itemData);
       toast.success('Menu item updated successfully!');
     } else {
-      // Add new item logic would go here
-      toast.success('Menu item added successfully!');
+      addMenuItem(itemData);
     }
     
     resetForm();
@@ -121,8 +121,7 @@ const MenuManagement: React.FC = () => {
 
   const handleDelete = (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      // Delete logic would go here
-      toast.success('Menu item deleted successfully!');
+      deleteMenuItem(id);
     }
   };
 

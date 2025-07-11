@@ -33,6 +33,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     // If just logged in and user is admin, redirect to /admin
     if (!loading && !error && mode === 'login') {
       const storedUser = localStorage.getItem('srimatha_user');
+      console.log('Checking stored user:', storedUser);
       if (storedUser) {
         try {
           const user = JSON.parse(storedUser);

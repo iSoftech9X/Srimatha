@@ -10,6 +10,10 @@ const Hero: React.FC = () => {
     window.location.href = 'https://srimatha.co.in/';
   };
 
+  const handleFoodCourtOrder = () => {
+    window.location.href = 'https://srimatha.co.in/';
+  };
+
   const handleCateringOrder = () => {
     navigate('/catering');
   };
@@ -87,7 +91,7 @@ const Hero: React.FC = () => {
             🍽️ Restaurant Menu
           </button>
           <button
-            onClick={handleRestaurantOrder}
+            onClick={handleFoodCourtOrder}
             className="bg-yellow-600 bg-opacity-80 hover:bg-opacity-100 text-white px-4 py-2 rounded-full transition-all duration-300"
           >
             🍕 Food Court

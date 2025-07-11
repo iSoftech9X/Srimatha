@@ -46,13 +46,16 @@ export const authenticate = async (req, res, next) => {
         });
       }
 
-      req.user = user || {
-        id: decoded.id,
-        email: decoded.email,
-        role: decoded.role,
-        name: decoded.name
-      };
-      
+    req.user = {
+  id: user?.id || decoded.id,
+  name: user?.name || decoded.name,
+  email: user?.email || decoded.email,
+  phone: user?.phone || decoded.phone,
+  role: user?.role || decoded.role,
+};
+
+
+
       next();
     } catch (jwtError) {
       console.error('JWT verification error:', jwtError);

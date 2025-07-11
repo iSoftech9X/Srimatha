@@ -12,7 +12,7 @@ let orderCounter = 1000;
 let sseConnections = [];
 
 // Create new catering order
-router.post('/orders', authenticate, async (req, res) => {
+router.post('/admin/orders', authenticate, async (req, res) => {
   try {
     const orderData = {
       id: `CATERING-${orderCounter++}`,
@@ -120,7 +120,7 @@ router.post('/quotes', async (req, res) => {
 });
 
 // Get all catering orders (Admin only)
-router.get('/orders', authenticate, authorize('admin'), async (req, res) => {
+router.get('admin/orders', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
 

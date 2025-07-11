@@ -95,7 +95,7 @@ const CateringOrdering: React.FC = () => {
                 className="relative bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition-colors duration-300"
               >
                 <ShoppingCart size={20} />
-                Cart
+                selected Items
                 {cartItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
                     {cartItemCount}
@@ -294,6 +294,7 @@ const CateringOrdering: React.FC = () => {
                     } else {
                       try {
                         const orderPayload = {
+                           userId: user.id,
                           items: cart.map(item => ({
                             menuItemId: item.menuItem.id,
                             quantity: item.quantity,
@@ -304,6 +305,7 @@ const CateringOrdering: React.FC = () => {
                           paymentStatus: 'pending',
                           orderType: 'catering',
                         };
+                        console.log('Placing order with payload:', orderPayload);
                         await ordersAPI.createOrder(orderPayload);
                         toast.success('Order placed!');
                         clearCart();
