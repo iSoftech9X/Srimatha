@@ -19,8 +19,9 @@ const OrderManagement: React.FC = () => {
 
   // Set up real-time connection for catering orders
   useEffect(() => {
+    
     const token = localStorage.getItem('token');
-const eventSource = new EventSource(`http://localhost:5000/api/orders?token=${token}`);
+    const eventSource = new EventSource(`http://localhost:5000/api/orders?token=${token}`);
 
     eventSource.onopen = () => {
       setIsConnected(true);

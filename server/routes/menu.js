@@ -58,7 +58,7 @@ router.get('/categories', async (req, res) => {
 //     });
 //   }
 // });
-router.get('/', authenticate, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const {
       category,
@@ -78,7 +78,7 @@ router.get('/', authenticate, async (req, res) => {
     if (isVegetarian !== undefined) query.isVegetarian = isVegetarian === 'true';
 
     // 🔐 Role-based filtering for isAvailable
-    const isAdmin = req.user?.role === 'admin';
+    {/*const isAdmin = req.user?.role === 'admin';
 
     if (!isAdmin) {
       // Force filter only available items for non-admins
@@ -86,8 +86,8 @@ router.get('/', authenticate, async (req, res) => {
     } else if (isAvailable !== undefined) {
       // For admins: allow override if explicitly passed
       query.isAvailable = isAvailable === 'true';
-    }
-
+    }*/}
+      query.isAvailable = true;
     // Search (if implemented)
     if (search) {
       query.name = { $regex: search, $options: 'i' };
