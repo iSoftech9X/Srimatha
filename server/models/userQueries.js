@@ -1,6 +1,6 @@
 import db from '../services/postgres.js';
 import bcrypt from 'bcryptjs';
-
+import pool from '../services/postgres.js';
 export async function createUser({ name, email, password, phone, address = {}, role = 'customer' }) {
   const hashedPassword = await bcrypt.hash(password, 10);
   const result = await db.query(
@@ -23,7 +23,14 @@ export async function createUser({ name, email, password, phone, address = {}, r
 }
 
 export async function getUserByEmail(email) {
-  const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+  console.log('🔍 Email received in backend:', `"${email}"`, 'Length:', email.length);
+ const cleanedEmail = email.trim().toLowerCase();
+    const result = await pool.query(
+      'SELECT * FROM users WHERE LOWER(email) = LOWER($1)',
+      [cleanedEmail]
+);
+
+  console.log('getUserByEmail DEBUG:', { email, result }); // DEBUG
   return result.rows[0];
 }
 

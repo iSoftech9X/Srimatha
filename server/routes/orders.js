@@ -145,46 +145,124 @@ router.post('/catering', async (req, res) => {
 
 // Create new regular order
 // POST /api/orders
+// router.post('/', authenticate, async (req, res) => {
+//   try {
+//     const user = req.user;
+
+//     if (!user || !user.id) {
+//       return res.status(401).json({ success: false, message: 'Unauthorized' });
+//     }
+
+//     const { items, subtotal, total, orderType = 'catering', paymentStatus = 'pending' } = req.body;
+
+//     const orderData = {
+//       id: `CATERING-${Date.now()}`, // or use auto-increment logic
+//       items,
+//       subtotal,
+//       total,
+//       orderType,
+//       paymentStatus,
+//       status: 'pending',
+//       orderDate: new Date().toISOString(),
+//       createdAt: new Date().toISOString(),
+//       updatedAt: new Date().toISOString(),
+
+//       // ✅ Important: Attach from authenticated user, not from body
+//       user_id: user.id,
+//       customer_id: user.id,
+//       customer_name: user.name,
+//       customer_email: user.email,
+//       customer_phone: user.phone
+//     };
+
+//     // Save in-memory or to DB
+//     cateringOrders.unshift(orderData); // ← your in-memory array
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Order placed successfully',
+//       data: {
+//         order: orderData
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Order place error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to place order',
+//       error: error.message
+//     });
+//   }
+// });
 router.post('/', authenticate, async (req, res) => {
   try {
     const user = req.user;
-
     if (!user || !user.id) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const { items, subtotal, total, orderType = 'catering', paymentStatus = 'pending' } = req.body;
+    const { items, subtotal, total, orderType = 'regular', paymentStatus = 'pending' } = req.body;
 
-    const orderData = {
-      id: `CATERING-${Date.now()}`, // or use auto-increment logic
-      items,
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'No items provided' });
+    }
+
+    // 1. Insert order summary into 'orders'
+    const orderNumber = `ORDER-${Date.now()}`;
+
+    const orderInsertQuery = `
+      INSERT INTO orders 
+      (order_number, customer_id, status, subtotal, total, payment_status, order_type, created_at, updated_at) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+      RETURNING id, order_number, status, subtotal, total, payment_status, order_type, created_at, updated_at
+    `;
+
+    const orderResult = await req.db.query(orderInsertQuery, [
+      orderNumber,
+      user.id,
+      'pending',
       subtotal,
       total,
-      orderType,
       paymentStatus,
-      status: 'pending',
-      orderDate: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      orderType,
+    ]);
 
-      // ✅ Important: Attach from authenticated user, not from body
-      user_id: user.id,
-      customer_id: user.id,
-      customer_name: user.name,
-      customer_email: user.email,
-      customer_phone: user.phone
-    };
+    const orderId = orderResult.rows[0].id;
 
-    // Save in-memory or to DB
-    cateringOrders.unshift(orderData); // ← your in-memory array
+    // 2. Insert each item into 'order_items'
+    const itemInsertQuery = `
+      INSERT INTO order_items (order_id, menu_item_id, quantity, price, special_instructions)
+      VALUES ($1, $2, $3, $4, $5)
+    `;
+
+    for (const item of items) {
+  if (!item.menuItemId) {
+    return res.status(400).json({ success: false, message: 'One or more items missing id' });
+  }
+  await req.db.query(
+    `INSERT INTO order_items (order_id, menu_item_id, quantity, price, special_instructions) VALUES ($1, $2, $3, $4, $5)`,
+    [orderId, item.menuItemId, item.quantity, item.price, item.special_instructions || null]
+  );
+}
+
 
     res.status(200).json({
       success: true,
       message: 'Order placed successfully',
       data: {
-        order: orderData
+        order: {
+          id: orderId,
+          order_number: orderNumber,
+          items,
+          subtotal,
+          total,
+          orderType,
+          paymentStatus,
+          status: 'pending',
+        }
       }
     });
+
   } catch (error) {
     console.error('Order place error:', error);
     res.status(500).json({
@@ -194,6 +272,7 @@ router.post('/', authenticate, async (req, res) => {
     });
   }
 });
+
 
 
 // Update order status (Admin only)

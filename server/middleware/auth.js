@@ -1,10 +1,13 @@
 import jwt from 'jsonwebtoken';
 import { getUserById } from '../models/userQueries.js';
-
+import dbService from '../services/dbService.js';
 export const authenticate = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
+    let token = req.header('Authorization')?.replace('Bearer ', '');
+      console.log('Authenticating token:', token);
+      if (!token) {
+      token = req.query.token;
+    }
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -72,6 +75,11 @@ export const authenticate = async (req, res, next) => {
     });
   }
 };
+
+export function attachDb(req, res, next) {
+  req.db = dbService; // now req.db.findMenuItems exists
+  next();
+}
 
 export const authorize = (...roles) => {
   return (req, res, next) => {

@@ -162,10 +162,10 @@ const CateringOrdering: React.FC = () => {
             {/* Combos Placeholder */}
             {activeCategory === menuCategories[0].id && (
               <div className="col-span-full">
-                <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-8 flex flex-col items-center justify-center shadow-md">
+                {/* <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-8 flex flex-col items-center justify-center shadow-md">
                   <h3 className="text-2xl font-bold text-yellow-700 mb-2">Combos Coming Soon!</h3>
                   <p className="text-yellow-700 text-lg">Exciting catering combos will be available here soon. Stay tuned!</p>
-                </div>
+                </div> */}
               </div>
             )}
             {filteredItems.map((item: any) => (
@@ -198,7 +198,7 @@ const CateringOrdering: React.FC = () => {
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                    <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
+                    {/* <span className="text-xl font-bold text-orange-600">₹{item.price}</span> */}
                   </div>
                   <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
                   {item.preparationTime && (

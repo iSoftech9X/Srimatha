@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 const MenuManagement: React.FC = () => {
   const { menuItems, updateMenuItem, addMenuItem, deleteMenuItem } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  // const [categoryFilter, setCategoryFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [formData, setFormData] = useState({
@@ -30,8 +30,8 @@ const MenuManagement: React.FC = () => {
   const filteredItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+    // const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+    return matchesSearch ;//&& matchesCategory
   });
 
   const categories = [
@@ -57,7 +57,6 @@ const MenuManagement: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     const itemData = {
       ...formData,
       price: parseFloat(formData.price),
@@ -174,13 +173,13 @@ const MenuManagement: React.FC = () => {
             />
           </div>
           <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            // value={categoryFilter}
+            // onChange={(e) => setCategoryFilter(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
-            {categories.map(category => (
+            {/* {categories.map(category => (
               <option key={category.id} value={category.id}>{category.name}</option>
-            ))}
+            ))} */}
           </select>
           <select className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
             <option value="">Bulk Actions</option>

@@ -1,12 +1,20 @@
 // Service aggregator for switching between mock and real DB
 import * as menuPostgres from './menuPostgres.js';
+import pool from './postgres.js';
 
 export default {
-  connect: async () => {
-    // Optionally test DB connection here
-    console.log('PostgreSQL database connected successfully');
+   findMenuItems: menuPostgres.findMenuItems,
+  getMenuCategories: menuPostgres.getMenuCategories,
+   query: (text, params) => pool.query(text, params),
+  addMenuItem: menuPostgres.addMenuItem,
+  addCateringOrder: menuPostgres.addCateringOrder,
+connect: async () => {
+  try {
+    const res = await pool.query('SELECT current_database()');
+    console.log('✅ Connected to database:', res.rows[0].current_database);
     return true;
-  },
-  isConnected: () => true,
-  ...menuPostgres
-};
+  } catch (err) {
+    console.error('❌ Failed to fetch database name:', err);
+    return false;
+  }
+}}

@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
 import db from '../services/postgres.js';
-
+// import bcrypt from 'bcrypt';
 const router = express.Router();
 
 // Get dashboard statistics
@@ -128,5 +128,17 @@ router.get('/settings', authenticate, authorize('admin'), async (req, res) => {
     });
   }
 });
+// async function test() {
+//   const password = 'admin123';
 
+//   // Generate hash for password
+//   const hash = await bcrypt.hash(password, 10);
+//   console.log('Generated hash:', hash);
+
+//   // Now compare password with generated hash
+//   const isMatch = await bcrypt.compare(password, hash);
+//   console.log('Is match:', isMatch); // Should print: true
+// }
+
+// test();
 export default router;

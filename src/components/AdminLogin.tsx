@@ -19,7 +19,7 @@ const AdminLogin: React.FC = () => {
       const result = await login(credentials.email, credentials.password);
       console.log('Login result:', result);
       if (result.success && result.user?.role === 'admin') {
-        //navigate('/admin/dashboard');
+        navigate('/admin/dashboard');  
       } else if (result.success && result.user?.role === 'customer') {
         setError('Access denied. Admin privileges required.');
       } else {
@@ -103,7 +103,7 @@ const AdminLogin: React.FC = () => {
                 Signing In...
               </div>
             ) : (
-              'Access Admin'
+              'Access Admin Dashboard'
             )}
           </button>
         </form>

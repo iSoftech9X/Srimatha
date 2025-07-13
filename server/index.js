@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-
+import { attachDb } from './middleware/auth.js';
 // Import real database service
 import dbService from './services/dbService.js';
 
@@ -41,7 +41,7 @@ app.use(cors({
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
+app.use(attachDb); 
 // Initialize real database
 dbService.connect()
   .then(() => {
