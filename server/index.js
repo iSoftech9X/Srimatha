@@ -34,8 +34,13 @@ app.use(limiter);
 
 // CORS configuration (always allow localhost:5173 for dev)
 app.use(cors({
-  origin: [process.env.CLIENT_URL || 'http://localhost:5173', 'http://localhost:5173'],
-  credentials: true
+  origin: [
+    'http://localhost:5173',                            // local dev
+    'https://main.dmf9m0mb091cb.amplifyapp.com'         // production Amplify frontend
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parsing middleware
