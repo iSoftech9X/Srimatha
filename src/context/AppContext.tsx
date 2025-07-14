@@ -15,6 +15,8 @@ interface AppContextType {
   menuItems: MenuItem[];
   updateMenuItem: (id: string, item: Partial<MenuItem>) => void;
   fetchMenuItems: () => Promise<void>;
+  addMenuItem: (item: Omit<MenuItem, 'id'>) => void;
+  deleteMenuItem: (id: string) => void;
   
   // Cart functionality
   cart: CartItem[];
@@ -112,7 +114,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const fetchOrders = async () => {
     try {
       const response = await ordersAPI.getAllOrders({ limit: 100 });
-      setOrders(response.data.data.orders);
+      console.log('Fetched orders response:', response.data);
+      // Normalize order property names for frontend compatibility
+      const normalizedOrders = response.data.data.orders.map((order: any) => ({
+        ...order,
+        customerName: order.customerName || order.customer_name || '',
+        customerPhone: order.customerPhone || order.customer_phone || '',
+        customerEmail: order.customerEmail || order.customer_email || '',
+        orderDate: order.orderDate || order.order_date || order.createdAt || order.created_at,
+        items: order.items || order.order_items || [],
+        totalAmount: order.totalAmount || order.total_amount || 0,
+        paymentStatus: order.paymentStatus || order.payment_status || 'pending',
+        orderType: order.orderType || order.order_type || '',
+        status: order.status || 'pending',
+      }));
+      setOrders(normalizedOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error('Failed to load orders');
@@ -150,38 +166,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addCustomer = async (customerData: Omit<Customer, 'id'>) => {
     try {
-      // This would be implemented when we have a customer creation API
-      const newCustomer = {
-        ...customerData,
-        id: Date.now().toString()
-      };
+      // Call backend to create customer
+      const response = await customersAPI.createCustomer(customerData);
+      const newCustomer = response.data.data.customer;
       setCustomers(prev => [...prev, newCustomer]);
       toast.success('Customer added successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding customer:', error);
-      toast.error('Failed to add customer');
+      toast.error(error.response?.data?.message || 'Failed to add customer');
     }
   };
 
   const updateCustomer = async (id: string, customerUpdate: Partial<Customer>) => {
     try {
-      setCustomers(prev => prev.map(customer => 
-        customer.id === id ? { ...customer, ...customerUpdate } : customer
+      // Call backend to update customer
+      const response = await customersAPI.updateCustomer(id, customerUpdate);
+      const updatedCustomer = response.data.data.customer;
+      setCustomers(prev => prev.map(customer =>
+        customer.id === id ? { ...customer, ...updatedCustomer } : customer
       ));
       toast.success('Customer updated successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating customer:', error);
-      toast.error('Failed to update customer');
+      toast.error(error.response?.data?.message || 'Failed to update customer');
     }
   };
 
   const deleteCustomer = async (id: string) => {
     try {
+      // Call backend to delete customer
+      await customersAPI.deleteCustomer(id);
       setCustomers(prev => prev.filter(customer => customer.id !== id));
       toast.success('Customer deleted successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting customer:', error);
-      toast.error('Failed to delete customer');
+      toast.error(error.response?.data?.message || 'Failed to delete customer');
     }
   };
 
@@ -195,6 +214,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (error) {
       console.error('Error updating menu item:', error);
       toast.error('Failed to update menu item');
+    }
+  };
+
+  const addMenuItem = async (itemData: Omit<MenuItem, 'id'>) => {
+    try {
+      const response = await menuAPI.createItem(itemData);
+      const newItem = response.data.data.item;
+      setMenuItems(prev => [...prev, newItem]);
+      toast.success('Menu item added successfully');
+    } catch (error) {
+      console.error('Error adding menu item:', error);
+      toast.error('Failed to add menu item');
+    }
+  };
+
+  const deleteMenuItem = async (id: string) => {
+    try {
+      await menuAPI.deleteItem(id);
+      setMenuItems(prev => prev.filter(item => item.id !== id));
+      toast.success('Menu item deleted successfully');
+    } catch (error) {
+      console.error('Error deleting menu item:', error);
+      toast.error('Failed to delete menu item');
     }
   };
 
@@ -280,6 +322,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteCustomer,
       menuItems,
       updateMenuItem,
+      addMenuItem,
+      deleteMenuItem,
       fetchMenuItems,
       cart,
       addToCart,

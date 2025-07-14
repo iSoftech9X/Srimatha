@@ -32,7 +32,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    
     }
     return Promise.reject(error);
   }
@@ -53,6 +56,7 @@ export const menuAPI = {
   getItems: (params) => api.get('/menu', { params }),
   getItem: (id) => api.get(`/menu/${id}`),
   getPopularItems: () => api.get('/menu/featured/popular'),
+  getCategories: () => api.get('/menu/categories'),
   createItem: (itemData) => api.post('/menu', itemData),
   updateItem: (id, itemData) => api.put(`/menu/${id}`, itemData),
   toggleAvailability: (id) => api.patch(`/menu/${id}/availability`),
@@ -75,6 +79,9 @@ export const ordersAPI = {
 export const customersAPI = {
   getCustomers: (params) => api.get('/customers', { params }),
   getCustomer: (id) => api.get(`/customers/${id}`),
+  createCustomer: (customerData) => api.post('/customers', customerData),
+  updateCustomer: (id, customerData) => api.put(`/customers/${id}`, customerData),
+  deleteCustomer: (id) => api.delete(`/customers/${id}`),
   updateCustomerStatus: (id, statusData) => api.patch(`/customers/${id}/status`, statusData),
   getAnalytics: () => api.get('/customers/analytics/overview'),
 };
@@ -82,8 +89,9 @@ export const customersAPI = {
 // Admin API
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
-  getSalesAnalytics: (params) => api.get('/admin/analytics/sales', { params }),
+  //getSalesAnalytics: (params) => api.get('/admin/analytics/sales', { params }),
   getSettings: () => api.get('/admin/settings'),
+  getAllOrders: (params) => api.get('/admin/orders', { params }),
 };
 
 // Contact API

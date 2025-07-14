@@ -1,17 +1,19 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+
 import { authenticate } from '../middleware/auth.js';
+import { createUser, getUserByEmail, getUserById } from '../models/userQueries.js';
 
 const router = express.Router();
 
 // Register new user
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
     // Check if user already exists
-    const existingUser = await req.db.findUserByEmail(email);
+    const existingUser = await getUserByEmail(email);
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -19,24 +21,12 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user
-    const userData = {
-      name,
-      email,
-      password: hashedPassword,
-      phone,
-      role: 'customer',
-      isActive: true
-    };
-
-    const newUser = await req.db.createUser(userData);
+    // Create user (hashing is handled in userQueries.js)
+    const newUser = await createUser({ name, email, password, phone, address });
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: newUser._id, email: newUser.email, role: newUser.role },
+      { id: newUser.id, email: newUser.email, role: newUser.role },
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
@@ -62,39 +52,42 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login user
+// Login user (SECURE: checks password)
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Find user
-    const user = await req.db.findUserByEmail(email);
+    console.log('LOGIN DEBUG:', { email, password }); // DEBUG
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required.'
+      });
+    }
+    const user = await getUserByEmail(email);
+    console.log('LOGIN DEBUG:', { email, user }); // DEBUG
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email or password.'
       });
     }
-
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('BCRYPT COMPARE:', { password, hash: user.password, isMatch }); // DEBUG
+    if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email or password.'
       });
     }
-
     // Generate JWT token
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
-
     // Remove password from response
     const { password: _, ...userResponse } = user;
-
     res.json({
       success: true,
       message: 'Login successful',
@@ -116,7 +109,7 @@ router.post('/login', async (req, res) => {
 // Get user profile
 router.get('/profile', authenticate, async (req, res) => {
   try {
-    const user = await req.db.findUserById(req.user.id);
+    const user = await getUserById(req.user.id);
     
     if (!user) {
       return res.status(404).json({

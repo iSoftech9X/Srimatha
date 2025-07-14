@@ -3,9 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-
-// Import mock database service
-import mockDB from './services/mockDatabase.js';
+import { attachDb } from './middleware/auth.js';
+// Import real database service
+import dbService from './services/dbService.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -24,26 +24,26 @@ const PORT = process.env.PORT || 5000;
 // Security middleware
 app.use(helmet());
 
-// Rate limiting
+// Rate limiting (relaxed for development)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 1000, // allow 1000 requests per minute for dev
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration (always allow localhost:5173 for dev)
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: [process.env.CLIENT_URL || 'http://localhost:5173', 'http://localhost:5173'],
   credentials: true
 }));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Initialize mock database
-mockDB.connect()
+app.use(attachDb); 
+// Initialize real database
+dbService.connect()
   .then(() => {
     console.log('Database service initialized successfully');
   })
@@ -52,9 +52,9 @@ mockDB.connect()
     process.exit(1);
   });
 
-// Make mock database available to routes
+// Make real database available to routes
 app.use((req, res, next) => {
-  req.db = mockDB;
+  req.db = dbService;
   next();
 });
 

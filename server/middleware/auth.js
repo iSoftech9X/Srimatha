@@ -1,9 +1,13 @@
 import jwt from 'jsonwebtoken';
-
+import { getUserById } from '../models/userQueries.js';
+import dbService from '../services/dbService.js';
 export const authenticate = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
+    let token = req.header('Authorization')?.replace('Bearer ', '');
+      console.log('Authenticating token:', token);
+      if (!token) {
+      token = req.query.token;
+    }
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -37,7 +41,7 @@ export const authenticate = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
       
       // Find user in database (for production)
-      const user = await req.db?.findUserById?.(decoded.id);
+      const user = await getUserById(decoded.id);
       if (!user && !token.startsWith('demo_')) {
         return res.status(401).json({
           success: false,
@@ -45,13 +49,16 @@ export const authenticate = async (req, res, next) => {
         });
       }
 
-      req.user = user || {
-        id: decoded.id,
-        email: decoded.email,
-        role: decoded.role,
-        name: decoded.name
-      };
-      
+    req.user = {
+  id: user?.id || decoded.id,
+  name: user?.name || decoded.name,
+  email: user?.email || decoded.email,
+  phone: user?.phone || decoded.phone,
+  role: user?.role || decoded.role,
+};
+
+
+
       next();
     } catch (jwtError) {
       console.error('JWT verification error:', jwtError);
@@ -68,6 +75,11 @@ export const authenticate = async (req, res, next) => {
     });
   }
 };
+
+export function attachDb(req, res, next) {
+  req.db = dbService; // now req.db.findMenuItems exists
+  next();
+}
 
 export const authorize = (...roles) => {
   return (req, res, next) => {
@@ -114,7 +126,7 @@ export const optionalAuth = async (req, res, next) => {
       } else {
         // Handle JWT tokens
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
-        const user = await req.db?.findUserById?.(decoded.id);
+        const user = await getUserById(decoded.id);
         
         if (user) {
           req.user = {

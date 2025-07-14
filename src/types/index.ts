@@ -58,8 +58,9 @@ export interface Order {
   items: CartItem[];
   totalAmount: number;
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
-  orderType: 'dine-in' | 'takeaway' | 'delivery';
-  orderDate: string;
+  orderType: 'dine-in' | 'takeaway' | 'delivery' | 'catering'; // add 'catering'
+  orderDate?: string;
+  createdAt?: string;
   deliveryAddress?: string;
   specialInstructions?: string;
   paymentStatus: 'pending' | 'paid' | 'failed';
@@ -73,6 +74,13 @@ export interface Order {
     delivery?: number;
     overall?: number;
     review?: string;
+  };
+  eventDetails?: {
+    eventType?: string;
+    guestCount?: number;
+    eventDate?: string;
+    eventTime?: string;
+    venue?: string;
   };
 }
 

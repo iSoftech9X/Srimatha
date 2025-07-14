@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../services/api';
 
 interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'customer';
+  role: 'admin' | 'customer' | 'guest';
   phone?: string;
 }
 
@@ -34,130 +35,100 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for stored user data on mount
     const storedUser = localStorage.getItem('srimatha_user');
     const storedToken = localStorage.getItem('token');
-    
     if (storedUser && storedToken) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
-        console.log('Restored user session:', parsedUser);
       } catch (error) {
-        console.error('Error parsing stored user:', error);
         localStorage.removeItem('srimatha_user');
         localStorage.removeItem('token');
       }
     }
   }, []);
 
+  // const login = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
+  //   try {
+  //     const response = await authAPI.login({ email, password });
+  //     if (response.data && response.data.success && response.data.data) {
+  //       const { user, token } = response.data.data;
+  //       setUser(user);
+  //       localStorage.setItem('srimatha_user', JSON.stringify(user));
+  //       localStorage.setItem('token', token);
+  //       return { success: true, user };
+  //     } else {
+  //       return { success: false, error: response.data?.message || 'Login failed' };
+  //     }
+  //   } catch (error: any) {
+  //     return { success: false, error: error.response?.data?.message || 'Login failed' };
+  //   }
+  // };
+
+  // const register = async (userData: any): Promise<{ success: boolean; user?: User; error?: string }> => {
+  //   try {
+  //     const response = await authAPI.register(userData);
+  //     if (response.data && response.data.success && response.data.data) {
+  //       const { user, token } = response.data.data;
+  //       setUser(user);
+  //       localStorage.setItem('srimatha_user', JSON.stringify(user));
+  //       localStorage.setItem('token', token);
+  //       return { success: true, user };
+  //     } else {
+  //       return { success: false, error: response.data?.message || 'Registration failed' };
+  //     }
+  //   } catch (error: any) {
+  //     return { success: false, error: error.response?.data?.message || 'Registration failed' };
+  //   }
+  // };
+
   const login = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
-    try {
-      console.log('Login attempt:', { email, password });
-      
-      // Demo credentials - exact match required
-      const adminCredentials = { 
-        email: 'admin@srimatha.com', 
-        password: 'admin123' 
-      };
-      const demoUserCredentials = { 
-        email: 'user@example.com', 
-        password: 'user123' 
-      };
+  try {
+    const response = await authAPI.login({ email, password });
+    
+    console.log('Login response:', response);
 
-      // Trim whitespace and convert to lowercase for email comparison
-      const trimmedEmail = email.trim().toLowerCase();
-      const trimmedPassword = password.trim();
-
-      console.log('Checking credentials:', { trimmedEmail, trimmedPassword });
-
-      if (trimmedEmail === adminCredentials.email.toLowerCase() && trimmedPassword === adminCredentials.password) {
-        const adminUser: User = {
-          id: 'admin_1',
-          name: 'Srimatha Admin',
-          email: adminCredentials.email,
-          role: 'admin',
-          phone: '+91 98765 43210'
-        };
-        
-        setUser(adminUser);
-        localStorage.setItem('srimatha_user', JSON.stringify(adminUser));
-        localStorage.setItem('token', 'demo_admin_token_' + Date.now());
-        
-        console.log('Admin login successful:', adminUser);
-        return { success: true, user: adminUser };
-      } 
-      else if (trimmedEmail === demoUserCredentials.email.toLowerCase() && trimmedPassword === demoUserCredentials.password) {
-        const regularUser: User = {
-          id: 'user_1',
-          name: 'Demo User',
-          email: demoUserCredentials.email,
-          role: 'customer',
-          phone: '+91 87654 32109'
-        };
-        
-        setUser(regularUser);
-        localStorage.setItem('srimatha_user', JSON.stringify(regularUser));
-        localStorage.setItem('token', 'demo_user_token_' + Date.now());
-        
-        console.log('User login successful:', regularUser);
-        return { success: true, user: regularUser };
-      } 
-      else {
-        console.log('Invalid credentials provided');
-        return { 
-          success: false, 
-          error: 'Invalid email or password. Please check your credentials.' 
-        };
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: 'Login failed. Please try again.' 
+    if (response.data && response.data.success && response.data.data) {
+      let { user, token } = response.data.data;
+      // Normalize user object to always have 'id'
+      user = {
+        ...user,
+        id: user.id || user._id || user.user_id,
       };
+      console.log('Login successful:', user);
+      setUser(user);
+      localStorage.setItem('srimatha_user', JSON.stringify(user));
+      localStorage.setItem('token', token);
+      return { success: true, user };
+    } else {
+      return { success: false, error: response.data?.message || 'Login failed' };
     }
-  };
+  } catch (error: any) {
+    return { success: false, error: error.response?.data?.message || 'Login failed' };
+  }
+};
 
-  const register = async (userData: any): Promise<{ success: boolean; user?: User; error?: string }> => {
-    try {
-      console.log('Registration attempt:', userData);
-      
-      // Check if user already exists (simple check for demo)
-      const existingUser = localStorage.getItem('srimatha_user');
-      if (existingUser) {
-        const parsed = JSON.parse(existingUser);
-        if (parsed.email.toLowerCase() === userData.email.trim().toLowerCase()) {
-          return { 
-            success: false, 
-            error: 'User with this email already exists.' 
-          };
-        }
-      }
-
-      // Create new user
-      const newUser: User = {
-        id: `user_${Date.now()}`,
-        name: userData.name.trim(),
-        email: userData.email.trim().toLowerCase(),
-        role: 'customer',
-        phone: userData.phone?.trim()
+const register = async (userData: any): Promise<{ success: boolean; user?: User; error?: string }> => {
+  try {
+    const response = await authAPI.register(userData);
+    if (response.data && response.data.success && response.data.data) {
+      let { user, token } = response.data.data;
+      // Normalize user object to always have 'id'
+      user = {
+        ...user,
+        id: user.id || user._id || user.user_id,
       };
-      
-      setUser(newUser);
-      localStorage.setItem('srimatha_user', JSON.stringify(newUser));
-      localStorage.setItem('token', 'demo_token_' + Date.now());
-      
-      console.log('Registration successful:', newUser);
-      return { success: true, user: newUser };
-    } catch (error) {
-      console.error('Registration error:', error);
-      return { 
-        success: false, 
-        error: 'Registration failed. Please try again.' 
-      };
+      setUser(user);
+      localStorage.setItem('srimatha_user', JSON.stringify(user));
+      localStorage.setItem('token', token);
+      return { success: true, user };
+    } else {
+      return { success: false, error: response.data?.message || 'Registration failed' };
     }
-  };
+  } catch (error: any) {
+    return { success: false, error: error.response?.data?.message || 'Registration failed' };
+  }
+};
 
   const logout = () => {
-    console.log('Logging out user:', user);
     setUser(null);
     localStorage.removeItem('srimatha_user');
     localStorage.removeItem('token');
@@ -169,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin'
+    isAdmin: user?.role === 'admin',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

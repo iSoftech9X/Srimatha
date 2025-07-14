@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Plus, Minus, Star, X, MapPin, Phone, User, Mail } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { srimathaMenu, menuCategories, restaurantInfo } from '../data/menuData';
+import { menuCategories, restaurantInfo } from '../data/menuData';
+import { menuAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const UserOrdering: React.FC = () => {
   const { cart, addToCart, removeFromCart, updateCartQuantity, clearCart } = useApp();
@@ -21,8 +23,26 @@ const UserOrdering: React.FC = () => {
     paymentMethod: 'cash',
     specialInstructions: ''
   });
+  const [menuItems, setMenuItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const filteredItems = srimathaMenu.filter(item => 
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    menuAPI.getItems()
+      .then((res: { data: any }) => {
+        setMenuItems(res.data || []);
+        setLoading(false);
+      })
+      .catch((err: any) => {
+        setError('Failed to load menu. Please try again.');
+        setLoading(false);
+      });
+  }, []);
+
+  const filteredItems = menuItems.filter(item => 
     item.category === activeCategory && item.isAvailable
   );
 
@@ -87,20 +107,23 @@ const UserOrdering: React.FC = () => {
         status: 'pending'
       };
 
-      // Simulate API call
-      console.log('Placing order:', orderData);
-      
-      // Create order ID
-      const orderId = `ORD${Date.now()}`;
-      
-      // Clear cart and show success
+      // Call backend to create order
+      const response = await (window as any).addOrder ? (window as any).addOrder(orderData) : null;
+      let orderId;
+      if (response && response.success && response.order) {
+        orderId = response.order.id || response.order.orderNumber;
+      } else {
+        // fallback: try direct API call
+        const apiRes = await import('../services/api').then(m => m.ordersAPI.createOrder(orderData));
+        orderId = apiRes.data.data.order.id || apiRes.data.data.order.orderNumber;
+      }
+
       clearCart();
       setShowCart(false);
       setShowCheckout(false);
       
       toast.success(`Order placed successfully! Order ID: ${orderId}`);
       
-      // Reset order details
       setOrderDetails({
         orderType: 'delivery',
         deliveryAddress: '',
@@ -110,6 +133,8 @@ const UserOrdering: React.FC = () => {
         specialInstructions: ''
       });
 
+      // Navigate to confirmation page
+      navigate(`/order-confirmation/${orderId}`);
     } catch (error) {
       console.error('Order placement error:', error);
       toast.error('Failed to place order. Please try again.');
@@ -203,58 +228,70 @@ const UserOrdering: React.FC = () => {
         </div>
 
         {/* Menu Items */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              <div className="relative">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                  {item.popular && (
-                    <span className="bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                      <Star size={12} fill="currentColor" />
-                      Popular
-                    </span>
-                  )}
-                  {item.isVegetarian && (
-                    <span className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                      VEG
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                  <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
-                </div>
-                <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
-                
-                {item.preparationTime && (
-                  <div className="text-xs text-gray-500 mb-3">
-                    ⏱️ {item.preparationTime} mins
-                  </div>
-                )}
-
-                <button
-                  onClick={() => setSelectedItem(item)}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-full font-semibold transition-colors duration-300"
-                >
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredItems.length === 0 && (
+        {loading ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No items available in this category</p>
+            <p className="text-gray-500 text-lg">Loading menu...</p>
           </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500 text-lg">{error}</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredItems.map((item) => (
+                <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                  <div className="relative">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                      {item.popular && (
+                        <span className="bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                          <Star size={12} fill="currentColor" />
+                          Popular
+                        </span>
+                      )}
+                      {item.isVegetarian && (
+                        <span className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                          VEG
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="p-6">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
+                      <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
+                    </div>
+                    <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
+                    
+                    {item.preparationTime && (
+                      <div className="text-xs text-gray-500 mb-3">
+                        ⏱️ {item.preparationTime} mins
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => setSelectedItem(item)}
+                      className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-full font-semibold transition-colors duration-300"
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {filteredItems.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No items available in this category</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

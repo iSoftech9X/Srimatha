@@ -312,7 +312,7 @@ const CustomerManagement: React.FC = () => {
                           )}
                         </div>
                         <div className="text-sm text-gray-500">
-                          Joined: {new Date(customer.joinDate).toLocaleDateString()}
+                          Joined: {customer.joinDate ? new Date(customer.joinDate).toLocaleDateString() : 'N/A'}
                         </div>
                       </div>
                     </div>
@@ -341,7 +341,7 @@ const CustomerManagement: React.FC = () => {
                         {customer.totalOrders} orders
                       </div>
                       <div className="text-gray-600">
-                        ₹{customer.totalSpent.toLocaleString()} spent
+                        ₹{typeof customer.totalSpent === 'number' ? customer.totalSpent.toLocaleString() : '0'} spent
                       </div>
                       {customer.loyaltyPoints && (
                         <div className="text-orange-600 text-xs">

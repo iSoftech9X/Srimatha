@@ -1,62 +1,30 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
+import db from '../services/postgres.js';
 
 const router = express.Router();
 
 // Get all customers (Admin only)
 router.get('/', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, status } = req.query;
-
-    // Mock customer data for now
-    const customers = [
-      {
-        _id: '1',
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '+91 9876543210',
-        role: 'customer',
-        isActive: true,
-        totalOrders: 5,
-        totalSpent: 1250,
-        lastOrderDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        _id: '2',
-        name: 'Jane Smith',
-        email: 'jane@example.com',
-        phone: '+91 9876543211',
-        role: 'customer',
-        isActive: true,
-        totalOrders: 3,
-        totalSpent: 890,
-        lastOrderDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ];
-
-    const total = customers.length;
-    const totalPages = Math.ceil(total / parseInt(limit));
-
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+    const customers = (await db.query(
+      "SELECT * FROM users WHERE role = 'customer' ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+      [limit, offset]
+    )).rows;
+    const [{ count: total }] = (await db.query("SELECT COUNT(*) FROM users WHERE role = 'customer' ")).rows;
     res.json({
       success: true,
       data: {
         customers,
-        total,
-        page: parseInt(page),
-        totalPages
+        total: Number(total),
+        page: Number(page),
+        totalPages: Math.ceil(Number(total) / limit)
       }
     });
   } catch (error) {
-    console.error('Customers fetch error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch customers',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Failed to fetch customers', error: error.message });
   }
 });
 

@@ -11,23 +11,17 @@ let orderCounter = 1000;
 let sseConnections = [];
 
 // Get user's orders
+import { findOrders, createOrder, updateOrder } from '../models/orderQueries.js';
+
+// ...existing code...
+
 router.get('/my-orders', authenticate, async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
-
-    const query = { customerId: req.user.id };
-    if (status) query.status = status;
-
-    const options = {
-      limit: parseInt(limit),
-      skip: (parseInt(page) - 1) * parseInt(limit)
-    };
-
-    const result = await req.db.findOrders(query, options);
-
+    const orders = await findOrders({ customerId: req.user.id, status, limit: parseInt(limit), skip: (parseInt(page) - 1) * parseInt(limit) });
     res.json({
       success: true,
-      data: result
+      data: { orders }
     });
   } catch (error) {
     console.error('User orders fetch error:', error);
@@ -58,8 +52,14 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
     let allOrders = [];
     
     // Get regular orders from database
-    const dbResult = await req.db.findOrders(query, options);
-    allOrders = [...dbResult.orders];
+    const dbOrders = await findOrders({
+      customerId: customerId,
+      status: status,
+      orderType: orderType,
+      limit: parseInt(limit),
+      skip: (parseInt(page) - 1) * parseInt(limit)
+    });
+    allOrders = [...dbOrders];
 
     // Add catering orders if no specific filters or if catering is requested
     if (!orderType || orderType === 'catering') {
@@ -94,12 +94,11 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
 });
 
 // Create new catering order
-router.post('/catering', authenticate, async (req, res) => {
+router.post('/catering', async (req, res) => {
   try {
     const orderData = {
       id: `CATERING-${orderCounter++}`,
       ...req.body,
-      customerId: req.user.id,
       orderType: 'catering',
       status: 'pending',
       paymentStatus: 'pending',
@@ -145,33 +144,136 @@ router.post('/catering', authenticate, async (req, res) => {
 });
 
 // Create new regular order
+// POST /api/orders
+// router.post('/', authenticate, async (req, res) => {
+//   try {
+//     const user = req.user;
+
+//     if (!user || !user.id) {
+//       return res.status(401).json({ success: false, message: 'Unauthorized' });
+//     }
+
+//     const { items, subtotal, total, orderType = 'catering', paymentStatus = 'pending' } = req.body;
+
+//     const orderData = {
+//       id: `CATERING-${Date.now()}`, // or use auto-increment logic
+//       items,
+//       subtotal,
+//       total,
+//       orderType,
+//       paymentStatus,
+//       status: 'pending',
+//       orderDate: new Date().toISOString(),
+//       createdAt: new Date().toISOString(),
+//       updatedAt: new Date().toISOString(),
+
+//       // ✅ Important: Attach from authenticated user, not from body
+//       user_id: user.id,
+//       customer_id: user.id,
+//       customer_name: user.name,
+//       customer_email: user.email,
+//       customer_phone: user.phone
+//     };
+
+//     // Save in-memory or to DB
+//     cateringOrders.unshift(orderData); // ← your in-memory array
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Order placed successfully',
+//       data: {
+//         order: orderData
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Order place error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to place order',
+//       error: error.message
+//     });
+//   }
+// });
 router.post('/', authenticate, async (req, res) => {
   try {
-    const orderData = {
-      ...req.body,
-      customerId: req.user.id,
-      status: 'pending',
-      orderNumber: `ORD${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    const user = req.user;
+    if (!user || !user.id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
 
-    const newOrder = await req.db.createOrder(orderData);
+    const { items, subtotal, total, orderType = 'regular', paymentStatus = 'pending' } = req.body;
 
-    res.status(201).json({
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'No items provided' });
+    }
+
+    // 1. Insert order summary into 'orders'
+    const orderNumber = `ORDER-${Date.now()}`;
+
+    const orderInsertQuery = `
+      INSERT INTO orders 
+      (order_number, customer_id, status, subtotal, total, payment_status, order_type, created_at, updated_at) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+      RETURNING id, order_number, status, subtotal, total, payment_status, order_type, created_at, updated_at
+    `;
+
+    const orderResult = await req.db.query(orderInsertQuery, [
+      orderNumber,
+      user.id,
+      'pending',
+      subtotal,
+      total,
+      paymentStatus,
+      orderType,
+    ]);
+
+    const orderId = orderResult.rows[0].id;
+
+    // 2. Insert each item into 'order_items'
+    const itemInsertQuery = `
+      INSERT INTO order_items (order_id, menu_item_id, quantity, price, special_instructions)
+      VALUES ($1, $2, $3, $4, $5)
+    `;
+
+    for (const item of items) {
+  if (!item.menuItemId) {
+    return res.status(400).json({ success: false, message: 'One or more items missing id' });
+  }
+  await req.db.query(
+    `INSERT INTO order_items (order_id, menu_item_id, quantity, price, special_instructions) VALUES ($1, $2, $3, $4, $5)`,
+    [orderId, item.menuItemId, item.quantity, item.price, item.special_instructions || null]
+  );
+}
+
+
+    res.status(200).json({
       success: true,
       message: 'Order placed successfully',
-      data: { order: newOrder }
+      data: {
+        order: {
+          id: orderId,
+          order_number: orderNumber,
+          items,
+          subtotal,
+          total,
+          orderType,
+          paymentStatus,
+          status: 'pending',
+        }
+      }
     });
+
   } catch (error) {
-    console.error('Order creation error:', error);
+    console.error('Order place error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create order',
+      message: 'Failed to place order',
       error: error.message
     });
   }
 });
+
+
 
 // Update order status (Admin only)
 router.patch('/:id/status', authenticate, authorize('admin'), async (req, res) => {
@@ -210,9 +312,9 @@ router.patch('/:id/status', authenticate, authorize('admin'), async (req, res) =
       }
     } else {
       // Regular order
-      updatedOrder = await req.db.updateOrder(orderId, {
+      updatedOrder = await updateOrder(orderId, {
         status,
-        updatedBy: req.user.id
+        updated_by: req.user.id
       });
     }
 
