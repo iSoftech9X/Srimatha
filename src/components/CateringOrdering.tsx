@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+
 import { Star, Plus, ShoppingCart, Users, Calendar, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
