@@ -31,11 +31,8 @@ jobs:
           ECR_REPOSITORY: srimatha
           IMAGE_TAG: latest
         run: |
-          # Build the Docker image using the root as context
-          docker build -t $ECR_REPOSITORY:$IMAGE_TAG -f apps/server/Dockerfile .
+          # Build and tag the image directly for ECR
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
 
-          # Tag the Docker image
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile 
-
-          # Push the Docker image to Amazon ECR
+          # Push to ECR
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
