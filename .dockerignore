@@ -1,0 +1,28 @@
+# Node modules
+node_modules
+
+# # Env and credentials
+# .env
+# .env.local
+# .env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Frontend (not needed for backend Docker image)
+src/
+dist/
+.vite/
+.vscode/
+*.log
+
+# Misc
+Dockerfile
+.dockerignore
+*.md
+netlify.toml
+*.sh
+*.ts
+*.tsx
