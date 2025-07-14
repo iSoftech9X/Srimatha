@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies
-RUN npm install --production
+RUN npm install
 
 
 # Stage 2: Final backend image
