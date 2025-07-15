@@ -69,7 +69,7 @@ const CustomerManagement: React.FC = () => {
     setEditingCustomer(customer);
     setFormData({
       name: customer.name,
-      email: customer.email,
+      email: customer.email,    
       phone: customer.phone,
       address: customer.address,
       status: customer.status,
@@ -176,13 +176,13 @@ const CustomerManagement: React.FC = () => {
           <p className="text-gray-600">Manage your customer database and relationships</p>
         </div>
         <div className="flex gap-2">
-          <button
+          {/* <button
             onClick={() => setShowAddModal(true)}
             className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors duration-300"
           >
             <UserPlus size={20} />
             Add Customer
-          </button>
+          </button> */}
           <button
             onClick={exportCustomers}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors duration-300"
@@ -199,14 +199,14 @@ const CustomerManagement: React.FC = () => {
           <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
           <div className="text-sm text-gray-600">Total Customers</div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-md">
+        {/* <div className="bg-white p-4 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-green-600">{stats.active}</div>
           <div className="text-sm text-gray-600">Active</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-purple-600">{stats.vip}</div>
           <div className="text-sm text-gray-600">VIP Customers</div>
-        </div>
+        </div> */}
         <div className="bg-white p-4 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-orange-600">₹{stats.totalRevenue.toLocaleString()}</div>
           <div className="text-sm text-gray-600">Total Revenue</div>
@@ -230,7 +230,7 @@ const CustomerManagement: React.FC = () => {
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
-          <select
+          {/* <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -238,9 +238,9 @@ const CustomerManagement: React.FC = () => {
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-          </select>
+          </select> */}
           <div className="flex gap-2">
-            <select
+            {/* <select
               onChange={(e) => handleBulkAction(e.target.value)}
               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               value=""
@@ -250,7 +250,7 @@ const CustomerManagement: React.FC = () => {
               <option value="deactivate">Deactivate Selected</option>
               <option value="export">Export Selected</option>
               <option value="delete">Delete Selected</option>
-            </select>
+            </select> */}
           </div>
         </div>
       </div>
@@ -278,9 +278,9 @@ const CustomerManagement: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Orders & Spending
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status & Type
-                </th>
+                </th> */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -350,7 +350,7 @@ const CustomerManagement: React.FC = () => {
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  {/* <td className="px-6 py-4 whitespace-nowrap">
                     <div className="space-y-1">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         customer.status === 'active' 
@@ -367,7 +367,7 @@ const CustomerManagement: React.FC = () => {
                         {customer.customerType || 'regular'}
                       </div>
                     </div>
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
