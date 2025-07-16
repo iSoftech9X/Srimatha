@@ -1,7 +1,9 @@
 import React from 'react';
 import { ChefHat, Users, Calendar, Utensils, Coffee, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import  Dinning from "../Images/fine-dinning.jpg"
+import foodcourtexperience from "../Images/food-court-experience.jpg"
+import  catering from "../Images/catering.jpg"
 const Services: React.FC = () => {
   const navigate = useNavigate();
 
@@ -23,7 +25,7 @@ const Services: React.FC = () => {
       title: 'Fine Dining Restaurant',
       description: 'Experience culinary excellence in our elegant dining space with carefully crafted dishes and impeccable service.',
       features: ['Premium Ambiance', 'Gourmet Menu', 'Wine Selection', 'Private Dining'],
-      image: 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      image: Dinning,
       action: handleRestaurantOrder,
       buttonText: 'Order from Restaurant',
       buttonColor: 'bg-red-600 hover:bg-red-700'
@@ -33,17 +35,17 @@ const Services: React.FC = () => {
       title: 'Food Court Experience',
       description: 'Diverse culinary options under one roof, perfect for families and groups with varying tastes and preferences.',
       features: ['Multiple Cuisines', 'Quick Service', 'Family Friendly', 'Affordable Pricing'],
-      image: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      image: foodcourtexperience,
       action: handleFoodCourtOrder,
       buttonText: 'Order from Food Court',
       buttonColor: 'bg-yellow-600 hover:bg-yellow-700'
     },
     {
       icon: Calendar,
-      title: 'Premium Catering',
+      title: 'Catering Services',
       description: 'Make your special events unforgettable with our comprehensive catering services and event management.',
       features: ['Custom Menus', 'Event Planning', 'Full Service', 'Any Occasion'],
-      image: 'https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      image: catering,
       action: handleCateringOrder,
       buttonText: 'Book Catering Service',
       buttonColor: 'bg-green-600 hover:bg-green-700'

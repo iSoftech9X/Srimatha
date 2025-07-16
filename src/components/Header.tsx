@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Menu, X, Phone, MapPin, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
+import logo from '../Images/logo.png';
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -60,14 +60,24 @@ const Header: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
-            <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
+            {/* <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
               <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-3">
                 <span className="text-white font-bold text-xl">S</span>
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">Srimatha</h1>
               </div>
-            </div>
+            </div> */}
+<div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
+  <img
+    src={logo}
+    alt="Srimatha Logo"
+    className="w-20 h-20 object-contain mr-3"
+  />
+  <div>
+    <h1 className="text-2xl font-bold text-gray-800">Srimatha</h1>
+  </div>
+</div>
 
             {/* Centered Services Only */}
             <div className="flex-1 flex justify-center">

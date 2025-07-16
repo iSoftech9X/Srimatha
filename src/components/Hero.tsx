@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChefHat, Users, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import main from "../Images/main-img.jpg"
 const Hero: React.FC = () => {
   const navigate = useNavigate();
 
@@ -23,7 +23,7 @@ const Hero: React.FC = () => {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
+          src={main}
           alt="Delicious food spread"
           className="w-full h-full object-cover"
         />
