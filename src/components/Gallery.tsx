@@ -1,28 +1,82 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-
+import gallery1 from '../Images/gallery1.jpg';
+import gallery2 from '../Images/gallery2.jpg';
+import gallery3 from '../Images/gallery3.jfif';
+import gallery5 from '../Images/gallery5.jpg';
+import gallery6 from '../Images/gallery6.jpg';
+import gallery7 from '../Images/gallery7.jpg';
+import gallery8 from '../Images/gallery8.jpg';
+import gallery9 from '../Images/gallery9.jpg';
+import gallery10 from '../Images/gallery10.jpg'
+// Gallery component to display images with lightbox effect 
 const Gallery: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const galleryImages = [
+    // {
+    //   src: 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+    //   alt: 'Elegant dining room',
+    //   category: 'Interior'
+    // },
+    // {
+    //   src: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+    //   alt: 'Gourmet dish presentation',
+    //   category: 'Food'
+    // },
+    // {
+    //   src: 'https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+    //   alt: 'Chef at work',
+    //   category: 'Kitchen'
+    // },
+    // {
+    //   src: 'https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+    //   alt: 'Catering setup',
+    //   category: 'Events'
+    // },
+    // {
+    //   src: 'https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+    //   alt: 'Butter chicken',
+    //   category: 'Food'
+    // },
+    // {
+    //   src: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+    //   alt: 'Food court area',
+    //   category: 'Interior'
+    // },
+    // {
+    //   src: 'https://images.pexels.com/photos/8844893/pexels-photo-8844893.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+    //   alt: 'Chocolate dessert',
+    //   category: 'Food'
+    // },
+    // {
+    //   src: 'https://images.pexels.com/photos/3622479/pexels-photo-3622479.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+    //   alt: 'Grilled salmon',
+    //   category: 'Food'
+    // },
+    // {
+    //   src: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+    //   alt: 'Restaurant ambiance',
+    //   category: 'Interior'
+    // }
     {
-      src: 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: gallery1,
       alt: 'Elegant dining room',
       category: 'Interior'
     },
     {
-      src: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: gallery2,
       alt: 'Gourmet dish presentation',
       category: 'Food'
     },
     {
-      src: 'https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: gallery3,
       alt: 'Chef at work',
       category: 'Kitchen'
     },
     {
-      src: 'https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-      alt: 'Catering setup',
+      src:gallery5,
+      alt:'Catering setup',
       category: 'Events'
     },
     {
@@ -31,22 +85,22 @@ const Gallery: React.FC = () => {
       category: 'Food'
     },
     {
-      src: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: gallery6,
       alt: 'Food court area',
       category: 'Interior'
     },
     {
-      src: 'https://images.pexels.com/photos/8844893/pexels-photo-8844893.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: gallery7,
       alt: 'Chocolate dessert',
       category: 'Food'
     },
     {
-      src: 'https://images.pexels.com/photos/3622479/pexels-photo-3622479.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: gallery8,
       alt: 'Grilled salmon',
       category: 'Food'
     },
     {
-      src: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: gallery9,
       alt: 'Restaurant ambiance',
       category: 'Interior'
     }

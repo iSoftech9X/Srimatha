@@ -17,7 +17,7 @@ const About: React.FC = () => {
             About <span className="text-orange-600">Srimath</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            A culinary legacy built on passion, quality, and the art of bringing people together through exceptional food experiences
+            A culinary legacy built on  passion, quality, and the art of bringing people together through exceptional food experiences
           </p>
         </div>
 
