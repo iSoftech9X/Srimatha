@@ -1,8 +1,8 @@
 import React from 'react';
 import { ChefHat, Users, Calendar, Utensils, Coffee, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import  Dinning from "../Images/aboutimg (1).webp"
-// import foodcourtexperience from "../Images/food-court-experience.jpg"
+import  Dinning from "../Images/resturant2.webp"
+
 import  catering from "../Images/catering.jpg"
 import Cateringimg from "../Images/aboutimg.jpg";
 const Services: React.FC = () => {
@@ -94,7 +94,7 @@ const Services: React.FC = () => {
                 <img
                   src={service.image}
                   alt={service.title}
-                  className="rounded-lg shadow-xl w-full h-80 object-cover"
+                className="rounded-lg  w-full h-auto max-h-[400px] object-cover"
                 />
               </div>
               
