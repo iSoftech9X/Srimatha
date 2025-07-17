@@ -1,10 +1,10 @@
 import React from 'react';
 import { ChefHat, Users, Calendar, Utensils, Coffee, PartyPopper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import  Dinning from "../Images/fine-dinning.jpg"
-import foodcourtexperience from "../Images/food-court-experience.jpg"
+import  Dinning from "../Images/aboutimg (1).webp"
+// import foodcourtexperience from "../Images/food-court-experience.jpg"
 import  catering from "../Images/catering.jpg"
-import Cateringimg from "../Images/cateringimg.jpg";
+import Cateringimg from "../Images/aboutimg.jpg";
 const Services: React.FC = () => {
   const navigate = useNavigate();
 
@@ -100,7 +100,7 @@ const Services: React.FC = () => {
               
               <div className={index % 2 === 1 ? 'md:col-start-1' : ''}>
                 <div className="flex items-center mb-4">
-                  <service.icon className="text-orange-600 mr-4" size={40} />
+                  <service.icon className="text-orange-600 mr-4" size={40}  style={{color: '#501608'}} />
                   <h3 className="text-3xl font-bold text-gray-800">{service.title}</h3>
                 </div>
                 <p className="text-gray-600 leading-relaxed mb-6">
@@ -135,12 +135,12 @@ const Services: React.FC = () => {
                 className="text-center bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
                 onClick={service.action}
               >
-                <service.icon className="mx-auto text-orange-600 mb-4" size={48} />
+                <service.icon className="mx-auto mb-4" style={{color: '#501608'}} size={48} />
                 <h4 className="text-xl font-bold text-gray-800 mb-3">{service.title}</h4>
                 <p className="text-gray-600 mb-4">{service.description}</p>
                 <button 
                   onClick={service.action}
-                  className="text-orange-600 hover:text-orange-700 font-semibold transition-colors duration-300"
+                  className="text-orange-600 hover:text-orange-700 font-semibold transition-colors duration-300"style={{color: '#501608'}} 
                 >
                   Learn More →
                 </button>
@@ -151,7 +151,7 @@ const Services: React.FC = () => {
 
         {/* Call to Action */}
         <div className="text-center mt-16">
-          <div className="bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-8 md:p-12 text-white">
+          <div className=" rounded-2xl p-8 md:p-12 text-white" style={{ backgroundColor: '#501608' }}>
             <h3 className="text-3xl font-bold mb-4">Ready to Experience Srimatha?</h3>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
               Whether you're craving a quick bite, planning a special dinner, or organizing a grand event, we're here to serve you.

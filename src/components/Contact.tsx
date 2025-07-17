@@ -143,7 +143,7 @@ const Contact: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <button 
                   onClick={handleOrderNow}
-                  className="flex items-center justify-center bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-lg font-semibold transition-colors duration-300"
+                  className="flex items-center justify-center bg-[#501608] hover:bg-[#722010] text-white p-4 rounded-lg font-semibold transition-colors duration-300"
                 >
                   <Calendar className="mr-2" size={20} />
                   Order Now
@@ -275,7 +275,7 @@ const Contact: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
+                className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300" 
               >
                 {loading ? 'Sending...' : 'Send Message'}
               </button>

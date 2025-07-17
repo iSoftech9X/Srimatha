@@ -119,7 +119,7 @@ const Menu: React.FC = () => {
           </h2>
           <button 
             onClick={generateMenuPDF}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-lg flex items-center gap-3 transition-all duration-300 mb-6"
+            className=" text-white px-10 py-4 rounded-full font-bold text-lg shadow-lg flex items-center gap-3 transition-all duration-300 mb-6" style={{ backgroundColor: '#501608' }}
           >
             <Download size={24} />
             Download Complete Menu
