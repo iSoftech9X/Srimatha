@@ -165,17 +165,37 @@ router.patch('/:id', authenticate, authorize('admin'), async (req, res) => {
 });
 
 // DELETE - delete customer
+// router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const deleted = await db.query("DELETE FROM users WHERE id = $1 AND role = 'customer' RETURNING *", [id]);
+//     if (deleted.rowCount === 0) {
+//       return res.status(404).json({ success: false, message: 'Customer not found' });
+//     }
+//     res.json({ success: true, message: 'Customer deleted successfully' });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: 'Failed to delete customer', error: error.message });
+//   }
+// });
 router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await db.query("DELETE FROM users WHERE id = $1 AND role = 'customer' RETURNING *", [id]);
+    const deleted = await db.query(
+      "DELETE FROM users WHERE id = $1 AND role = 'customer' RETURNING *",
+      [id]
+    );
+
     if (deleted.rowCount === 0) {
       return res.status(404).json({ success: false, message: 'Customer not found' });
     }
+
     res.json({ success: true, message: 'Customer deleted successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to delete customer', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete customer',
+      error: error.message,
+    });
   }
 });
-
 export default router;
