@@ -198,7 +198,7 @@ const Header: React.FC = () => {
               />
               {/* <h1 className="text-2xl font-bold text-gray-800">Srimatha</h1> */}
             </div>
-
+  
             {/* Hamburger for small screens */}
             <div className="md:hidden">
               <button onClick={() => setIsMenuOpen(!isMenuOpen)}>

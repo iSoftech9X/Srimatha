@@ -74,7 +74,6 @@ export const ordersAPI = {
   assignStaff: (id, staffData) => api.patch(`/orders/${id}/assign`, staffData),
   cancelOrder: (id, reason) => api.patch(`/orders/${id}/cancel`, { reason }),
   addReview: (id, reviewData) => api.post(`/orders/${id}/review`, reviewData),
-  
 };
 
 // Customers API
