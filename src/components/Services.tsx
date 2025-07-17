@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import  Dinning from "../Images/fine-dinning.jpg"
 import foodcourtexperience from "../Images/food-court-experience.jpg"
 import  catering from "../Images/catering.jpg"
+import Cateringimg from "../Images/cateringimg.jpg";
 const Services: React.FC = () => {
   const navigate = useNavigate();
 
@@ -35,7 +36,7 @@ const Services: React.FC = () => {
       title: 'Food Court Experience',
       description: 'Diverse culinary options under one roof, perfect for families and groups with varying tastes and preferences.',
       features: ['Multiple Cuisines', 'Quick Service', 'Family Friendly', 'Affordable Pricing'],
-      image: foodcourtexperience,
+      image: Cateringimg,
       action: handleFoodCourtOrder,
       buttonText: 'Order from Food Court',
       buttonColor: 'bg-yellow-600 hover:bg-yellow-700'
