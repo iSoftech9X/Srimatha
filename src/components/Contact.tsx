@@ -85,7 +85,7 @@ const Contact: React.FC = () => {
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Contact Information */}
-          <div className="space-y-8">
+          {/* <div className="space-y-8">
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-6">Contact Information</h3>
               
@@ -137,7 +137,7 @@ const Contact: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions */}
+          
             <div className="space-y-4">
               <h4 className="text-xl font-bold text-gray-800">Quick Actions</h4>
               <div className="grid grid-cols-2 gap-4">
@@ -157,7 +157,102 @@ const Contact: React.FC = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
+{/* Contact Information */}
+<div className="space-y-8">
+  <div>
+    <h3 className="text-2xl font-bold text-gray-800 mb-6">Contact Information</h3>
+
+    <div className="space-y-6">
+      {/* Address */}
+      <div className="flex items-start">
+        <MapPin className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-1">Address</h4>
+          <p className="text-gray-600">
+            <a
+              href={`https://www.google.com/maps/place/Sri+Matha+Family+Restaurant/@17.5276096,78.3656087,17z/data=!3m1!4b1!4m6!3m5!1s0x3bcb8d5401fd3031:0xf3978e60312fdb56!8m2!3d17.5276045!4d78.3681836!16s%2Fg%2F11srj29fl3?entry=ttu&g_ep=EgoyMDI1MDcxNS4xIKXMDSoASAFQAw%3D%3D=${encodeURIComponent(
+                `${restaurantInfo.address.line1}, ${restaurantInfo.address.line2}, ${restaurantInfo.address.line3}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-black hover:underline"
+            >
+              {restaurantInfo.address.line1}<br />
+              {restaurantInfo.address.line2}<br />
+              {restaurantInfo.address.line3}
+            </a>
+          </p>
+        </div>
+      </div>
+
+      {/* Phone */}
+      <div className="flex items-start">
+        <Phone className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-1">Phone</h4>
+          <p className="text-gray-600">
+            <a href={`tel:${restaurantInfo.phone}`} className="text-black hover:underline">
+              Restaurant: {restaurantInfo.phone}
+            </a><br />
+            <a href={`tel:${restaurantInfo.mobile}`} className="text-black hover:underline">
+              Catering: {restaurantInfo.mobile}
+            </a>
+          </p>
+        </div>
+      </div>
+
+      {/* Email */}
+      <div className="flex items-start">
+        <Mail className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-1">Email</h4>
+          <p className="text-gray-600">
+            <a href="mailto:info@srimatha.com" className="text-black hover:underline">
+              info@srimatha.com
+            </a><br />
+            <a href="mailto:catering@srimatha.com" className="text-black hover:underline">
+              catering@srimatha.com
+            </a>
+          </p>
+        </div>
+      </div>
+
+      {/* Operating Hours */}
+      <div className="flex items-start">
+        <Clock className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-1">Operating Hours</h4>
+          <p className="text-gray-600">
+            Monday - Sunday: 11:00 AM - 11:00 PM<br />
+            Catering: 24/7 Service Available
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Quick Actions */}
+  <div className="space-y-4">
+    <h4 className="text-xl font-bold text-gray-800">Quick Actions</h4>
+    <div className="grid grid-cols-2 gap-4">
+      <button 
+        onClick={handleOrderNow}
+        className="flex items-center justify-center bg-[#501608] hover:bg-[#722010] text-white p-4 rounded-lg font-semibold transition-colors duration-300"
+      >
+        <Calendar className="mr-2" size={20} />
+        Order Now
+      </button>
+      <button 
+        onClick={handleCateringQuote}
+        className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg font-semibold transition-colors duration-300"
+      >
+        <MessageSquare className="mr-2" size={20} />
+        Catering Quote
+      </button>
+    </div>
+  </div>
+</div>
 
           {/* Contact Form */}
           <div className="bg-white rounded-lg shadow-lg p-8">
