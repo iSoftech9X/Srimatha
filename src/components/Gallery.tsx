@@ -111,7 +111,7 @@ const Gallery: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-            Photo <span className="text-orange-600">Gallery</span>
+            Event <span className="text-orange-600">Gallery</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Take a visual journey through our culinary world, from exquisite dishes to memorable dining experiences

@@ -451,7 +451,7 @@ const CateringOrdering: React.FC = () => {
               <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
               <button
                 onClick={() => setShowCart(true)}
-                className="relative bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition-colors duration-300"
+                className="relative bg-[#501608] hover:bg-[#722010] text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition-colors duration-300"
               >
                 <ShoppingCart size={20} />
                 selected Items
@@ -468,7 +468,7 @@ const CateringOrdering: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-8 md:p-12 text-white mb-12">
+        <div className="bg-[#501608] rounded-2xl p-8 md:p-12 text-white mb-12">
           <div className="max-w-3xl">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Make Your Event Unforgettable
@@ -501,7 +501,7 @@ const CateringOrdering: React.FC = () => {
               onClick={() => setActiveCategory(category.id)}
               className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
                 activeCategory === category.id
-                  ? 'bg-orange-600 text-white shadow-lg'
+                  ? 'bg-[#501608] hover:bg-[#722010] text-white shadow-lg'
                   : 'bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600'
               }`}
             >
@@ -565,7 +565,7 @@ const CateringOrdering: React.FC = () => {
                     )}
                     <button
                       onClick={() => handleAddToCart(item)}
-                      className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
+                      className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
                     >
                       <Plus size={16} />
                       Add to Cart

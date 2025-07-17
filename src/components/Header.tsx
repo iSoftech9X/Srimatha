@@ -128,7 +128,7 @@ import React, { useState } from 'react';
 import { Menu, X, Phone, MapPin, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import logo from '../Images/logo.png';
+import logo from '../Images/finallogo.png';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -183,7 +183,7 @@ const Header: React.FC = () => {
       </div>
 
       {/* Main Header */}
-      <header className="bg-white shadow-lg sticky top-0 z-50">
+      <header className=" shadow-lg sticky top-0 z-50" style={{ backgroundColor: '#501608' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
@@ -194,9 +194,9 @@ const Header: React.FC = () => {
               <img
                 src={logo}
                 alt="Srimatha Logo"
-                className="w-14 h-14 object-contain mr-2"
+                className="w-auto h-24 object-contain mr-2"
               />
-              <h1 className="text-2xl font-bold text-gray-800">Srimatha</h1>
+              {/* <h1 className="text-2xl font-bold text-gray-800">Srimatha</h1> */}
             </div>
 
             {/* Hamburger for small screens */}
@@ -214,21 +214,21 @@ const Header: React.FC = () => {
                   className="flex items-center gap-1 hover:text-orange-600 transition"
                 >
                   <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                  <span className="text-gray-700 font-medium">Restaurant</span>
+                  <span className="text-white-700 font-medium" style={{color: 'white'}}>Restaurant</span>
                 </button>
                 <button
                   onClick={handleFoodCourtOrder}
                   className="flex items-center gap-1 hover:text-orange-600 transition"
                 >
                   <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                  <span className="text-gray-700 font-medium">Food Court</span>
+                  <span className="text-white-700 font-medium"style={{color: 'white'}}>Food Court</span>
                 </button>
                 <button
                   onClick={handleCateringOrder}
                   className="flex items-center gap-1 hover:text-orange-600 transition"
                 >
                   <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  <span className="text-gray-700 font-medium">Catering</span>
+                  <span className=" font-medium" style={{color: 'white'}}>Catering</span>
                 </button>
               </div>
             </div>
@@ -261,21 +261,21 @@ const Header: React.FC = () => {
             <div className="flex flex-col gap-4">
               <button
                 onClick={handleRestaurantOrder}
-                className="flex items-center gap-2 text-gray-700 hover:text-orange-600"
+                className="flex items-center gap-2 text-gray-700 hover:text-orange-600" style={{color: 'white'}}
               >
-                <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                <span className="w-2 h-2 rounded-full bg-red-500" ></span>
                 Restaurant
               </button>
               <button
                 onClick={handleFoodCourtOrder}
-                className="flex items-center gap-2 text-gray-700 hover:text-orange-600"
+                className="flex items-center gap-2 text-gray-700 hover:text-orange-600" style={{color: 'white'}}
               >
                 <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
                 Food Court
               </button>
               <button
                 onClick={handleCateringOrder}
-                className="flex items-center gap-2 text-gray-700 hover:text-orange-600"
+                className="flex items-center gap-2 text-gray-700 hover:text-orange-600" style={{color: 'white'}}
               >
                 <span className="w-2 h-2 rounded-full bg-green-500"></span>
                 Catering

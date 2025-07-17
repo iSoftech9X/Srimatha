@@ -1,6 +1,6 @@
 import React from 'react';
 import { Award, Clock, Heart, Star } from 'lucide-react';
-import aboutimg from "../Images/aboutimg.jpg"
+import aboutimg from "../Images/cateringimg.jpg"
 
 const About: React.FC = () => {
   const stats = [
@@ -15,7 +15,7 @@ const About: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-            About <span className="text-orange-600">Srimath</span>
+            About <span className="text-orange-600">Srimatha</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             A culinary legacy built on passion, quality, and the art of bringing people together through exceptional food experiences
@@ -51,7 +51,7 @@ const About: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {stats.map((stat, index) => (
             <div key={index} className="text-center bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <stat.icon className="mx-auto text-orange-600 mb-4" size={40} />
+              <stat.icon className="mx-auto  mb-4"  style={{color: '#501608'}} size={40} />
               <div className="text-3xl font-bold text-gray-800 mb-2">{stat.number}</div>
               <div className="text-gray-600 font-medium">{stat.label}</div>
             </div>

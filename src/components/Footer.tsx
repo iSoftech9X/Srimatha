@@ -1,7 +1,7 @@
 import React from 'react';
 import { Facebook, Instagram, Twitter, Youtube, Phone, Mail, MapPin } from 'lucide-react';
 import { restaurantInfo } from '../data/menuData';
-
+import logo from '../Images/finallogo.png';
 const Footer: React.FC = () => {
   return (
     <footer className="bg-gray-800 text-white">
@@ -10,28 +10,28 @@ const Footer: React.FC = () => {
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-xl">S</span>
+              <div className=" flex items-center justify-center mr-3">
+                <img src={logo} alt="Srimatha Logo" className="w-auto h-24" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold">{restaurantInfo.name}</h3>
-                <p className="text-gray-400 text-sm">{restaurantInfo.tagline}</p>
+                {/* <h3 className="text-2xl font-bold">{restaurantInfo.name}</h3> */}
+                {/* <p className="text-gray-400 text-sm">{restaurantInfo.tagline}</p> */}
               </div>
             </div>
             <p className="text-gray-300 mb-6 leading-relaxed">
               {restaurantInfo.tagline} We're committed to creating memorable dining experiences for every occasion with authentic flavors and exceptional service.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="bg-gray-700 hover:bg-orange-600 p-3 rounded-full transition-colors duration-300">
+              <a href="#" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="bg-gray-700 hover:bg-orange-600 p-3 rounded-full transition-colors duration-300">
+              <a href="#" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="bg-gray-700 hover:bg-orange-600 p-3 rounded-full transition-colors duration-300">
+              <a href="#" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
                 <Twitter size={20} />
               </a>
-              <a href="#" className="bg-gray-700 hover:bg-orange-600 p-3 rounded-full transition-colors duration-300">
+              <a href="#" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
                 <Youtube size={20} />
               </a>
             </div>

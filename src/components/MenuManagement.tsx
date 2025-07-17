@@ -810,7 +810,7 @@ const MenuManagement: React.FC = () => {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors duration-300"
+          className="bg-[#501608] hover:bg-[#722010] text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors duration-300"
         >
           <Plus size={20} />
           Add New Item
