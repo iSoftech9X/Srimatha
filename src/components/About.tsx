@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award, Clock, Heart, Star } from 'lucide-react';
+import aboutimg from "../Images/aboutimg.jpg"
 
 const About: React.FC = () => {
   const stats = [
@@ -24,7 +25,7 @@ const About: React.FC = () => {
         <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
           <div>
             <img
-              src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop"
+              src={aboutimg}
               alt="Chef preparing food"
               className="rounded-lg shadow-xl w-full h-96 object-cover"
             />
