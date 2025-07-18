@@ -1,27 +1,52 @@
 
 
-
 // import React, { useState, useEffect } from 'react';
-// import { Star, Plus, ShoppingCart, Users, Calendar, X } from 'lucide-react';
+// import { Star, Plus, ShoppingCart, Users, Calendar, X, History } from 'lucide-react';
 // import { useAuth } from '../context/AuthContext';
 // import { useApp } from '../context/AppContext';
 
-// import { menuAPI } from '../services/api';
+// import { menuAPI, ordersAPI } from '../services/api';
 // import toast from 'react-hot-toast';
-// import { ordersAPI } from '../services/api';
-// import type { MenuItem } from '../types';
+// import type { MenuItem, Order } from '../types';
 // import Header from './Header';
+
+// // Update the Order type to match your API response
+// type ApiOrder = {
+//   id: number;
+//   order_number: string;
+//   customer_id: number;
+//   status: string;
+//   subtotal: string;
+//   total: string;
+//   payment_status: string;
+//   order_type: string;
+//   created_at: string;
+//   updated_at: string;
+//   items?: Array<{
+//     menu_item_id: string;
+//     quantity: number;
+//     price: string;
+//     menu_item?: {
+//       name: string;
+//     };
+//   }>;
+// };
+
 // const CateringOrdering: React.FC = () => {
 //   const { user } = useAuth();
 //   const { cart, addToCart, removeFromCart, clearCart } = useApp();
   
 //   const [showCart, setShowCart] = useState(false);
+//   const [showOrderHistory, setShowOrderHistory] = useState(false);
 //   const [menuCategories, setMenuCategories] = useState<{id: string, name: string}[]>([]);
 //   const [activeCategory, setActiveCategory] = useState('all');
 //   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState('');
 //   const [allItemsLoaded, setAllItemsLoaded] = useState(false);
+//   const [orders, setOrders] = useState<ApiOrder[]>([]);
+//   const [loadingOrders, setLoadingOrders] = useState(false);
+//   const [orderError, setOrderError] = useState('');
 
 //   // Fetch all menu items recursively if paginated
 //   const fetchAllItems = async (page = 1, accumulatedItems: MenuItem[] = []): Promise<MenuItem[]> => {
@@ -46,6 +71,24 @@
 //     }
 //   };
 
+//   // Fetch user's order history
+//   const fetchOrderHistory = async () => {
+//     if (!user) return;
+    
+//     setLoadingOrders(true);
+//     setOrderError('');
+//     try {
+//       const response = await ordersAPI.getMyOrders();
+//       // Update this line to match your API response structure
+//       setOrders(response.data.data?.orders || []);
+//     } catch (err) {
+//       setOrderError('Failed to load order history');
+//       console.error('Error fetching orders:', err);
+//     } finally {
+//       setLoadingOrders(false);
+//     }
+//   };
+
 //   // Fetch categories and all menu items
 //   useEffect(() => {
 //     const loadData = async () => {
@@ -61,8 +104,6 @@
 //         setMenuItems(items);
 //         setAllItemsLoaded(true);
 //         setError('');
-        
-//         console.log('Total items loaded:', items.length);
 //       } catch (err) {
 //         setError('Failed to load menu items');
 //         console.error('Error loading menu:', err);
@@ -73,6 +114,13 @@
     
 //     loadData();
 //   }, []);
+
+//   // Load order history when toggle is turned on
+//   useEffect(() => {
+//     if (showOrderHistory && user) {
+//       fetchOrderHistory();
+//     }
+//   }, [showOrderHistory, user]);
 
 //   // Auto-add item from query param if present
 //   useEffect(() => {
@@ -105,9 +153,20 @@
 //     }
 //   };
 
+//   const formatDate = (dateString: string) => {
+//     const options: Intl.DateTimeFormatOptions = { 
+//       year: 'numeric', 
+//       month: 'short', 
+//       day: 'numeric',
+//       hour: '2-digit',
+//       minute: '2-digit'
+//     };
+//     return new Date(dateString).toLocaleDateString('en-US', options);
+//   };
+
 //   return (
 //     <div className="min-h-screen bg-gray-50">
-//      <Header/>
+//       <Header/>
 //       <div className="bg-white shadow-sm sticky top-0 z-40">
 //         <div className="max-w-7xl mx-auto px-4 py-4">
 //           <div className="flex justify-between items-center">
@@ -117,132 +176,190 @@
 //             </div>
 //             <div className="flex items-center gap-4">
 //               <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
-//               <button
-//                 onClick={() => setShowCart(true)}
-//                 className="relative bg-[#501608] hover:bg-[#722010] text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition-colors duration-300"
-//               >
-//                 <ShoppingCart size={20} />
-//                 selected Items
-//                 {cartItemCount > 0 && (
-//                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
-//                     {cartItemCount}
-//                   </span>
-//                 )}
-//               </button>
+//               <div className="flex gap-2">
+//                 <button
+//                   onClick={() => setShowOrderHistory(!showOrderHistory)}
+//                   className={`relative px-4 py-3 rounded-full font-medium flex items-center gap-2 transition-colors duration-300 ${
+//                     showOrderHistory 
+//                       ? 'bg-[#501608] text-white'
+//                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+//                   }`}
+//                 >
+//                   <History size={18} />
+//                   <span className="hidden sm:inline"> My Orders </span>
+//                 </button>
+//                 <button
+//                   onClick={() => setShowCart(true)}
+//                   className="relative bg-[#501608] hover:bg-[#722010] text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition-colors duration-300"
+//                 >
+//                   <ShoppingCart size={20} />
+//                   <span className="hidden sm:inline">Selected Items</span>
+//                   {cartItemCount > 0 && (
+//                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+//                       {cartItemCount}
+//                     </span>
+//                   )}
+//                 </button>
+//               </div>
 //             </div>
 //           </div>
 //         </div>
 //       </div>
 
 //       <div className="max-w-7xl mx-auto px-4 py-8">
-//         {/* Hero Section */}
-//         <div className="bg-[#501608] rounded-2xl p-8 md:p-12 text-white mb-12">
-//           <div className="max-w-3xl">
-//             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-//               Make Your Event Unforgettable
-//             </h2>
-//             <p className="text-xl mb-6">
-//               From intimate gatherings to grand celebrations, our catering services bring exceptional flavors and professional service to your special occasions.
-//             </p>
-//             <div className="grid md:grid-cols-3 gap-6">
-//               <div className="flex items-center gap-3">
-//                 <Users className="text-orange-200" size={24} />
-//                 <span>Any Group Size</span>
-//               </div>
-//               <div className="flex items-center gap-3">
-//                 <Calendar className="text-orange-200" size={24} />
-//                 <span>Flexible Scheduling</span>
-//               </div>
-//               <div className="flex items-center gap-3">
-//                 <Star className="text-orange-200" size={24} />
-//                 <span>Premium Quality</span>
-//               </div>
+//         {/* Order History Section */}
+//         {showOrderHistory && (
+//           <div className="mb-12 bg-white rounded-xl shadow-md overflow-hidden">
+//             <div className="p-6 border-b border-gray-200">
+//               <h2 className="text-2xl font-bold text-gray-800">Your Order History</h2>
+//               <p className="text-gray-600">Past catering orders</p>
 //             </div>
-//           </div>
-//         </div>
-
-//         {/* Category Tabs */}
-//         <div className="flex flex-wrap justify-center gap-2 mb-12 max-w-6xl mx-auto">
-//           {menuCategories.map((category) => (
-//             <button
-//               key={category.id}
-//               onClick={() => setActiveCategory(category.id)}
-//               className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
-//                 activeCategory === category.id
-//                   ? 'bg-[#501608] hover:bg-[#722010] text-white shadow-lg'
-//                   : 'bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600'
-//               }`}
-//             >
-//               {category.name}
-//             </button>
-//           ))}
-//         </div>
-
-//         {/* Menu Items Grid */}
-//         {loading ? (
-//           <div className="text-center py-20 text-xl text-gray-500">Loading menu...</div>
-//         ) : error ? (
-//           <div className="text-center py-20 text-xl text-red-500">{error}</div>
-//         ) : (
-//           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-//             {filteredItems.length === 0 ? (
-//               <div className="col-span-full text-center py-10">
-//                 <p className="text-gray-500">No items found in this category</p>
+            
+//             {loadingOrders ? (
+//               <div className="p-6 text-center text-gray-500">Loading your orders...</div>
+//             ) : orderError ? (
+//               <div className="p-6 text-center text-red-500">{orderError}</div>
+//             ) : orders.length === 0 ? (
+//               <div className="p-6 text-center text-gray-500">
+//                 <History size={48} className="mx-auto mb-4 text-gray-300" />
+//                 <p>No past orders found</p>
 //               </div>
 //             ) : (
-//               filteredItems.map((item) => (
-//                 <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-//                   {/* <div className="relative">
-//                     <img
-//                       src={item.image}
-//                       alt={item.name}
-//                       className="w-full h-48 object-cover"
-//                       onError={(e) => {
-//                         (e.target as HTMLImageElement).src = '/placeholder-food.jpg';
-//                       }}
-//                     />
-//                     <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-//                       {item.popular && (
-//                         <span className="bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-//                           <Star size={12} fill="currentColor" />
-//                           Popular
-//                         </span>
-//                       )}
-//                       {item.isVegetarian && (
-//                         <span className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-//                           VEG
-//                         </span>
-//                       )}
-//                       {item.spiceLevel && item.spiceLevel !== 'none' && (
-//                         <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-//                           {item.spiceLevel.toUpperCase()}
-//                         </span>
-//                       )}
-//                     </div>
-//                   </div> */}
-//                   <div className="p-6">
-//                     <div className="flex justify-between items-start mb-3">
-//                       <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-//                       <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
-//                     </div>
-//                     <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
-//                     {item.preparationTime && (
-//                       <div className="text-xs text-gray-500 mb-3">
-//                         ⏱️ {item.preparationTime} mins
+//               <div className="divide-y divide-gray-200">
+//                 {orders.map((order) => (
+//                   <div key={order.id} className="p-6 hover:bg-gray-50 transition-colors duration-200">
+//                     <div className="flex justify-between items-start mb-2">
+//                       <div>
+//                         <h3 className="font-semibold text-lg text-gray-800">
+//                           Order #{order.order_number || `ORD-${order.id}`}
+//                         </h3>
+//                         <p className="text-sm text-gray-500">
+//                           {formatDate(order.created_at)}
+//                         </p>
 //                       </div>
-//                     )}
-//                     <button
-//                       onClick={() => handleAddToCart(item)}
-//                       className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
-//                     >
-//                       <Plus size={16} />
-//                       Add to Cart
-//                     </button>
+//                       <div className="text-right">
+//                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+//                           order.status === 'completed' 
+//                             ? 'bg-green-100 text-green-800'
+//                             : order.status === 'cancelled'
+//                             ? 'bg-red-100 text-red-800'
+//                             : 'bg-yellow-100 text-yellow-800'
+//                         }`}>
+//                           {order.status}
+//                         </span>
+//                         <p className="text-lg font-bold mt-1">₹{parseFloat(order.total).toFixed(2)}</p>
+//                       </div>
+//                     </div>
+                    
+//                     <div className="mt-4">
+//                       <h4 className="font-medium text-gray-700 mb-2">Items:</h4>
+//                       {order.items && order.items.length > 0 ? (
+//                         <ul className="space-y-2">
+//                           {order.items.map((item, index) => (
+//                             <li key={index} className="flex justify-between text-sm">
+//                               <span>
+//                                 {item.quantity}x {item.menu_item?.name || 'Unknown Item'}
+//                               </span>
+//                               {/* <span>₹{(parseFloat(item.price) * item.quantity).toFixed(2)}</span> */}
+//                             </li>
+//                           ))}
+//                         </ul>
+//                       ) : (
+//                         <p className="text-sm text-gray-500">No item details available</p>
+//                       )}
+//                     </div>
 //                   </div>
-//                 </div>
-//               ))
+//                 ))}
+//               </div>
 //             )}
 //           </div>
+//         )}
+
+//         {/* Only show menu when not viewing order history */}
+//         {!showOrderHistory && (
+//           <>
+//             {/* Hero Section */}
+//             <div className="bg-[#501608] rounded-2xl p-8 md:p-12 text-white mb-12">
+//               <div className="max-w-3xl">
+//                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
+//                   Make Your Event Unforgettable
+//                 </h2>
+//                 <p className="text-xl mb-6">
+//                   From intimate gatherings to grand celebrations, our catering services bring exceptional flavors and professional service to your special occasions.
+//                 </p>
+//                 <div className="grid md:grid-cols-3 gap-6">
+//                   <div className="flex items-center gap-3">
+//                     <Users className="text-orange-200" size={24} />
+//                     <span>Any Group Size</span>
+//                   </div>
+//                   <div className="flex items-center gap-3">
+//                     <Calendar className="text-orange-200" size={24} />
+//                     <span>Flexible Scheduling</span>
+//                   </div>
+//                   <div className="flex items-center gap-3">
+//                     <Star className="text-orange-200" size={24} />
+//                     <span>Premium Quality</span>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Category Tabs */}
+//             <div className="flex flex-wrap justify-center gap-2 mb-12 max-w-6xl mx-auto">
+//               {menuCategories.map((category) => (
+//                 <button
+//                   key={category.id}
+//                   onClick={() => setActiveCategory(category.id)}
+//                   className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
+//                     activeCategory === category.id
+//                       ? 'bg-[#501608] hover:bg-[#722010] text-white shadow-lg'
+//                       : 'bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600'
+//                   }`}
+//                 >
+//                   {category.name}
+//                 </button>
+//               ))}
+//             </div>
+
+//             {/* Menu Items Grid */}
+//             {loading ? (
+//               <div className="text-center py-20 text-xl text-gray-500">Loading menu...</div>
+//             ) : error ? (
+//               <div className="text-center py-20 text-xl text-red-500">{error}</div>
+//             ) : (
+//               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+//                 {filteredItems.length === 0 ? (
+//                   <div className="col-span-full text-center py-10">
+//                     <p className="text-gray-500">No items found in this category</p>
+//                   </div>
+//                 ) : (
+//                   filteredItems.map((item) => (
+//                     <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+//                       <div className="p-6">
+//                         <div className="flex justify-between items-start mb-3">
+//                           <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
+//                           {/* <span className="text-xl font-bold text-orange-600">₹{item.price}</span> */}
+//                         </div>
+//                         <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
+//                         {item.preparationTime && (
+//                           <div className="text-xs text-gray-500 mb-3">
+//                             ⏱️ {item.preparationTime} mins
+//                           </div>
+//                         )}
+//                         <button
+//                           onClick={() => handleAddToCart(item)}
+//                           className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
+//                         >
+//                           <Plus size={16} />
+//                           Add to Cart
+//                         </button>
+//                       </div>
+//                     </div>
+//                   ))
+//                 )}
+//               </div>
+//             )}
+//           </>
 //         )}
 //       </div>
 
@@ -291,7 +408,7 @@
 //                       </div>
 //                       <div className="flex justify-between items-center">
 //                         <span className="text-lg font-bold text-orange-600">
-//                           ₹{item.menuItem.price.toLocaleString()}
+//                           {/* ₹{item.menuItem.price.toLocaleString()} */}
 //                         </span>
 //                         <span className="text-sm text-gray-500">Qty: {item.quantity}</span>
 //                       </div>
@@ -329,6 +446,10 @@
 //                         toast.success('Order placed!');
 //                         clearCart();
 //                         setShowCart(false);
+//                         // Refresh order history if it's visible
+//                         if (showOrderHistory) {
+//                           fetchOrderHistory();
+//                         }
 //                       } catch (err) {
 //                         toast.error('Failed to place order. Please try again.');
 //                       }
@@ -357,13 +478,24 @@ import React, { useState, useEffect } from 'react';
 import { Star, Plus, ShoppingCart, Users, Calendar, X, History } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-
 import { menuAPI, ordersAPI } from '../services/api';
 import toast from 'react-hot-toast';
-import type { MenuItem, Order } from '../types';
+import type { MenuItem } from '../types';
 import Header from './Header';
 
-// Update the Order type to match your API response
+type OrderItem = {
+  id: number;
+  order_id: number;
+  menu_item_id: number;
+  quantity: number;
+  price: string;
+  special_instructions: string | null;
+  menu_item: {
+    name: string;
+    description: string;
+  };
+};
+
 type ApiOrder = {
   id: number;
   order_number: string;
@@ -375,14 +507,7 @@ type ApiOrder = {
   order_type: string;
   created_at: string;
   updated_at: string;
-  items?: Array<{
-    menu_item_id: string;
-    quantity: number;
-    price: string;
-    menu_item?: {
-      name: string;
-    };
-  }>;
+  items?: OrderItem[];
 };
 
 const CateringOrdering: React.FC = () => {
@@ -401,7 +526,6 @@ const CateringOrdering: React.FC = () => {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderError, setOrderError] = useState('');
 
-  // Fetch all menu items recursively if paginated
   const fetchAllItems = async (page = 1, accumulatedItems: MenuItem[] = []): Promise<MenuItem[]> => {
     try {
       const response = await menuAPI.getItems({
@@ -424,16 +548,17 @@ const CateringOrdering: React.FC = () => {
     }
   };
 
-  // Fetch user's order history
   const fetchOrderHistory = async () => {
     if (!user) return;
     
     setLoadingOrders(true);
     setOrderError('');
     try {
-      const response = await ordersAPI.getMyOrders();
-      // Update this line to match your API response structure
-      setOrders(response.data.data?.orders || []);
+      const response = await ordersAPI.getMyOrders({
+        includeItems: true,
+        expand: 'items.menu_item'
+      });
+      setOrders(response.data.orders || response.data.data?.orders || []);
     } catch (err) {
       setOrderError('Failed to load order history');
       console.error('Error fetching orders:', err);
@@ -442,7 +567,6 @@ const CateringOrdering: React.FC = () => {
     }
   };
 
-  // Fetch categories and all menu items
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -468,14 +592,12 @@ const CateringOrdering: React.FC = () => {
     loadData();
   }, []);
 
-  // Load order history when toggle is turned on
   useEffect(() => {
     if (showOrderHistory && user) {
       fetchOrderHistory();
     }
   }, [showOrderHistory, user]);
 
-  // Auto-add item from query param if present
   useEffect(() => {
     if (!allItemsLoaded) return;
     
@@ -539,7 +661,7 @@ const CateringOrdering: React.FC = () => {
                   }`}
                 >
                   <History size={18} />
-                  <span className="hidden sm:inline"> My Orders </span>
+                  <span className="hidden sm:inline">My Orders</span>
                 </button>
                 <button
                   onClick={() => setShowCart(true)}
@@ -560,8 +682,7 @@ const CateringOrdering: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Order History Section */}
-        {showOrderHistory && (
+        {showOrderHistory ? (
           <div className="mb-12 bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Your Order History</h2>
@@ -569,7 +690,10 @@ const CateringOrdering: React.FC = () => {
             </div>
             
             {loadingOrders ? (
-              <div className="p-6 text-center text-gray-500">Loading your orders...</div>
+              <div className="p-6 text-center">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#501608] border-t-transparent"></div>
+                <p className="mt-2 text-gray-600">Loading your orders...</p>
+              </div>
             ) : orderError ? (
               <div className="p-6 text-center text-red-500">{orderError}</div>
             ) : orders.length === 0 ? (
@@ -608,12 +732,15 @@ const CateringOrdering: React.FC = () => {
                       <h4 className="font-medium text-gray-700 mb-2">Items:</h4>
                       {order.items && order.items.length > 0 ? (
                         <ul className="space-y-2">
-                          {order.items.map((item, index) => (
-                            <li key={index} className="flex justify-between text-sm">
+                          {order.items.map((item) => (
+                            <li key={item.id} className="flex justify-between text-sm">
                               <span>
-                                {item.quantity}x {item.menu_item?.name || 'Unknown Item'}
+                                {item.quantity}x {item.menu_item?.name || 'Custom Item'}
+                                {item.special_instructions && (
+                                  <span className="text-xs text-gray-500 ml-2">({item.special_instructions})</span>
+                                )}
                               </span>
-                              {/* <span>₹{(parseFloat(item.price) * item.quantity).toFixed(2)}</span> */}
+                              <span>₹{(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
                             </li>
                           ))}
                         </ul>
@@ -626,12 +753,8 @@ const CateringOrdering: React.FC = () => {
               </div>
             )}
           </div>
-        )}
-
-        {/* Only show menu when not viewing order history */}
-        {!showOrderHistory && (
+        ) : (
           <>
-            {/* Hero Section */}
             <div className="bg-[#501608] rounded-2xl p-8 md:p-12 text-white mb-12">
               <div className="max-w-3xl">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -657,7 +780,6 @@ const CateringOrdering: React.FC = () => {
               </div>
             </div>
 
-            {/* Category Tabs */}
             <div className="flex flex-wrap justify-center gap-2 mb-12 max-w-6xl mx-auto">
               {menuCategories.map((category) => (
                 <button
@@ -674,7 +796,6 @@ const CateringOrdering: React.FC = () => {
               ))}
             </div>
 
-            {/* Menu Items Grid */}
             {loading ? (
               <div className="text-center py-20 text-xl text-gray-500">Loading menu...</div>
             ) : error ? (
@@ -691,7 +812,7 @@ const CateringOrdering: React.FC = () => {
                       <div className="p-6">
                         <div className="flex justify-between items-start mb-3">
                           <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                          {/* <span className="text-xl font-bold text-orange-600">₹{item.price}</span> */}
+                          <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
                         </div>
                         <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
                         {item.preparationTime && (
@@ -716,7 +837,6 @@ const CateringOrdering: React.FC = () => {
         )}
       </div>
 
-      {/* Cart Sidebar */}
       {showCart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
           <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
@@ -761,7 +881,7 @@ const CateringOrdering: React.FC = () => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-bold text-orange-600">
-                          {/* ₹{item.menuItem.price.toLocaleString()} */}
+                          ₹{item.menuItem.price.toLocaleString()}
                         </span>
                         <span className="text-sm text-gray-500">Qty: {item.quantity}</span>
                       </div>
@@ -789,6 +909,7 @@ const CateringOrdering: React.FC = () => {
                             menuItemId: item.menuItem.id,
                             quantity: item.quantity,
                             price: item.menuItem.price,
+                            specialInstructions: item.specialInstructions
                           })),
                           subtotal: cartTotal,
                           total: cartTotal,
@@ -799,7 +920,6 @@ const CateringOrdering: React.FC = () => {
                         toast.success('Order placed!');
                         clearCart();
                         setShowCart(false);
-                        // Refresh order history if it's visible
                         if (showOrderHistory) {
                           fetchOrderHistory();
                         }
