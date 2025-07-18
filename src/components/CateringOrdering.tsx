@@ -15,8 +15,8 @@ type OrderItem = {
   quantity: number;
   price: string;
   special_instructions: string | null;
-    name: string;
-    description: string;
+  name: string;
+  description: string;
 };
 
 type ApiOrder = {
@@ -48,6 +48,9 @@ const CateringOrdering: React.FC = () => {
   const [orders, setOrders] = useState<ApiOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderError, setOrderError] = useState('');
+  const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
+  const [showCancelForm, setShowCancelForm] = useState<number | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
 
   const fetchAllItems = async (page = 1, accumulatedItems: MenuItem[] = []): Promise<MenuItem[]> => {
     try {
@@ -88,6 +91,40 @@ const CateringOrdering: React.FC = () => {
     } finally {
       setLoadingOrders(false);
     }
+  };
+
+  const cancelOrder = async (id: number) => {
+    if (!user || !cancelReason.trim()) {
+      toast.error('Please provide a cancellation reason');
+      return;
+    }
+    
+    setCancellingOrderId(id);
+    try {
+      await ordersAPI.cancelOrder(id, cancelReason.trim());
+      toast.success('Order cancelled successfully');
+      // Update the order status in the local state
+      setOrders(orders.map(order => 
+        order.id === id ? { ...order, status: 'cancelled' } : order
+      ));
+      setShowCancelForm(null);
+      setCancelReason('');
+    } catch (err) {
+      toast.error('Failed to cancel order. Please try again.');
+      console.error('Error cancelling order:', err);
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
+
+  const handleCancelClick = (orderId: number) => {
+    setShowCancelForm(orderId);
+    setCancelReason('');
+  };
+
+  const handleCancelFormClose = () => {
+    setShowCancelForm(null);
+    setCancelReason('');
   };
 
   useEffect(() => {
@@ -271,6 +308,47 @@ const CateringOrdering: React.FC = () => {
                         <p className="text-sm text-gray-500">No item details available</p>
                       )}
                     </div>
+
+                    {order.status !== 'cancelled' && order.status !== 'completed' && (
+                      <div className="mt-4">
+                        {showCancelForm === order.id ? (
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="font-medium text-gray-700 mb-2">Cancel Order</h4>
+                            <textarea
+                              value={cancelReason}
+                              onChange={(e) => setCancelReason(e.target.value)}
+                              placeholder="Please provide a reason for cancellation..."
+                              className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                              rows={3}
+                            />
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={handleCancelFormClose}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-300"
+                              >
+                                Back
+                              </button>
+                              <button
+                                onClick={() => cancelOrder(order.id)}
+                                disabled={!cancelReason.trim() || cancellingOrderId === order.id}
+                                className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 disabled:opacity-50"
+                              >
+                                {cancellingOrderId === order.id ? 'Cancelling...' : 'Confirm Cancellation'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() => handleCancelClick(order.id)}
+                              className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 text-sm font-medium"
+                            >
+                              Cancel Order
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -335,7 +413,6 @@ const CateringOrdering: React.FC = () => {
                       <div className="p-6">
                         <div className="flex justify-between items-start mb-3">
                           <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                          {/* <span className="text-xl font-bold text-orange-600">₹{item.price}</span> */}
                         </div>
                         <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
                         {item.preparationTime && (
@@ -360,7 +437,7 @@ const CateringOrdering: React.FC = () => {
         )}
       </div>
 
-      {showCart && (
+      {/* {showCart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
           <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
             <div className="p-6 border-b border-gray-200">
@@ -462,7 +539,112 @@ const CateringOrdering: React.FC = () => {
             )}
           </div>
         </div>
+      )} */}
+      {showCart && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
+    <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-800">Catering Cart</h3>
+          <button
+            onClick={() => setShowCart(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={24} />
+          </button>
+        </div>
+      </div>
+
+      {/* Scrollable items section */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {cart.length === 0 ? (
+          <div className="text-center text-gray-500 mt-8">
+            <ShoppingCart size={48} className="mx-auto mb-4 text-gray-300" />
+            <p>Your catering cart is empty</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {cart.map((item) => (
+              <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800">{item.menuItem.name}</h4>
+                    <p className="text-sm text-gray-600">{item.menuItem.description}</p>
+                    {item.specialInstructions && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        <strong>Details:</strong> {item.specialInstructions}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => removeFromCart(item.id)}
+                    className="" style={{color:"#501608"}}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-bold " style={{color:"#501608"}}>
+                    ₹{item.menuItem.price.toLocaleString()}
+                  </span>
+                  <span className="text-sm text-gray-500">Qty: {item.quantity}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Fixed bottom section */}
+      {cart.length > 0 && (
+        <div className="border-t border-gray-200 p-6 bg-white">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-lg font-semibold text-gray-800">Total:</span>
+            <span className="text-xl font-bold" style={{color:"#501608"}}>₹{cartTotal.toLocaleString()}</span>
+          </div>
+          <button
+            onClick={async () => {
+              if (!user) {
+                (window as any).openAuthModal('login');
+              } else {
+                try {
+                  const orderPayload = {
+                    userId: user.id,
+                    items: cart.map(item => ({
+                      menuItemId: item.menuItem.id,
+                      quantity: item.quantity,
+                      price: item.menuItem.price,
+                      specialInstructions: item.specialInstructions
+                    })),
+                    subtotal: cartTotal,
+                    total: cartTotal,
+                    paymentStatus: 'pending',
+                    orderType: 'catering',
+                  };
+                  await ordersAPI.createOrder(orderPayload);
+                  toast.success('Order placed!');
+                  clearCart();
+                  setShowCart(false);
+                  if (showOrderHistory) {
+                    fetchOrderHistory();
+                  }
+                } catch (err) {
+                  toast.error('Failed to place order. Please try again.');
+                }
+              }
+            }}
+            className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300"
+          >
+            Place Catering Order
+          </button>
+          <p className="text-xs text-gray-500 text-center mt-2">
+            Our team will contact you within 2 hours to confirm details
+          </p>
+        </div>
       )}
+    </div>
+  </div>
+)}
     </div>
   );
 };

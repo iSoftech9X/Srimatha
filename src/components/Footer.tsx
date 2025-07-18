@@ -22,16 +22,16 @@ const Footer: React.FC = () => {
               {restaurantInfo.tagline} We're committed to creating memorable dining experiences for every occasion with authentic flavors and exceptional service.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
+              <a href="https://www.facebook.com/share/g/16uuVxDBD9/?mibextid=wwXIfr" target="_blank" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
+              <a href="https://www.instagram.com/sri_matha_foodcourt?igsh=NXNnb3NsczVhYXln" target="_blank" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
+              <a href="#" target="_blank" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
                 <Twitter size={20} />
               </a>
-              <a href="#" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
+              <a href="#" target="_blank" className="bg-gray-700 hover:bg-[#501608] p-3 rounded-full transition-colors duration-300">
                 <Youtube size={20} />
               </a>
             </div>
@@ -65,7 +65,7 @@ const Footer: React.FC = () => {
               <li className="flex items-center">
                 <Phone className="mr-3 flex-shrink-0 text-orange-400" size={18} />
                 <div className="text-gray-300 text-sm">
-                  <div>{restaurantInfo.phone}</div>
+                  {/* <div>{restaurantInfo.phone}</div> */}
                   <div>{restaurantInfo.mobile}</div>
                 </div>
               </li>
