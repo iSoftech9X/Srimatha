@@ -15,10 +15,8 @@ type OrderItem = {
   quantity: number;
   price: string;
   special_instructions: string | null;
-  menu_item: {
     name: string;
     description: string;
-  };
 };
 
 type ApiOrder = {
@@ -175,7 +173,7 @@ const CateringOrdering: React.FC = () => {
               <p className="text-gray-600">Premium catering for your special events</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 " ><span style={{fontWeight:"bolder" ,color:"black"}}>Welcome,</span> <span style={{fontWeight:"bolder",color:"#501608"}}>{user?.name}</span></span>
+                   <span className="text-sm text-gray-600 " ><span style={{fontWeight:"bolder" ,color:"black"}}>Welcome,</span> <span style={{fontWeight:"bolder",color:"#501608"}}>{user?.name}</span></span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowOrderHistory(!showOrderHistory)}
@@ -260,7 +258,7 @@ const CateringOrdering: React.FC = () => {
                           {order.items.map((item) => (
                             <li key={item.id} className="flex justify-between text-sm">
                               <span>
-                                {item.quantity}x {item.menu_item?.name || 'Custom Item'}
+                                {item.quantity}x <span style={{fontWeight: 'bold'}}>{item.name}</span>
                                 {item.special_instructions && (
                                   <span className="text-xs text-gray-500 ml-2">({item.special_instructions})</span>
                                 )}
@@ -337,7 +335,7 @@ const CateringOrdering: React.FC = () => {
                       <div className="p-6">
                         <div className="flex justify-between items-start mb-3">
                           <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                          <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
+                          {/* <span className="text-xl font-bold text-orange-600">₹{item.price}</span> */}
                         </div>
                         <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
                         {item.preparationTime && (
