@@ -278,7 +278,78 @@ router.post('/', authenticate, async (req, res) => {
   }
 });
 
+router.patch('/:id/cancel', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    
+    if (!reason) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Cancellation reason is required' 
+      });
+    }
 
+    // Remove any invalid characters from ID
+    const cleanId = id.split('/')[0]; // Handle malformed URLs like "GORCB-123/j/cancel"
+
+    let cancelledOrder = null;
+
+    if (cleanId.startsWith('CATERING-')) {
+      // Catering order cancellation logic
+      const orderIndex = cateringOrders.findIndex(o => o.id === cleanId);
+      if (orderIndex === -1) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+      
+      cateringOrders[orderIndex] = {
+        ...cateringOrders[orderIndex],
+        status: 'cancelled',
+        cancellationReason: reason,
+        updatedAt: new Date().toISOString()
+      };
+      cancelledOrder = cateringOrders[orderIndex];
+    } else {
+      // Database order cancellation
+      const result = await req.db.query(
+        `UPDATE orders 
+         SET status = 'cancelled', 
+             cancellation_reason = $1,
+             updated_at = NOW()
+         WHERE id = $2
+         RETURNING *`,
+        [reason, cleanId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+      cancelledOrder = result.rows[0];
+    }
+
+    // Send real-time update
+    const notification = {
+      type: 'order_cancelled',
+      order: cancelledOrder,
+      timestamp: new Date().toISOString()
+    };
+    sseConnections.forEach(conn => conn.write(`data: ${JSON.stringify(notification)}\n\n`));
+
+    res.json({
+      success: true,
+      message: 'Order cancelled successfully',
+      data: { order: cancelledOrder }
+    });
+
+  } catch (error) {
+    console.error('Cancellation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to cancel order',
+      error: error.message
+    });
+  }
+});
 
 // Update order status (Admin only)
 router.patch('/:id/status', authenticate, authorize('admin'), async (req, res) => {
