@@ -94,7 +94,7 @@ const Services: React.FC = () => {
                 <img
                   src={service.image}
                   alt={service.title}
-                className="rounded-lg  w-full h-auto max-h-[400px] object-cover"
+                className="rounded-lg w-full h-auto max-h-[350px] object-cover"
                 />
               </div>
               
