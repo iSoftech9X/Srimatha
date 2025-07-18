@@ -192,9 +192,9 @@ const Contact: React.FC = () => {
         <div>
           <h4 className="font-semibold text-gray-800 mb-1">Phone</h4>
           <p className="text-gray-600">
-            <a href={`tel:${restaurantInfo.phone}`} className="text-black hover:underline">
+            {/* <a href={`tel:${restaurantInfo.phone}`} className="text-black hover:underline">
               Restaurant: {restaurantInfo.phone}
-            </a><br />
+            </a><br /> */}
             <a href={`tel:${restaurantInfo.mobile}`} className="text-black hover:underline">
               Catering: {restaurantInfo.mobile}
             </a>
@@ -208,12 +208,12 @@ const Contact: React.FC = () => {
         <div>
           <h4 className="font-semibold text-gray-800 mb-1">Email</h4>
           <p className="text-gray-600">
-            <a href="mailto:info@srimatha.com" className="text-black hover:underline">
-              info@srimatha.com
+            <a href="mailto:srimatha2223@gmail.com" className="text-black hover:underline">
+              srimatha2223@gmail.com
             </a><br />
-            <a href="mailto:catering@srimatha.com" className="text-black hover:underline">
+            {/* <a href="mailto:catering@srimatha.com" className="text-black hover:underline">
               catering@srimatha.com
-            </a>
+            </a> */}
           </p>
         </div>
       </div>
@@ -379,14 +379,25 @@ const Contact: React.FC = () => {
         </div>
 
         {/* Map Section */}
-        <div className="mt-16">
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
-              <div className="text-center text-gray-600">
-                <MapPin size={48} className="mx-auto mb-4" />
-                <p className="font-semibold">{restaurantInfo.name} Location</p>
-                <p className="text-sm">{restaurantInfo.address.line1}, {restaurantInfo.address.line2}</p>
-              </div>
+      <div className="mt-16">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <h3 className="text-2xl font-bold text-gray-800 p-6 pb-0">Our Location</h3>
+            <div className="p-4">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3804.578781587917!2d78.36560867463004!3d17.527609598751525!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb8d5401fd3031%3A0xf3978e60312fdb56!2sSri%20Matha%20Family%20Restaurant!5e0!3m2!1sen!2sin!4v1752830527267!5m2!1sen!2sin" 
+                width="100%" 
+                height="450" 
+                style={{border:0}} 
+                allowFullScreen 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Sri Matha Family Restaurant Location"
+              ></iframe>
+            </div>
+            <div className="p-6 pt-0">
+              <p className="text-gray-600">
+                {restaurantInfo.address.line1}, {restaurantInfo.address.line2}, {restaurantInfo.address.line3}
+              </p>
             </div>
           </div>
         </div>
