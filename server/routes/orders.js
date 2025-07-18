@@ -15,13 +15,69 @@ import { findOrders, createOrder, updateOrder } from '../models/orderQueries.js'
 
 // ...existing code...
 
+// router.get('/my-orders', authenticate, async (req, res) => {
+//   try {
+//     const { page = 1, limit = 10, status } = req.query;
+//     const orders = await findOrders({ customerId: req.user.id, status, limit: parseInt(limit), skip: (parseInt(page) - 1) * parseInt(limit) });
+//     res.json({
+//       success: true,
+//       data: { orders }
+//     });
+//   } catch (error) {
+//     console.error('User orders fetch error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch orders',
+//       error: error.message
+//     });
+//   }
+// });
+
 router.get('/my-orders', authenticate, async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
-    const orders = await findOrders({ customerId: req.user.id, status, limit: parseInt(limit), skip: (parseInt(page) - 1) * parseInt(limit) });
+    
+    // Get orders from database
+    const orders = await findOrders({ 
+      customerId: req.user.id, 
+      status, 
+      limit: parseInt(limit), 
+      skip: (parseInt(page) - 1) * parseInt(limit) 
+    });
+
+    // Get order items for each order
+    const ordersWithItems = await Promise.all(orders.map(async (order) => {
+      if (order.orderType === 'catering') {
+        // For catering orders, get from in-memory storage
+        const cateringOrder = cateringOrders.find(co => co.id === order.id);
+        return {
+          ...order,
+          items: cateringOrder?.items || []
+        };
+      } else {
+        // For regular orders, query the database
+        const itemsResult = await req.db.query(
+          `SELECT oi.*, mi.name, mi.description 
+           FROM order_items oi
+           JOIN menu_items mi ON oi.menu_item_id = mi.id
+           WHERE oi.order_id = $1`,
+          [order.id]
+        );
+        return {
+          ...order,
+          items: itemsResult.rows
+        };
+      }
+    }));
+
     res.json({
       success: true,
-      data: { orders }
+      data: { 
+        orders: ordersWithItems,
+        total: orders.length,
+        page: parseInt(page),
+        totalPages: Math.ceil(orders.length / parseInt(limit))
+      }
     });
   } catch (error) {
     console.error('User orders fetch error:', error);
@@ -143,57 +199,6 @@ router.post('/catering', async (req, res) => {
   }
 });
 
-// Create new regular order
-// POST /api/orders
-// router.post('/', authenticate, async (req, res) => {
-//   try {
-//     const user = req.user;
-
-//     if (!user || !user.id) {
-//       return res.status(401).json({ success: false, message: 'Unauthorized' });
-//     }
-
-//     const { items, subtotal, total, orderType = 'catering', paymentStatus = 'pending' } = req.body;
-
-//     const orderData = {
-//       id: `CATERING-${Date.now()}`, // or use auto-increment logic
-//       items,
-//       subtotal,
-//       total,
-//       orderType,
-//       paymentStatus,
-//       status: 'pending',
-//       orderDate: new Date().toISOString(),
-//       createdAt: new Date().toISOString(),
-//       updatedAt: new Date().toISOString(),
-
-//       // ✅ Important: Attach from authenticated user, not from body
-//       user_id: user.id,
-//       customer_id: user.id,
-//       customer_name: user.name,
-//       customer_email: user.email,
-//       customer_phone: user.phone
-//     };
-
-//     // Save in-memory or to DB
-//     cateringOrders.unshift(orderData); // ← your in-memory array
-
-//     res.status(200).json({
-//       success: true,
-//       message: 'Order placed successfully',
-//       data: {
-//         order: orderData
-//       }
-//     });
-//   } catch (error) {
-//     console.error('Order place error:', error);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Failed to place order',
-//       error: error.message
-//     });
-//   }
-// });
 router.post('/', authenticate, async (req, res) => {
   try {
     const user = req.user;

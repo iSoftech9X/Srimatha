@@ -1,17 +1,26 @@
 
-
-
 import React, { useState, useEffect } from 'react';
 import { Star, Plus, ShoppingCart, Users, Calendar, X, History } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-
 import { menuAPI, ordersAPI } from '../services/api';
 import toast from 'react-hot-toast';
-import type { MenuItem, Order } from '../types';
+import type { MenuItem } from '../types';
 import Header from './Header';
 
-// Update the Order type to match your API response
+type OrderItem = {
+  id: number;
+  order_id: number;
+  menu_item_id: number;
+  quantity: number;
+  price: string;
+  special_instructions: string | null;
+  menu_item: {
+    name: string;
+    description: string;
+  };
+};
+
 type ApiOrder = {
   id: number;
   order_number: string;
@@ -23,14 +32,7 @@ type ApiOrder = {
   order_type: string;
   created_at: string;
   updated_at: string;
-  items?: Array<{
-    menu_item_id: string;
-    quantity: number;
-    price: string;
-    menu_item?: {
-      name: string;
-    };
-  }>;
+  items?: OrderItem[];
 };
 
 const CateringOrdering: React.FC = () => {
@@ -49,7 +51,6 @@ const CateringOrdering: React.FC = () => {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderError, setOrderError] = useState('');
 
-  // Fetch all menu items recursively if paginated
   const fetchAllItems = async (page = 1, accumulatedItems: MenuItem[] = []): Promise<MenuItem[]> => {
     try {
       const response = await menuAPI.getItems({
@@ -72,16 +73,17 @@ const CateringOrdering: React.FC = () => {
     }
   };
 
-  // Fetch user's order history
   const fetchOrderHistory = async () => {
     if (!user) return;
     
     setLoadingOrders(true);
     setOrderError('');
     try {
-      const response = await ordersAPI.getMyOrders();
-      // Update this line to match your API response structure
-      setOrders(response.data.data?.orders || []);
+      const response = await ordersAPI.getMyOrders({
+        includeItems: true,
+        expand: 'items.menu_item'
+      });
+      setOrders(response.data.orders || response.data.data?.orders || []);
     } catch (err) {
       setOrderError('Failed to load order history');
       console.error('Error fetching orders:', err);
@@ -90,7 +92,6 @@ const CateringOrdering: React.FC = () => {
     }
   };
 
-  // Fetch categories and all menu items
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -116,14 +117,12 @@ const CateringOrdering: React.FC = () => {
     loadData();
   }, []);
 
-  // Load order history when toggle is turned on
   useEffect(() => {
     if (showOrderHistory && user) {
       fetchOrderHistory();
     }
   }, [showOrderHistory, user]);
 
-  // Auto-add item from query param if present
   useEffect(() => {
     if (!allItemsLoaded) return;
     
@@ -187,7 +186,7 @@ const CateringOrdering: React.FC = () => {
                   }`}
                 >
                   <History size={18} />
-                  <span className="hidden sm:inline"> My Orders </span>
+                  <span className="hidden sm:inline">My Orders</span>
                 </button>
                 <button
                   onClick={() => setShowCart(true)}
@@ -208,8 +207,7 @@ const CateringOrdering: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Order History Section */}
-        {showOrderHistory && (
+        {showOrderHistory ? (
           <div className="mb-12 bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Your Order History</h2>
@@ -217,7 +215,10 @@ const CateringOrdering: React.FC = () => {
             </div>
             
             {loadingOrders ? (
-              <div className="p-6 text-center text-gray-500">Loading your orders...</div>
+              <div className="p-6 text-center">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#501608] border-t-transparent"></div>
+                <p className="mt-2 text-gray-600">Loading your orders...</p>
+              </div>
             ) : orderError ? (
               <div className="p-6 text-center text-red-500">{orderError}</div>
             ) : orders.length === 0 ? (
@@ -256,12 +257,15 @@ const CateringOrdering: React.FC = () => {
                       <h4 className="font-medium text-gray-700 mb-2">Items:</h4>
                       {order.items && order.items.length > 0 ? (
                         <ul className="space-y-2">
-                          {order.items.map((item, index) => (
-                            <li key={index} className="flex justify-between text-sm">
+                          {order.items.map((item) => (
+                            <li key={item.id} className="flex justify-between text-sm">
                               <span>
-                                {item.quantity}x {item.menu_item?.name || 'Unknown Item'}
+                                {item.quantity}x {item.menu_item?.name || 'Custom Item'}
+                                {item.special_instructions && (
+                                  <span className="text-xs text-gray-500 ml-2">({item.special_instructions})</span>
+                                )}
                               </span>
-                              {/* <span>₹{(parseFloat(item.price) * item.quantity).toFixed(2)}</span> */}
+                              <span>₹{(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
                             </li>
                           ))}
                         </ul>
@@ -274,12 +278,8 @@ const CateringOrdering: React.FC = () => {
               </div>
             )}
           </div>
-        )}
-
-        {/* Only show menu when not viewing order history */}
-        {!showOrderHistory && (
+        ) : (
           <>
-            {/* Hero Section */}
             <div className="bg-[#501608] rounded-2xl p-8 md:p-12 text-white mb-12">
               <div className="max-w-3xl">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -305,7 +305,6 @@ const CateringOrdering: React.FC = () => {
               </div>
             </div>
 
-            {/* Category Tabs */}
             <div className="flex flex-wrap justify-center gap-2 mb-12 max-w-6xl mx-auto">
               {menuCategories.map((category) => (
                 <button
@@ -322,7 +321,6 @@ const CateringOrdering: React.FC = () => {
               ))}
             </div>
 
-            {/* Menu Items Grid */}
             {loading ? (
               <div className="text-center py-20 text-xl text-gray-500">Loading menu...</div>
             ) : error ? (
@@ -339,7 +337,7 @@ const CateringOrdering: React.FC = () => {
                       <div className="p-6">
                         <div className="flex justify-between items-start mb-3">
                           <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                          {/* <span className="text-xl font-bold text-orange-600">₹{item.price}</span> */}
+                          <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
                         </div>
                         <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
                         {item.preparationTime && (
@@ -364,7 +362,6 @@ const CateringOrdering: React.FC = () => {
         )}
       </div>
 
-      {/* Cart Sidebar */}
       {showCart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
           <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
@@ -409,7 +406,7 @@ const CateringOrdering: React.FC = () => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-bold text-orange-600">
-                          {/* ₹{item.menuItem.price.toLocaleString()} */}
+                          ₹{item.menuItem.price.toLocaleString()}
                         </span>
                         <span className="text-sm text-gray-500">Qty: {item.quantity}</span>
                       </div>
@@ -437,6 +434,7 @@ const CateringOrdering: React.FC = () => {
                             menuItemId: item.menuItem.id,
                             quantity: item.quantity,
                             price: item.menuItem.price,
+                            specialInstructions: item.specialInstructions
                           })),
                           subtotal: cartTotal,
                           total: cartTotal,
@@ -447,7 +445,6 @@ const CateringOrdering: React.FC = () => {
                         toast.success('Order placed!');
                         clearCart();
                         setShowCart(false);
-                        // Refresh order history if it's visible
                         if (showOrderHistory) {
                           fetchOrderHistory();
                         }
