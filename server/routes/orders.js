@@ -94,49 +94,53 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { page = 1, limit = 10, status, customerId, orderType } = req.query;
 
-    const query = {};
-    if (status) query.status = status;
-    if (customerId) query.customerId = customerId;
-    if (orderType) query.orderType = orderType;
+    // Your existing filtering and pagination logic...
 
-    const options = {
-      limit: parseInt(limit),
-      skip: (parseInt(page) - 1) * parseInt(limit)
-    };
-
-    // Include catering orders in the response
-    let allOrders = [];
-    
-    // Get regular orders from database
     const dbOrders = await findOrders({
-      customerId: customerId,
-      status: status,
-      orderType: orderType,
+      customerId,
+      status,
+      orderType,
       limit: parseInt(limit),
       skip: (parseInt(page) - 1) * parseInt(limit)
     });
-    allOrders = [...dbOrders];
 
-    // Add catering orders if no specific filters or if catering is requested
-    if (!orderType || orderType === 'catering') {
-      const filteredCateringOrders = cateringOrders.filter(order => {
-        if (status && order.status !== status) return false;
-        if (customerId && order.customerId !== customerId) return false;
-        return true;
+    // Fetch items for all these orders in one go to minimize DB calls
+    const orderIds = dbOrders.map(order => order.id);
+    const itemsQuery = `
+      SELECT order_id, menu_item_id, item_name, quantity, price, special_instructions
+      FROM order_items
+      WHERE order_id = ANY($1)
+    `;
+    const itemsResult = await req.db.query(itemsQuery, [orderIds]);
+
+    // Group items by order_id
+    const itemsByOrder = {};
+    itemsResult.rows.forEach(item => {
+      if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
+      itemsByOrder[item.order_id].push({
+        menuItemId: item.menu_item_id,
+        name: item.item_name,
+        quantity: item.quantity,
+        price: item.price,
+        specialInstructions: item.special_instructions
       });
-      allOrders = [...allOrders, ...filteredCateringOrders];
-    }
+    });
 
-    // Sort by creation date (newest first)
-    allOrders.sort((a, b) => new Date(b.orderDate || b.createdAt) - new Date(a.orderDate || a.createdAt));
+    // Attach items to each order
+    const ordersWithItems = dbOrders.map(order => ({
+      ...order,
+      items: itemsByOrder[order.id] || []
+    }));
+
+    // Add catering orders as you currently do (make sure they have 'items' array too!)
 
     res.json({
       success: true,
       data: {
-        orders: allOrders,
-        total: allOrders.length,
+        orders: ordersWithItems,
+        total: ordersWithItems.length,
         page: parseInt(page),
-        totalPages: Math.ceil(allOrders.length / parseInt(limit))
+        totalPages: Math.ceil(ordersWithItems.length / parseInt(limit))
       }
     });
   } catch (error) {
@@ -148,6 +152,7 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
     });
   }
 });
+
 
 // Create new catering order
 router.post('/catering', async (req, res) => {
@@ -199,6 +204,87 @@ router.post('/catering', async (req, res) => {
   }
 });
 
+// router.post('/', authenticate, async (req, res) => {
+//   try {
+//     const user = req.user;
+//     if (!user || !user.id) {
+//       return res.status(401).json({ success: false, message: 'Unauthorized' });
+//     }
+
+//     const { items, subtotal, total, orderType = 'regular', paymentStatus = 'pending' } = req.body;
+
+//     if (!Array.isArray(items) || items.length === 0) {
+//       return res.status(400).json({ success: false, message: 'No items provided' });
+//     }
+
+//     // 1. Insert order summary into 'orders'
+//     const orderNumber = `ORDER-${Date.now()}`;
+
+//     const orderInsertQuery = `
+//       INSERT INTO orders 
+//       (order_number, customer_id, status, subtotal, total, payment_status, order_type, created_at, updated_at) 
+//       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+//       RETURNING id, order_number, status, subtotal, total, payment_status, order_type, created_at, updated_at
+//     `;
+
+//     const orderResult = await req.db.query(orderInsertQuery, [
+//       orderNumber,
+//       user.id,
+//       'pending',
+//       subtotal,
+//       total,
+//       paymentStatus,
+//       orderType,
+//     ]);
+
+//     const orderId = orderResult.rows[0].id;
+
+//     // 2. Insert each item into 'order_items'
+//     const itemInsertQuery = `
+//       INSERT INTO order_items (order_id, menu_item_id, quantity, price, special_instructions)
+//       VALUES ($1, $2, $3, $4, $5)
+//     `;
+
+//     for (const item of items) {
+//   if (!item.menuItemId) {
+//     return res.status(400).json({ success: false, message: 'One or more items missing id' });
+//   }
+//   await req.db.query(
+//     `INSERT INTO order_items (order_id, menu_item_id, quantity, price, special_instructions) VALUES ($1, $2, $3, $4, $5)`,
+//     [orderId, item.menuItemId, item.quantity, item.price, item.special_instructions || null]
+//   );
+// }
+
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Order placed successfully',
+//       data: {
+//         order: {
+//           id: orderId,
+//           order_number: orderNumber,
+//           items,
+//           subtotal,
+//           total,
+//           orderType,
+//           paymentStatus,
+//           status: 'pending',
+//         }
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error('Order place error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to place order',
+//       error: error.message
+//     });
+//   }
+// });
+
+
+
 router.post('/', authenticate, async (req, res) => {
   try {
     const user = req.user;
@@ -206,25 +292,37 @@ router.post('/', authenticate, async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const { items, subtotal, total, orderType = 'regular', paymentStatus = 'pending' } = req.body;
+    const {
+      userName,
+      userEmail,
+      userPhone,
+      items,
+      subtotal,
+      total,
+      orderType = 'regular',
+      paymentStatus = 'pending'
+    } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'No items provided' });
     }
 
-    // 1. Insert order summary into 'orders'
+    // Insert order summary with user details
     const orderNumber = `ORDER-${Date.now()}`;
 
     const orderInsertQuery = `
       INSERT INTO orders 
-      (order_number, customer_id, status, subtotal, total, payment_status, order_type, created_at, updated_at) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-      RETURNING id, order_number, status, subtotal, total, payment_status, order_type, created_at, updated_at
+      (order_number, customer_id, user_name, user_email, user_phone, status, subtotal, total, payment_status, order_type, created_at, updated_at) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+      RETURNING id, order_number, status, subtotal, total, payment_status, order_type, created_at, updated_at, user_name, user_email, user_phone
     `;
 
     const orderResult = await req.db.query(orderInsertQuery, [
       orderNumber,
       user.id,
+      userName,
+      userEmail,
+      userPhone,
       'pending',
       subtotal,
       total,
@@ -234,23 +332,30 @@ router.post('/', authenticate, async (req, res) => {
 
     const orderId = orderResult.rows[0].id;
 
-    // 2. Insert each item into 'order_items'
+    // Insert each item with item_name
     const itemInsertQuery = `
-      INSERT INTO order_items (order_id, menu_item_id, quantity, price, special_instructions)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO order_items (order_id, menu_item_id, item_name, quantity, price, special_instructions)
+      VALUES ($1, $2, $3, $4, $5, $6)
     `;
 
     for (const item of items) {
-  if (!item.menuItemId) {
-    return res.status(400).json({ success: false, message: 'One or more items missing id' });
-  }
-  await req.db.query(
-    `INSERT INTO order_items (order_id, menu_item_id, quantity, price, special_instructions) VALUES ($1, $2, $3, $4, $5)`,
-    [orderId, item.menuItemId, item.quantity, item.price, item.special_instructions || null]
-  );
-}
+      if (!item.menuItemId) {
+        return res.status(400).json({ success: false, message: 'One or more items missing id' });
+      }
+      await req.db.query(
+        itemInsertQuery,
+        [
+          orderId,
+          item.menuItemId,
+          item.name || null,
+          item.quantity,
+          item.price,
+          item.specialInstructions || null,
+        ]
+      );
+    }
 
-
+    // Return the order with user info and full items
     res.status(200).json({
       success: true,
       message: 'Order placed successfully',
@@ -264,10 +369,12 @@ router.post('/', authenticate, async (req, res) => {
           orderType,
           paymentStatus,
           status: 'pending',
+          userName,
+          userEmail,
+          userPhone
         }
       }
     });
-
   } catch (error) {
     console.error('Order place error:', error);
     res.status(500).json({

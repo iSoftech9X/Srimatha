@@ -6,7 +6,7 @@ const API_BASE_URL =  'http://localhost:5000/api';
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  
   headers: {
     'Content-Type': 'application/json',
   },
@@ -93,7 +93,7 @@ export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   //getSalesAnalytics: (params) => api.get('/admin/analytics/sales', { params }),
   getSettings: () => api.get('/admin/settings'),
-  getAllOrders: (params) => api.get('/orders', { params }),
+  // getAllOrders: (params) => api.get('/orders', { params }),
 };
 
 // Contact API
