@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// const API_BASE_URL =  'http://localhost:5000/api';
+const API_BASE_URL =  'http://localhost:5000/api';
 // import.meta.env.VITE_API_URL ||
-const API_BASE_URL = 'https://ggm4eesv2d.ap-south-1.awsapprunner.com/api';
+// const API_BASE_URL = 'https://ggm4eesv2d.ap-south-1.awsapprunner.com/api';
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -59,8 +59,8 @@ export const menuAPI = {
   getPopularItems: () => api.get('/menu/featured/popular'),
   getCategories: () => api.get('/menu/categories'),
   createItem: (itemData) => api.post('/menu', itemData),
-  updateItem: (id, itemData) => api.put(`/menu/${id}`, itemData),
-  toggleAvailability: (id) => api.patch(`/menu/${id}/availability`),
+  updateItem: (id, itemData) => api.patch(`/menu/${id}`, itemData),
+  // toggleAvailability: (id) => api.patch(`/menu/${id}/availability`),
   deleteItem: (id) => api.delete(`/menu/${id}`),
 };
 
@@ -93,7 +93,7 @@ export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   //getSalesAnalytics: (params) => api.get('/admin/analytics/sales', { params }),
   getSettings: () => api.get('/admin/settings'),
-  getAllOrders: (params) => api.get('/admin/orders', { params }),
+  getAllOrders: (params) => api.get('/orders', { params }),
 };
 
 // Contact API

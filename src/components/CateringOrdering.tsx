@@ -437,109 +437,7 @@ const CateringOrdering: React.FC = () => {
         )}
       </div>
 
-      {/* {showCart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-800">Catering Cart</h3>
-                <button
-                  onClick={() => setShowCart(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6">
-              {cart.length === 0 ? (
-                <div className="text-center text-gray-500 mt-8">
-                  <ShoppingCart size={48} className="mx-auto mb-4 text-gray-300" />
-                  <p>Your catering cart is empty</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {cart.map((item) => (
-                    <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-800">{item.menuItem.name}</h4>
-                          <p className="text-sm text-gray-600">{item.menuItem.description}</p>
-                          {item.specialInstructions && (
-                            <p className="text-xs text-orange-600 mt-1">
-                              <strong>Details:</strong> {item.specialInstructions}
-                            </p>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-red-500 hover:text-red-700 ml-2"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-orange-600">
-                          ₹{item.menuItem.price.toLocaleString()}
-                        </span>
-                        <span className="text-sm text-gray-500">Qty: {item.quantity}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {cart.length > 0 && (
-              <div className="border-t border-gray-200 p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-semibold text-gray-800">Total:</span>
-                  <span className="text-xl font-bold text-orange-600">₹{cartTotal.toLocaleString()}</span>
-                </div>
-                <button
-                  onClick={async () => {
-                    if (!user) {
-                      (window as any).openAuthModal('login');
-                    } else {
-                      try {
-                        const orderPayload = {
-                          userId: user.id,
-                          items: cart.map(item => ({
-                            menuItemId: item.menuItem.id,
-                            quantity: item.quantity,
-                            price: item.menuItem.price,
-                            specialInstructions: item.specialInstructions
-                          })),
-                          subtotal: cartTotal,
-                          total: cartTotal,
-                          paymentStatus: 'pending',
-                          orderType: 'catering',
-                        };
-                        await ordersAPI.createOrder(orderPayload);
-                        toast.success('Order placed!');
-                        clearCart();
-                        setShowCart(false);
-                        if (showOrderHistory) {
-                          fetchOrderHistory();
-                        }
-                      } catch (err) {
-                        toast.error('Failed to place order. Please try again.');
-                      }
-                    }
-                  }}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors duration-300"
-                >
-                  Place Catering Order
-                </button>
-                <p className="text-xs text-gray-500 text-center mt-2">
-                  Our team will contact you within 2 hours to confirm details
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )} */}
+      
       {showCart && (
   <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
     <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
@@ -608,19 +506,23 @@ const CateringOrdering: React.FC = () => {
                 (window as any).openAuthModal('login');
               } else {
                 try {
-                  const orderPayload = {
-                    userId: user.id,
-                    items: cart.map(item => ({
-                      menuItemId: item.menuItem.id,
-                      quantity: item.quantity,
-                      price: item.menuItem.price,
-                      specialInstructions: item.specialInstructions
-                    })),
-                    subtotal: cartTotal,
-                    total: cartTotal,
-                    paymentStatus: 'pending',
-                    orderType: 'catering',
-                  };
+                 const orderPayload = {
+ userName: user.name,           
+  userEmail: user.email,         
+  userPhone: user.phone, 
+  items: cart.map(item => ({
+    menuItemId: item.menuItem.id,
+    name: item.menuItem.name, 
+    quantity: item.quantity,
+    price: item.menuItem.price,
+    specialInstructions: item.specialInstructions
+  })),
+  subtotal: cartTotal,
+  total: cartTotal,
+  paymentStatus: 'pending',
+  orderType: 'catering',
+};
+
                   await ordersAPI.createOrder(orderPayload);
                   toast.success('Order placed!');
                   clearCart();

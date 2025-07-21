@@ -366,8 +366,8 @@ router.patch('/:id/status', authenticate, authorize('admin'), async (req, res) =
         cateringOrders[orderIndex] = {
           ...cateringOrders[orderIndex],
           status,
-          updatedBy: req.user.id,
-          updatedAt: new Date().toISOString()
+          updatedBy: req.user.id,   
+          updatedAt: new Date()     
         };
         updatedOrder = cateringOrders[orderIndex];
 
@@ -387,10 +387,10 @@ router.patch('/:id/status', authenticate, authorize('admin'), async (req, res) =
         });
       }
     } else {
-      // Regular order
+      // Regular order - update status and updated_at only, no updated_by (since no such column)
       updatedOrder = await updateOrder(orderId, {
         status,
-        updated_by: req.user.id
+        updated_at: new Date()
       });
     }
 
