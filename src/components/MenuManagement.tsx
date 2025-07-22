@@ -199,8 +199,8 @@ const MenuManagement: React.FC = () => {
   const bulkActions = [
     { value: 'enable', label: 'Enable Selected' },
     { value: 'disable', label: 'Disable Selected' },
-    { value: 'popular', label: 'Mark as Popular' },
-    { value: 'unpopular', label: 'Remove from Popular' },
+    // { value: 'popular', label: 'Mark as Popular' },
+    // { value: 'unpopular', label: 'Remove from Popular' },
     { value: 'delete', label: 'Delete Selected' }
   ];
 
@@ -268,12 +268,12 @@ const MenuManagement: React.FC = () => {
             </div>
             <div className="text-sm text-green-700">Available</div>
           </div>
-          <div className="bg-orange-50 p-4 rounded-lg">
+          {/* <div className="bg-orange-50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-orange-600">
               {combinedMenuItems.filter(item => item.popular).length}
             </div>
             <div className="text-sm text-orange-700">Popular</div>
-          </div>
+          </div> */}
           <div className="bg-purple-50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-purple-600">
               {combinedMenuItems.filter(item => item.isVegetarian).length}
