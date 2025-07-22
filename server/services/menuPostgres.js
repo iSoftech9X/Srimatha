@@ -159,4 +159,48 @@ export async function getDashboardStats() {
     pendingOrders: parseInt(pendingOrders, 10) || 0,
     popularItems
   };
+
 }
+
+export async function deleteMenuItem(id) {
+  const result = await pool.query(
+    'DELETE FROM menu_items WHERE id = $1 RETURNING *',
+    [id]
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error('Menu item not found');
+  }
+
+  return result.rows[0];  // Optional: return deleted row info
+}
+
+
+function camelToSnake(str) {
+  return str.replace(/([A-Z])/g, letter => `_${letter.toLowerCase()}`);
+}
+
+export async function updateMenuItem(id, updates) {
+  const keys = Object.keys(updates);
+  if (keys.length === 0) {
+    throw new Error('No fields provided for update');
+  }
+
+  // Convert keys to snake_case for SQL
+  const setClauses = keys.map((key, index) => `${camelToSnake(key)} = $${index + 1}`);
+  const values = Object.values(updates);
+
+  const sql = `
+    UPDATE menu_items
+    SET ${setClauses.join(', ')}
+    WHERE id = $${keys.length + 1}
+    RETURNING *
+  `;
+
+  const result = await pool.query(sql, [...values, id]);
+  return result.rows[0];
+}
+
+
+
+

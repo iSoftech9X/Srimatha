@@ -37,11 +37,25 @@ export async function findOrders({ customerId, status, orderType, limit = 10, sk
 export async function updateOrder(orderId, fields) {
   const keys = Object.keys(fields);
   if (keys.length === 0) return null;
-  const setClause = keys.map((k, i) => `${k} = $${i + 2}`).join(', ');
+
+  // Prevent double update if updated_at is included
+  const hasUpdatedAt = keys.includes('updated_at');
+
+  const setClauseParts = keys.map((k, i) => `${k} = $${i + 2}`);
+
+  // Add `updated_at = CURRENT_TIMESTAMP` only if not already included
+  if (!hasUpdatedAt) {
+    setClauseParts.push(`updated_at = CURRENT_TIMESTAMP`);
+  }
+
+  const setClause = setClauseParts.join(', ');
   const values = [orderId, ...keys.map(k => fields[k])];
+
   const result = await db.query(
-    `UPDATE orders SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`,
+    `UPDATE orders SET ${setClause} WHERE id = $1 RETURNING *`,
     values
   );
+
   return result.rows[0];
 }
+

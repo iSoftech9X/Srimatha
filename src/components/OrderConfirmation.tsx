@@ -8,17 +8,32 @@ const OrderConfirmation: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+    useEffect(() => {
     if (!orderId) return;
+
     setLoading(true);
-    ordersAPI.getOrder(orderId)
-      .then((res: { data: { data: { order: any } } }) => {
-        setOrder(res.data.data.order);
-        setError('');
+
+    ordersAPI.getAllOrders()
+      .then((res: any) => {
+        console.log('Fetched all orders:', res);
+
+        const allOrders = res?.data?.data?.orders || []; 
+        const matchedOrder = allOrders.find(
+          (o: any) =>
+            String(o.id) === String(orderId) ||
+            String(o.order_number) === String(orderId)
+        );
+
+        if (matchedOrder) {
+          setOrder(matchedOrder);
+          setError('');
+        } else {
+          setError('Order not found.');
+        }
       })
       .catch((err: any) => {
+        console.error('Error fetching orders:', err);
         setError('Failed to fetch order details');
-        setOrder(null);
       })
       .finally(() => setLoading(false));
   }, [orderId]);
@@ -35,6 +50,10 @@ const OrderConfirmation: React.FC = () => {
         <div className="my-4">
           <div className="text-gray-700 text-lg font-semibold">Order ID:</div>
           <div className="text-2xl font-mono text-green-700">{order.id || order.orderNumber}</div>
+        </div>
+        <div className="my-4">
+          <div className="text-gray-700 text-lg font-semibold">Customer Name</div>
+          <div className="text-2xl font-mono text-green-700">{order.name}</div>
         </div>
         <div className="mb-4">
           <span className="font-semibold">Status:</span> <span className="text-blue-600">{order.status}</span>

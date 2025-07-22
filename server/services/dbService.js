@@ -7,7 +7,9 @@ export default {
   getMenuCategories: menuPostgres.getMenuCategories,
    query: (text, params) => pool.query(text, params),
   addMenuItem: menuPostgres.addMenuItem,
+    deleteMenuItem: menuPostgres.deleteMenuItem,
   addCateringOrder: menuPostgres.addCateringOrder,
+  updateMenuItem: menuPostgres.updateMenuItem,
 connect: async () => {
   try {
     const res = await pool.query('SELECT current_database()');
