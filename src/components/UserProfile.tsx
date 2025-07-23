@@ -200,7 +200,7 @@ const UserProfileModal: React.FC<Props> = ({ profile, onClose }) => {
                     </h4>
                     <div className="space-y-2">
                          <div>
-                          <p className=" font-bold text-sm text-gray-500">Address_Street</p>
+                          <p className=" font-bold text-sm text-gray-500">Address Street</p>
                          <p className="text-gray-900">{data.address_street || 'Not provided'}</p>
                         </div>
                        <div>
