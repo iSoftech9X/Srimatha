@@ -296,24 +296,54 @@ const UserProfileModal: React.FC<Props> = ({ profile, onClose, onUpdateSuccess }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError(null);
     
-    try {
-      await authAPI.patchProfile(formData);
-      setEditMode(false);
-      if (onUpdateSuccess) onUpdateSuccess(); // Notify parent of successful update
-      onClose(); // Close modal
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      setError('Failed to update profile. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     await authAPI.patchProfile(formData);
+  //     setEditMode(false);
+  //     if (onUpdateSuccess) onUpdateSuccess(); // Notify parent of successful update
+  //     onClose(); // Close modal
+  //   } catch (error) {
+  //     console.error('Error updating profile:', error);
+  //     setError('Failed to update profile. Please try again.');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setError(null);
+  
+  try {
+    // Prepare the data in the format expected by the backend
+    const patchData = {
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      address: {
+        street: formData.address_street,
+        city: formData.address_city,
+        state: formData.address_state,
+        zipcode: formData.address_zipcode,
+        country: formData.address_country
+      }
+    };
 
+    await authAPI.patchProfile(patchData);
+    setEditMode(false);
+    if (onUpdateSuccess) onUpdateSuccess();
+    onClose();
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    setError('Failed to update profile. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handleCancel = (e: React.MouseEvent) => {
     e.preventDefault();
     if (editMode) {

@@ -168,6 +168,59 @@ router.put('/profile', authenticate, async (req, res) => {
 });
 
 
+// router.patch('/profile', authenticate, async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const {
+//       name,
+//       email,
+//       phone,
+//       address = {}
+//     } = req.body;
+
+//     const fieldsToUpdate = {
+//       ...(name && { name }),
+//       ...(email && { email }),
+//       ...(phone && { phone }),
+//       ...(address.street && { address_street: address.street }),
+//       ...(address.city && { address_city: address.city }),
+//       ...(address.state && { address_state: address.state }),
+//       ...(address.zipcode && { address_zipcode: address.zipcode }),
+//       ...(address.country && { address_country: address.country }),
+//     };
+
+//     if (Object.keys(fieldsToUpdate).length === 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'No valid fields provided to update',
+//       });
+//     }
+
+//     const updatedUser = await updateUser(userId, fieldsToUpdate);
+
+//     if (!updatedUser) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'User not found',
+//       });
+//     }
+
+//     const { password: _, ...userResponse } = updatedUser;
+
+//     res.json({
+//       success: true,
+//       message: 'Profile patched successfully',
+//       data: { user: userResponse }
+//     });
+//   } catch (error) {
+//     console.error('Profile patch error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to patch profile',
+//       error: error.message
+//     });
+//   }
+// });
 router.patch('/profile', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -175,9 +228,10 @@ router.patch('/profile', authenticate, async (req, res) => {
       name,
       email,
       phone,
-      address = {}
+      address = {}  // This handles cases where address isn't provided
     } = req.body;
 
+    // Prepare fields to update
     const fieldsToUpdate = {
       ...(name && { name }),
       ...(email && { email }),
