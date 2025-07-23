@@ -440,11 +440,11 @@ const CateringOrdering: React.FC = () => {
                             )}
                           </div>
                           <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
-                          {item.preparationTime && (
+                          {/* {item.preparationTime && (
                             <div className="text-xs text-gray-500 mb-3">
                               ⏱️ {item.preparationTime} mins
                             </div>
-                          )}
+                          )} */}
                           <div className="flex items-center justify-between">
                             <span className="text-lg font-bold" style={{color: "#501608"}}>
                               ₹{item.price.toLocaleString()}

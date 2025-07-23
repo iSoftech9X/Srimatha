@@ -225,7 +225,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       toast.success('Menu item added successfully');
     } catch (error) {
       console.error('Error adding menu item:', error);
-      toast.error('Failed to add menu item');
+      // toast.error('Failed to add menu item');
     }
   };
 
