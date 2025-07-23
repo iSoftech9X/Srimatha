@@ -540,7 +540,7 @@ const CateringOrdering: React.FC = () => {
             Place Catering Order
           </button>
           <p className="text-xs text-gray-500 text-center mt-2">
-            Our team will contact you within 2 hours to confirm details
+            Our team will Contact you within 2 hours to confirm details
           </p>
         </div>
       )}
