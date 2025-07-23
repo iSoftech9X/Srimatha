@@ -73,12 +73,30 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/catering', cateringRoutes);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Server is running',
-    database: req.db.isConnected() ? 'Connected' : 'Disconnected'
-  });
+// app.get('/api/health', (req, res) => {
+//   res.json({ 
+//     status: 'OK', 
+//     message: 'Server is running',
+//     database: req.db.isConnected() ? 'Connected' : 'Disconnected'
+//   });
+// });
+
+app.get('/api/health', async (req, res) => {
+  try {
+    await req.db.query('SELECT 1');  // This checks if the DB is alive
+    res.json({ 
+      status: 'OK',
+      message: 'Server is running',
+      database: 'Connected'
+    });
+  } catch (err) {
+    console.error('DB health check failed:', err);
+    res.status(500).json({
+      status: 'Error',
+      message: 'Server is up but database connection failed.',
+      error: err.message
+    });
+  }
 });
 
 // Error handling middleware
