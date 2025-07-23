@@ -48,7 +48,7 @@ const UserProfileModal: React.FC<Props> = ({ profile, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await getProfile.put('/auth/profile', formData);
+      await patchProfile.patch('/auth/profile', formData);
       setEditMode(false);
       onClose();
     } catch (error) {
