@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logo from '../Images/finallogo.png';
 import getProfile from '../services/api';
-import UserProfileModal from "../components/userProfile";
+import UserProfileModal from "../components/UserProfile";
 
 interface UserProfile {
   name: string;
