@@ -98,14 +98,14 @@ const MenuManagement: React.FC = () => {
         is_vegan: formData.isVegan,
         is_gluten_free: formData.isGlutenFree,
         spice_level: formData.spiceLevel as 'none' | 'mild' | 'medium' | 'hot' | 'very-hot',
-        preparation_time: parseInt(formData.preparationTime) || 0,
+        preparation_time: parseInt(formData.preparationTime).toString() || 0,
         is_available: formData.available,
         popular: formData.popular,
       };
       if (editingItem) {
         await menuAPI.updateItem(editingItem.id, itemData);
         updateMenuItem(editingItem.id, itemData);
-        toast.success('Menu item updated successfully!');
+        // toast.success('Menu item updated successfully!');
       } else {
         const newItem = await menuAPI.createItem(itemData);
         addMenuItem(newItem.data);
@@ -161,24 +161,33 @@ const MenuManagement: React.FC = () => {
     setShowAddModal(true);
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      try {
-        await menuAPI.deleteItem(id);
-        deleteMenuItem(id);
-        toast.success('Menu item deleted successfully!');
-      } catch (error) {
-        console.error('Error deleting menu item:', error);
-        toast.error('Failed to delete menu item');
-      }
+  // const handleDelete = async (id: string, name: string) => {
+  //   if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+  //     try {
+  //       await menuAPI.deleteItem(id);
+  //       deleteMenuItem(id);
+  //       toast.success('Menu item deleted successfully!');
+  //     } catch (error) {
+  //       console.error('Error deleting menu item:', error);
+  //       toast.error('Failed to delete menu item');
+  //     }
+  //   }
+  // };
+const handleDelete = async (id: string, name: string) => {
+  if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+    try {
+      await deleteMenuItem(id);
+      // toast.success('Menu item deleted successfully!');
+    } catch {
+      toast.error('Failed to delete menu item');
     }
-  };
-
+  }
+};
   const toggleAvailability = async (itemId: string, currentStatus: boolean) => {
     try {
       await menuAPI.updateItem(itemId, { available: !currentStatus });
       updateMenuItem(itemId, { available: !currentStatus });
-      toast.success(`Item ${!currentStatus ? 'enabled' : 'disabled'} successfully!`);
+      // toast.success(`Item ${!currentStatus ? 'enabled' : 'disabled'} successfully!`);
     } catch (error) {
       console.error('Error toggling availability:', error);
       toast.error('Failed to update availability');
@@ -348,11 +357,11 @@ const MenuManagement: React.FC = () => {
                       {item.spiceLevel} Spice
                     </span>
                   )}
-                  {item.preparationTime && (
+                  {/* {item.preparationTime && (
                     <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium ml-2">
                       {item.preparationTime} mins
                     </span>
-                  )}
+                  )} */}
                 </div>
 
                 {item.allergens && item.allergens.length > 0 && (
