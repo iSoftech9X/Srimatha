@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Star, Plus, ShoppingCart, Users, Calendar, X, History } from 'lucide-react';
+import { Star, Plus, ShoppingCart, Users, Calendar, X, History, Minus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { menuAPI, ordersAPI } from '../services/api';
@@ -35,7 +35,7 @@ type ApiOrder = {
 
 const CateringOrdering: React.FC = () => {
   const { user } = useAuth();
-  const { cart, addToCart, removeFromCart, clearCart } = useApp();
+  const { cart, addToCart, removeFromCart, clearCart, updateCartQuantity } = useApp();
   
   const [showCart, setShowCart] = useState(false);
   const [showOrderHistory, setShowOrderHistory] = useState(false);
@@ -103,7 +103,6 @@ const CateringOrdering: React.FC = () => {
     try {
       await ordersAPI.cancelOrder(id, cancelReason.trim());
       toast.success('Order cancelled successfully');
-      // Update the order status in the local state
       setOrders(orders.map(order => 
         order.id === id ? { ...order, status: 'cancelled' } : order
       ));
@@ -125,6 +124,28 @@ const CateringOrdering: React.FC = () => {
   const handleCancelFormClose = () => {
     setShowCancelForm(null);
     setCancelReason('');
+  };
+
+  const handleIncrement = (cartItemId: string) => {
+    const item = cart.find(item => item.id === cartItemId);
+    if (item) {
+      updateCartQuantity(cartItemId, item.quantity + 1);
+    }
+  };
+
+  const handleDecrement = (cartItemId: string) => {
+    const item = cart.find(item => item.id === cartItemId);
+    if (item) {
+      if (item.quantity > 1) {
+        updateCartQuantity(cartItemId, item.quantity - 1);
+      } else {
+        removeFromCart(cartItemId);
+      }
+    }
+  };
+
+  const handleAddToCart = (item: MenuItem) => {
+    addToCart(item, 1);
   };
 
   useEffect(() => {
@@ -167,7 +188,6 @@ const CateringOrdering: React.FC = () => {
       const item = menuItems.find((i) => i.id === itemId);
       if (item) {
         addToCart(item, 1);
-        toast.success(`${item.name} added to cart!`);
         params.delete('item');
         window.history.replaceState({}, '', `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`);
       }
@@ -180,13 +200,6 @@ const CateringOrdering: React.FC = () => {
   const filteredItems = activeCategory === 'all' 
     ? menuItems.filter(item => item.available)
     : menuItems.filter((item) => item.category === activeCategory && item.available);
-
-  const handleAddToCart = (item: MenuItem) => {
-    addToCart(item, 1);
-    if (!cart.some((cartItem: any) => cartItem.menuItem.id === item.id)) {
-      toast.success(`${item.name} added to cart!`);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { 
@@ -210,7 +223,10 @@ const CateringOrdering: React.FC = () => {
               <p className="text-gray-600">Premium catering for your special events</p>
             </div>
             <div className="flex items-center gap-4">
-                   <span className="text-sm text-gray-600 " ><span style={{fontWeight:"bolder" ,color:"black"}}>Welcome,</span> <span style={{fontWeight:"bolder",color:"#501608"}}>{user?.name}</span></span>
+              <span className="text-sm text-gray-600">
+                <span style={{fontWeight:"bolder", color:"black"}}>Welcome,</span> 
+                <span style={{fontWeight:"bolder", color:"#501608"}}> {user?.name}</span>
+              </span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowOrderHistory(!showOrderHistory)}
@@ -225,7 +241,7 @@ const CateringOrdering: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setShowCart(true)}
-                  className="relative bg-[#501608] hover:bg-[#722010] text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition-colors duration-300"
+                  className="relative bg-[#501608] hover:bg-[#722010] text-white px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 transition-colors duration-300"
                 >
                   <ShoppingCart size={20} />
                   <span className="hidden sm:inline">Selected Items</span>
@@ -408,28 +424,61 @@ const CateringOrdering: React.FC = () => {
                     <p className="text-gray-500">No items found in this category</p>
                   </div>
                 ) : (
-                  filteredItems.map((item) => (
-                    <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                      <div className="p-6">
-                        <div className="flex justify-between items-start mb-3">
-                          <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                        </div>
-                        <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
-                        {item.preparationTime && (
-                          <div className="text-xs text-gray-500 mb-3">
-                            ⏱️ {item.preparationTime} mins
+                  filteredItems.map((item) => {
+                    const cartItem = cart.find(cartItem => cartItem.menuItem.id === item.id);
+                    const quantity = cartItem ? cartItem.quantity : 0;
+                    
+                    return (
+                      <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                        <div className="p-6">
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
+                            {quantity > 0 && (
+                              <span className="bg-[#501608] text-white text-xs px-2 py-1 rounded-full">
+                                {quantity} in cart
+                              </span>
+                            )}
                           </div>
-                        )}
-                        <button
-                          onClick={() => handleAddToCart(item)}
-                          className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-full font-semibold transition-colors duration-300 flex items-center justify-center gap-2"
-                        >
-                          <Plus size={16} />
-                          Add to Cart
-                        </button>
+                          <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
+                          {item.preparationTime && (
+                            <div className="text-xs text-gray-500 mb-3">
+                              ⏱️ {item.preparationTime} mins
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-lg font-bold" style={{color: "#501608"}}>
+                              ₹{item.price.toLocaleString()}
+                            </span>
+                            {quantity > 0 ? (
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={() => handleDecrement(cartItem!.id)}
+                                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-2 transition-colors duration-300"
+                                >
+                                  <Minus size={16} />
+                                </button>
+                                <span className="w-8 text-center">{quantity}</span>
+                                <button 
+                                  onClick={() => handleIncrement(cartItem!.id)}
+                                  className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-2 transition-colors duration-300"
+                                >
+                                  <Plus size={16} />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleAddToCart(item)}
+                                className="bg-[#501608] hover:bg-[#722010] text-white py-2 px-4 rounded-full font-semibold transition-colors duration-300 flex items-center gap-2"
+                              >
+                                <Plus size={16} />
+                                Add
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             )}
@@ -437,116 +486,127 @@ const CateringOrdering: React.FC = () => {
         )}
       </div>
 
-      
       {showCart && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
-    <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-800">Catering Cart</h3>
-          <button
-            onClick={() => setShowCart(false)}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X size={24} />
-          </button>
-        </div>
-      </div>
-
-      {/* Scrollable items section */}
-      <div className="flex-1 overflow-y-auto p-6">
-        {cart.length === 0 ? (
-          <div className="text-center text-gray-500 mt-8">
-            <ShoppingCart size={48} className="mx-auto mb-4 text-gray-300" />
-            <p>Your catering cart is empty</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {cart.map((item) => (
-              <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-800">{item.menuItem.name}</h4>
-                    <p className="text-sm text-gray-600">{item.menuItem.description}</p>
-                    {item.specialInstructions && (
-                      <p className="text-xs text-orange-600 mt-1">
-                        <strong>Details:</strong> {item.specialInstructions}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="" style={{color:"#501608"}}
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold " style={{color:"#501608"}}>
-                    ₹{item.menuItem.price.toLocaleString()}
-                  </span>
-                  <span className="text-sm text-gray-500">Qty: {item.quantity}</span>
-                </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
+          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-800">Catering Cart</h3>
+                <button
+                  onClick={() => setShowCart(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
 
-      {/* Fixed bottom section */}
-      {cart.length > 0 && (
-        <div className="border-t border-gray-200 p-6 bg-white">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-lg font-semibold text-gray-800">Total:</span>
-            <span className="text-xl font-bold" style={{color:"#501608"}}>₹{cartTotal.toLocaleString()}</span>
-          </div>
-          <button
-            onClick={async () => {
-              if (!user) {
-                (window as any).openAuthModal('login');
-              } else {
-                try {
-                 const orderPayload = {
- userName: user.name,           
-  userEmail: user.email,         
-  userPhone: user.phone, 
-  items: cart.map(item => ({
-    menuItemId: item.menuItem.id,
-    name: item.menuItem.name, 
-    quantity: item.quantity,
-    price: item.menuItem.price,
-    specialInstructions: item.specialInstructions
-  })),
-  subtotal: cartTotal,
-  total: cartTotal,
-  paymentStatus: 'pending',
-  orderType: 'catering',
-};
+            <div className="flex-1 overflow-y-auto p-6">
+              {cart.length === 0 ? (
+                <div className="text-center text-gray-500 mt-8">
+                  <ShoppingCart size={48} className="mx-auto mb-4 text-gray-300" />
+                  <p>Your catering cart is empty</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {cart.map((item) => (
+                    <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-800">{item.menuItem.name}</h4>
+                          <p className="text-sm text-gray-600">{item.menuItem.description}</p>
+                          {item.specialInstructions && (
+                            <p className="text-xs text-orange-600 mt-1">
+                              <strong>Details:</strong> {item.specialInstructions}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="" style={{color:"#501608"}}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-bold" style={{color:"#501608"}}>
+                          ₹{(item.menuItem.price * item.quantity).toLocaleString()}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleDecrement(item.id)}
+                            className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-1 transition-colors duration-300"
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <span className="w-8 text-center">{item.quantity}</span>
+                          <button 
+                            onClick={() => handleIncrement(item.id)}
+                            className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-1 transition-colors duration-300"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                  await ordersAPI.createOrder(orderPayload);
-                  toast.success('Order placed!');
-                  clearCart();
-                  setShowCart(false);
-                  if (showOrderHistory) {
-                    fetchOrderHistory();
-                  }
-                } catch (err) {
-                  toast.error('Failed to place order. Please try again.');
-                }
-              }
-            }}
-            className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300"
-          >
-            Place Catering Order
-          </button>
-          <p className="text-xs text-gray-500 text-center mt-2">
-            Our team will Contact you within 2 hours to confirm details
-          </p>
+            {cart.length > 0 && (
+              <div className="border-t border-gray-200 p-6 bg-white">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-lg font-semibold text-gray-800">Total:</span>
+                  <span className="text-xl font-bold" style={{color:"#501608"}}>₹{cartTotal.toLocaleString()}</span>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!user) {
+                      (window as any).openAuthModal('login');
+                    } else {
+                      try {
+                        const orderPayload = {
+                          userName: user.name,           
+                          userEmail: user.email,         
+                          userPhone: user.phone, 
+                          items: cart.map(item => ({
+                            menuItemId: item.menuItem.id,
+                            name: item.menuItem.name, 
+                            quantity: item.quantity,
+                            price: item.menuItem.price,
+                            specialInstructions: item.specialInstructions
+                          })),
+                          subtotal: cartTotal,
+                          total: cartTotal,
+                          paymentStatus: 'pending',
+                          orderType: 'catering',
+                        };
+
+                        await ordersAPI.createOrder(orderPayload);
+                        toast.success('Order placed!');
+                        clearCart();
+                        setShowCart(false);
+                        if (showOrderHistory) {
+                          fetchOrderHistory();
+                        }
+                      } catch (err) {
+                        toast.error('Failed to place order. Please try again.');
+                      }
+                    }
+                  }}
+                  className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300"
+                >
+                  Place Catering Order
+                </button>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  Our team will contact you within 2 hours to confirm details
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
-    </div>
-  </div>
-)}
     </div>
   );
 };
