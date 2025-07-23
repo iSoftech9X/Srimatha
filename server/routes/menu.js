@@ -92,6 +92,55 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Create new menu item (Admin only)
+router.post('/', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const item = req.body;
+
+    // Basic validation
+    // if (!item.name || !item.price || !item.category) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'Name, price, and category are required',
+    //   });
+    // }
+
+    const newItem = {
+      name: item.name,
+      description: item.description || '',
+      price: item.price,
+      category: item.category,
+      is_available: item.isAvailable ?? true,
+      is_vegetarian: item.isVegetarian ?? false,
+      is_vegan: item.isVegan ?? false,
+      is_gluten_free: item.isGlutenFree ?? false,
+      image: item.image || null,
+      preparation_time: item.preparationTime ?? 0,
+      spice_level: item.spiceLevel || 'medium',
+      ingredients: item.ingredients || [],
+      allergens: item.allergens || [],
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    const savedItem = await req.db.addMenuItem(newItem);
+
+    res.status(201).json({
+      success: true,
+      data: savedItem,
+      message: 'Menu item created successfully',
+    });
+  } catch (error) {
+    console.error('Create menu item error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create menu item',
+      error: error.message,
+    });
+  }
+});
+
+
 // Get popular/featured items
 router.get('/featured/popular', async (req, res) => {
   try {
