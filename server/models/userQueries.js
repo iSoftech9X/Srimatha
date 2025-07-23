@@ -50,3 +50,28 @@ export async function updateUser(id, fields) {
   );
   return result.rows[0];
 }
+export async function updateUserById(id, { name, email, phone, address = {} }) {
+  const fieldsToUpdate = {
+    ...(name && { name }),
+    ...(email && { email }),
+    ...(phone && { phone }),
+    ...(address.street && { address_street: address.street }),
+    ...(address.city && { address_city: address.city }),
+    ...(address.state && { address_state: address.state }),
+    ...(address.zipcode && { address_zipcode: address.zipcode }),
+    ...(address.country && { address_country: address.country }),
+  };
+
+  const keys = Object.keys(fieldsToUpdate);
+  if (keys.length === 0) return null;
+
+  const setClause = keys.map((key, i) => `${key} = $${i + 2}`).join(', ');
+  const values = [id, ...keys.map(k => fieldsToUpdate[k])];
+
+  const result = await db.query(
+    `UPDATE users SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`,
+    values
+  );
+
+  return result.rows[0];
+}
