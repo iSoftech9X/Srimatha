@@ -73,13 +73,6 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/catering', cateringRoutes);
 
 // Health check endpoint
-// app.get('/api/health', (req, res) => {
-//   res.json({ 
-//     status: 'OK', 
-//     message: 'Server is running',
-//     database: req.db.isConnected() ? 'Connected' : 'Disconnected'
-//   });
-// });
 
 app.get('/api/health', async (req, res) => {
   try {
@@ -98,6 +91,7 @@ app.get('/api/health', async (req, res) => {
     });
   }
 });
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
