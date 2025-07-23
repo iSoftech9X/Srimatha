@@ -121,14 +121,63 @@ export async function addCateringOrder(order) {
 }
 
 
+// export async function addMenuItem(menuItem) {
+//   const { name, price, category } = menuItem;
+//   const result = await pool.query(
+//     `INSERT INTO menu_items (name, price, category) VALUES ($1, $2, $3) RETURNING *`,
+//     [name, price, category]
+//   );
+//   return result.rows[0];
+// }
+
+
 export async function addMenuItem(menuItem) {
-  const { name, price, category } = menuItem;
+  const {
+    name,
+    description,
+    price,
+    category,
+    is_available,
+    is_vegetarian,
+    is_vegan,
+    is_gluten_free,
+    image,
+    preparation_time,
+    spice_level,
+    ingredients,
+    allergens,
+    created_at,
+    updated_at,
+  } = menuItem;
+
   const result = await pool.query(
-    `INSERT INTO menu_items (name, price, category) VALUES ($1, $2, $3) RETURNING *`,
-    [name, price, category]
+    `INSERT INTO menu_items 
+      (name, description, price, category, is_available, is_vegetarian, is_vegan, is_gluten_free, image, preparation_time, spice_level, ingredients, allergens, created_at, updated_at)
+     VALUES
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+     RETURNING *`,
+    [
+      name,
+      description,
+      price,
+      category,
+      is_available,
+      is_vegetarian,
+      is_vegan,
+      is_gluten_free,
+      image,
+      preparation_time,
+      spice_level,
+      ingredients,
+      allergens,
+      created_at,
+      updated_at
+    ]
   );
+
   return result.rows[0];
 }
+
 
 
 export async function getDashboardStats() {

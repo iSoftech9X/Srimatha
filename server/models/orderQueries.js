@@ -19,7 +19,7 @@ export async function createOrder({ orderNumber, customerId, status, subtotal, t
   return order;
 }
 
-export async function findOrders({ customerId, status, orderType, limit = 10, skip = 0 }) {
+export async function findOrders({ customerId, status, orderType, limit = 100, skip = 0 }) {
   let where = [];
   let params = [];
   let idx = 1;

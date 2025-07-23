@@ -73,6 +73,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/catering', cateringRoutes);
 
 // Health check endpoint
+
 app.get('/api/health', async (req, res) => {
   try {
     await req.db.query('SELECT 1');  // This checks if the DB is alive
