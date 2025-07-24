@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Star, Plus, ShoppingCart, Users, Calendar, X, History, Minus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-import { menuAPI, ordersAPI } from '../services/api';
+import { menuAPI, ordersAPI, authAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import type { MenuItem } from '../types';
 import Header from './Header';
@@ -33,8 +33,16 @@ type ApiOrder = {
   items?: OrderItem[];
 };
 
+type Address = {
+  street: string;
+  city: string;
+  state: string;
+  zipcode: string;
+  country: string;
+};
+
 const CateringOrdering: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { cart, addToCart, removeFromCart, clearCart, updateCartQuantity } = useApp();
   
   const [showCart, setShowCart] = useState(false);
@@ -51,6 +59,53 @@ const CateringOrdering: React.FC = () => {
   const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
   const [showCancelForm, setShowCancelForm] = useState<number | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [showAddressConfirmation, setShowAddressConfirmation] = useState(false);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<Address>({
+    street: '',
+    city: '',
+    state: '',
+    zipcode: '',
+    country: ''
+  });
+  const [isUpdatingAddress, setIsUpdatingAddress] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  // Fetch user profile data including address
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    
+    setLoadingProfile(true);
+    try {
+      const response = await authAPI.getProfile();
+      const userData = response.data?.user || response.data?.data?.user;
+      
+      console.log('User profile data:', userData); // Debug log
+      
+      if (userData) {
+        const newAddress = {
+          street: userData.address_street || '',
+          city: userData.address_city || '',
+          state: userData.address_state || '',
+          zipcode: userData.address_zipcode || '',
+          country: userData.address_country || ''
+        };
+        
+        console.log('Setting address:', newAddress); // Debug log
+        setSelectedAddress(newAddress);
+        
+        // Update user context if needed
+        if (updateUser) {
+          updateUser(userData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast.error('Failed to load profile data');
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   const fetchAllItems = async (page = 1, accumulatedItems: MenuItem[] = []): Promise<MenuItem[]> => {
     try {
@@ -148,6 +203,85 @@ const CateringOrdering: React.FC = () => {
     addToCart(item, 1);
   };
 
+  const updateUserAddress = async () => {
+    if (!user) return;
+    
+    setIsUpdatingAddress(true);
+    try {
+      const patchData = {
+        address: {
+          street: selectedAddress.street,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          zipcode: selectedAddress.zipcode,
+          country: selectedAddress.country
+        }
+      };
+
+      console.log('Sending address update:', patchData); // Debug log
+      
+      const response = await authAPI.patchProfile(patchData);
+      console.log('Update response:', response); // Debug log
+      
+      toast.success('Address updated successfully!');
+      setIsEditingAddress(false);
+      
+      // Refresh profile data after update
+      await fetchUserProfile();
+
+    } catch (error) {
+      console.error('Error updating address:', error);
+      toast.error('Failed to update address. Please try again.');
+    } finally {
+      setIsUpdatingAddress(false);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    try {
+      const orderPayload = {
+        userName: user?.name,           
+        userEmail: user?.email,         
+        userPhone: user?.phone, 
+        address: selectedAddress,
+        items: cart.map(item => ({
+          menuItemId: item.menuItem.id,
+          name: item.menuItem.name, 
+          quantity: item.quantity,
+          price: item.menuItem.price,
+          specialInstructions: item.specialInstructions
+        })),
+        subtotal: cartTotal,
+        total: cartTotal,
+        paymentStatus: 'pending',
+        orderType: 'catering',
+      };
+
+      await ordersAPI.createOrder(orderPayload);
+      toast.success('Order placed successfully!');
+      clearCart();
+      setShowCart(false);
+      setShowAddressConfirmation(false);
+      if (showOrderHistory) {
+        fetchOrderHistory();
+      }
+    } catch (err) {
+      toast.error('Failed to place order. Please try again.');
+      console.error('Error placing order:', err);
+    }
+  };
+
+  const handleCheckoutClick = () => {
+    if (!user) {
+      (window as any).openAuthModal('login');
+      return;
+    }
+
+    setShowAddressConfirmation(true);
+    setIsEditingAddress(false);
+    fetchUserProfile(); // Refresh address data before showing confirmation
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -171,6 +305,7 @@ const CateringOrdering: React.FC = () => {
     };
     
     loadData();
+    fetchUserProfile(); // Initial profile fetch
   }, []);
 
   useEffect(() => {
@@ -440,11 +575,6 @@ const CateringOrdering: React.FC = () => {
                             )}
                           </div>
                           <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
-                          {/* {item.preparationTime && (
-                            <div className="text-xs text-gray-500 mb-3">
-                              ⏱️ {item.preparationTime} mins
-                            </div>
-                          )} */}
                           <div className="flex items-center justify-between">
                             <span className="text-lg font-bold" style={{color: "#501608"}}>
                               ₹{item.price.toLocaleString()}
@@ -561,40 +691,7 @@ const CateringOrdering: React.FC = () => {
                   <span className="text-xl font-bold" style={{color:"#501608"}}>₹{cartTotal.toLocaleString()}</span>
                 </div>
                 <button
-                  onClick={async () => {
-                    if (!user) {
-                      (window as any).openAuthModal('login');
-                    } else {
-                      try {
-                        const orderPayload = {
-                          userName: user.name,           
-                          userEmail: user.email,         
-                          userPhone: user.phone, 
-                          items: cart.map(item => ({
-                            menuItemId: item.menuItem.id,
-                            name: item.menuItem.name, 
-                            quantity: item.quantity,
-                            price: item.menuItem.price,
-                            specialInstructions: item.specialInstructions
-                          })),
-                          subtotal: cartTotal,
-                          total: cartTotal,
-                          paymentStatus: 'pending',
-                          orderType: 'catering',
-                        };
-
-                        await ordersAPI.createOrder(orderPayload);
-                        toast.success('Order placed!');
-                        clearCart();
-                        setShowCart(false);
-                        if (showOrderHistory) {
-                          fetchOrderHistory();
-                        }
-                      } catch (err) {
-                        toast.error('Failed to place order. Please try again.');
-                      }
-                    }
-                  }}
+                  onClick={handleCheckoutClick}
                   className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300"
                 >
                   Place Catering Order
@@ -604,6 +701,145 @@ const CateringOrdering: React.FC = () => {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Address Confirmation Modal */}
+      {showAddressConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {isEditingAddress ? 'Edit Delivery Address' : 'Confirm Delivery Address'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowAddressConfirmation(false);
+                    setIsEditingAddress(false);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              {loadingProfile ? (
+                <div className="text-center py-4">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#501608] border-t-transparent"></div>
+                  <p className="mt-2 text-gray-600">Loading address...</p>
+                </div>
+              ) : isEditingAddress ? (
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                    <input
+                      type="text"
+                      value={selectedAddress.street}
+                      onChange={(e) => setSelectedAddress({...selectedAddress, street: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded-md"
+                      placeholder="Enter street address"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input
+                      type="text"
+                      value={selectedAddress.city}
+                      onChange={(e) => setSelectedAddress({...selectedAddress, city: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded-md"
+                      placeholder="Enter city"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                      <input
+                        type="text"
+                        value={selectedAddress.state}
+                        onChange={(e) => setSelectedAddress({...selectedAddress, state: e.target.value})}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        placeholder="Enter state"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
+                      <input
+                        type="text"
+                        value={selectedAddress.zipcode}
+                        onChange={(e) => setSelectedAddress({...selectedAddress, zipcode: e.target.value})}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        placeholder="Enter zip code"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <input
+                      type="text"
+                      value={selectedAddress.country}
+                      onChange={(e) => setSelectedAddress({...selectedAddress, country: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded-md"
+                      placeholder="Enter country"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <p className="font-medium text-gray-700">Street:</p>
+                    <p>{selectedAddress.street || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-700">City/State/Zip:</p>
+                    <p>
+                      {selectedAddress.city || 'N/A'}, {selectedAddress.state || 'N/A'} {selectedAddress.zipcode || ''}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-700">Country:</p>
+                    <p>{selectedAddress.country || 'Not provided'}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3">
+                {isEditingAddress ? (
+                  <>
+                    <button
+                      onClick={() => setIsEditingAddress(false)}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                      disabled={isUpdatingAddress}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={updateUserAddress}
+                      className="px-4 py-2 bg-[#501608] text-white rounded-md hover:bg-[#722010]"
+                      disabled={isUpdatingAddress}
+                    >
+                      {isUpdatingAddress ? 'Saving...' : 'Save Address'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setIsEditingAddress(true)}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                    >
+                      Edit Address
+                    </button>
+                    <button
+                      onClick={handlePlaceOrder}
+                      className="px-4 py-2 bg-[#501608] text-white rounded-md hover:bg-[#722010]"
+                    >
+                      Confirm & Place Order
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
