@@ -21,7 +21,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security middleware
+// Security middleware 
 app.use(helmet());
 
 // Rate limiting (relaxed for development)
