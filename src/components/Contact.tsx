@@ -1,3 +1,408 @@
+// import React, { useState } from 'react';
+// import { MapPin, Phone, Mail, Clock, Calendar, MessageSquare } from 'lucide-react';
+// import { restaurantInfo } from '../data/menuData';
+// import toast from 'react-hot-toast';
+
+// const Contact: React.FC = () => {
+//   const [formData, setFormData] = useState({
+//     firstName: '',
+//     lastName: '',
+//     email: '',
+//     phone: '',
+//     subject: '',
+//     message: ''
+//   });
+//   const [loading, setLoading] = useState(false);
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     setLoading(true);
+
+//     try {
+//       const response = await fetch('/api/contact', {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify({
+//           name: `${formData.firstName} ${formData.lastName}`,
+//           email: formData.email,
+//           phone: formData.phone,
+//           subject: formData.subject,
+//           message: formData.message
+//         })
+//       });
+
+//       const result = await response.json();
+
+//       if (result.success) {
+//         toast.success(result.message);
+//         setFormData({
+//           firstName: '',
+//           lastName: '',
+//           email: '',
+//           phone: '',
+//           subject: '',
+//           message: ''
+//         });
+//       } else {
+//         throw new Error(result.message || 'Failed to send message');
+//       }
+//     } catch (error) {
+//       console.error('Contact form error:', error);
+//       toast.error(error.message || 'Failed to send message. Please try again.');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+//     setFormData(prev => ({
+//       ...prev,
+//       [e.target.name]: e.target.value
+//     }));
+//   };
+
+//   const handleOrderNow = () => {
+//     window.location.href = '/order';
+//   };
+
+//   const handleCateringQuote = () => {
+//     window.location.href = '/catering';
+//   };
+
+//   return (
+//     <section id="contact" className="py-20 bg-gray-50">
+//       <div className="max-w-7xl mx-auto px-4">
+//         <div className="text-center mb-16">
+//           <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+//             Get In <span className="text-orange-600">Touch</span>
+//           </h2>
+//           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+//             Ready to experience exceptional dining? Contact us for reservations, catering inquiries, or any questions
+//           </p>
+//         </div>
+
+//         <div className="grid lg:grid-cols-2 gap-12">
+//           {/* Contact Information */}
+//           {/* <div className="space-y-8">
+//             <div>
+//               <h3 className="text-2xl font-bold text-gray-800 mb-6">Contact Information</h3>
+              
+//               <div className="space-y-6">
+//                 <div className="flex items-start">
+//                   <MapPin className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+//                   <div>
+//                     <h4 className="font-semibold text-gray-800 mb-1">Address</h4>
+//                     <p className="text-gray-600">
+//                       {restaurantInfo.address.line1}<br />
+//                       {restaurantInfo.address.line2}<br />
+//                       {restaurantInfo.address.line3}
+//                     </p>
+//                   </div>
+//                 </div>
+
+//                 <div className="flex items-start">
+//                   <Phone className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+//                   <div>
+//                     <h4 className="font-semibold text-gray-800 mb-1">Phone</h4>
+//                     <p className="text-gray-600">
+//                       Restaurant: {restaurantInfo.phone}<br />
+//                       Catering: {restaurantInfo.mobile}
+//                     </p>
+//                   </div>
+//                 </div>
+
+//                 <div className="flex items-start">
+//                   <Mail className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+//                   <div>
+//                     <h4 className="font-semibold text-gray-800 mb-1">Email</h4>
+//                     <p className="text-gray-600">
+//                       info@srimatha.com<br />
+//                       catering@srimatha.com
+//                     </p>
+//                   </div>
+//                 </div>
+
+//                 <div className="flex items-start">
+//                   <Clock className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+//                   <div>
+//                     <h4 className="font-semibold text-gray-800 mb-1">Operating Hours</h4>
+//                     <p className="text-gray-600">
+//                       Monday - Sunday: 11:00 AM - 11:00 PM<br />
+//                       Catering: 24/7 Service Available
+//                     </p>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+
+          
+//             <div className="space-y-4">
+//               <h4 className="text-xl font-bold text-gray-800">Quick Actions</h4>
+//               <div className="grid grid-cols-2 gap-4">
+//                 <button 
+//                   onClick={handleOrderNow}
+//                   className="flex items-center justify-center bg-[#501608] hover:bg-[#722010] text-white p-4 rounded-lg font-semibold transition-colors duration-300"
+//                 >
+//                   <Calendar className="mr-2" size={20} />
+//                   Order Now
+//                 </button>
+//                 <button 
+//                   onClick={handleCateringQuote}
+//                   className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg font-semibold transition-colors duration-300"
+//                 >
+//                   <MessageSquare className="mr-2" size={20} />
+//                   Catering Quote
+//                 </button>
+//               </div>
+//             </div>
+//           </div> */}
+// {/* Contact Information */}
+// <div className="space-y-8">
+//   <div>
+//     <h3 className="text-2xl font-bold text-gray-800 mb-6">Contact Information</h3>
+
+//     <div className="space-y-6">
+//       {/* Address */}
+//       <div className="flex items-start">
+//         <MapPin className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+//         <div>
+//           <h4 className="font-semibold text-gray-800 mb-1">Address</h4>
+//           <p className="text-gray-600">
+//             <a
+//               href={`https://www.google.com/maps/place/Sri+Matha+Family+Restaurant/@17.5276096,78.3656087,17z/data=!3m1!4b1!4m6!3m5!1s0x3bcb8d5401fd3031:0xf3978e60312fdb56!8m2!3d17.5276045!4d78.3681836!16s%2Fg%2F11srj29fl3?entry=ttu&g_ep=EgoyMDI1MDcxNS4xIKXMDSoASAFQAw%3D%3D=${encodeURIComponent(
+//                 `${restaurantInfo.address.line1}, ${restaurantInfo.address.line2}, ${restaurantInfo.address.line3}`
+//               )}`}
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               className="text-black hover:underline"
+//             >
+//               {restaurantInfo.address.line1}<br />
+//               {restaurantInfo.address.line2}<br />
+//               {restaurantInfo.address.line3}
+//             </a>
+//           </p>
+//         </div>
+//       </div>
+
+//       {/* Phone */}
+//       <div className="flex items-start">
+//         <Phone className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+//         <div>
+//           <h4 className="font-semibold text-gray-800 mb-1">Phone</h4>
+//           <p className="text-gray-600">
+           
+//             <a href={`tel:${restaurantInfo.mobile}`} className="text-black hover:underline">
+//               Catering: {restaurantInfo.mobile}
+//             </a>
+//           </p>
+//         </div>
+//       </div>
+
+//       {/* Email */}
+//       <div className="flex items-start">
+//         <Mail className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+//         <div>
+//           <h4 className="font-semibold text-gray-800 mb-1">Email</h4>
+//           <p className="text-gray-600">
+//             <a href="mailto:srimatha2223@gmail.com" className="text-black hover:underline">
+//               srimatha2223@gmail.com
+//             </a><br />
+           
+//           </p>
+//         </div>
+//       </div>
+
+//       {/* Operating Hours */}
+//       <div className="flex items-start">
+//         <Clock className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
+//         <div>
+//           <h4 className="font-semibold text-gray-800 mb-1">Operating Hours</h4>
+//           <p className="text-gray-600">
+//             Monday - Sunday: 11:00 AM - 11:00 PM<br />
+//             Catering: 24/7 Service Available
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   </div>
+
+//   {/* Quick Actions */}
+//   <div className="space-y-4">
+//     <h4 className="text-xl font-bold text-gray-800">Quick Actions</h4>
+//     <div className="grid grid-cols-2 gap-4">
+//       <button 
+//         onClick={handleOrderNow}
+//         className="flex items-center justify-center bg-[#501608] hover:bg-[#722010] text-white p-4 rounded-lg font-semibold transition-colors duration-300"
+//       >
+//         <Calendar className="mr-2" size={20} />
+//         Order Now
+//       </button>
+//       <button 
+//         onClick={handleCateringQuote}
+//         className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg font-semibold transition-colors duration-300"
+//       >
+//         <MessageSquare className="mr-2" size={20} />
+//         Catering Quote
+//       </button>
+//     </div>
+//   </div>
+// </div>
+
+//           {/* Contact Form */}
+//           <div className="bg-white rounded-lg shadow-lg p-8">
+//             <h3 className="text-2xl font-bold text-gray-800 mb-6">Send us a Message</h3>
+            
+//             <form onSubmit={handleSubmit} className="space-y-6">
+//               <div className="grid md:grid-cols-2 gap-6">
+//                 <div>
+//                   <label htmlFor="firstName" className="block text-gray-700 font-medium mb-2">
+//                     First Name
+//                   </label>
+//                   <input
+//                     type="text"
+//                     id="firstName"
+//                     name="firstName"
+//                     value={formData.firstName}
+//                     onChange={handleInputChange}
+//                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//                     placeholder="Your first name"
+//                     required
+//                     disabled={loading}
+//                   />
+//                 </div>
+//                 <div>
+//                   <label htmlFor="lastName" className="block text-gray-700 font-medium mb-2">
+//                     Last Name
+//                   </label>
+//                   <input
+//                     type="text"
+//                     id="lastName"
+//                     name="lastName"
+//                     value={formData.lastName}
+//                     onChange={handleInputChange}
+//                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//                     placeholder="Your last name"
+//                     required
+//                     disabled={loading}
+//                   />
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
+//                   Email Address
+//                 </label>
+//                 <input
+//                   type="email"
+//                   id="email"
+//                   name="email"
+//                   value={formData.email}
+//                   onChange={handleInputChange}
+//                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//                   placeholder="your.email@example.com"
+//                   required
+//                   disabled={loading}
+//                 />
+//               </div>
+
+//               <div>
+//                 <label htmlFor="phone" className="block text-gray-700 font-medium mb-2">
+//                   Phone Number
+//                 </label>
+//                 <input
+//                   type="tel"
+//                   id="phone"
+//                   name="phone"
+//                   value={formData.phone}
+//                   onChange={handleInputChange}
+//                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//                   placeholder="+91 98765 43210"
+//                   required
+//                   disabled={loading}
+//                 />
+//               </div>
+
+//               <div>
+//                 <label htmlFor="subject" className="block text-gray-700 font-medium mb-2">
+//                   Subject
+//                 </label>
+//                 <select
+//                   id="subject"
+//                   name="subject"
+//                   value={formData.subject}
+//                   onChange={handleInputChange}
+//                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+//                   required
+//                   disabled={loading}
+//                 >
+//                   <option value="">Select a subject</option>
+//                   <option value="reservation">Table Reservation</option>
+//                   <option value="catering">Catering Inquiry</option>
+//                   <option value="feedback">Feedback</option>
+//                   <option value="complaint">Complaint</option>
+//                   <option value="other">Other</option>
+//                 </select>
+//               </div>
+
+//               <div>
+//                 <label htmlFor="message" className="block text-gray-700 font-medium mb-2">
+//                   Message
+//                 </label>
+//                 <textarea
+//                   id="message"
+//                   name="message"
+//                   rows={4}
+//                   value={formData.message}
+//                   onChange={handleInputChange}
+//                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-vertical"
+//                   placeholder="Tell us how we can help you..."
+//                   required
+//                   disabled={loading}
+//                 ></textarea>
+//               </div>
+
+//               <button
+//                 type="submit"
+//                 disabled={loading}
+//                 className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300" 
+//               >
+//                 {loading ? 'Sending...' : 'Send Message'}
+//               </button>
+//             </form>
+//           </div>
+//         </div>
+
+//         {/* Map Section */}
+//       <div className="mt-16">
+//           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+//             <h3 className="text-2xl font-bold text-gray-800 p-6 pb-0">Our Location</h3>
+//             <div className="p-4">
+//               <iframe 
+//                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3804.578781587917!2d78.36560867463004!3d17.527609598751525!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb8d5401fd3031%3A0xf3978e60312fdb56!2sSri%20Matha%20Family%20Restaurant!5e0!3m2!1sen!2sin!4v1752830527267!5m2!1sen!2sin" 
+//                 width="100%" 
+//                 height="450" 
+//                 style={{border:0}} 
+//                 allowFullScreen 
+//                 loading="lazy" 
+//                 referrerPolicy="no-referrer-when-downgrade"
+//                 title="Sri Matha Family Restaurant Location"
+//               ></iframe>
+//             </div>
+//             <div className="p-6 pt-0">
+//               <p className="text-gray-600">
+//                 {restaurantInfo.address.line1}, {restaurantInfo.address.line2}, {restaurantInfo.address.line3}
+//               </p>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Contact;
 import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Calendar, MessageSquare } from 'lucide-react';
 import { restaurantInfo } from '../data/menuData';
@@ -19,10 +424,13 @@ const Contact: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/contact', {
+      // Use environment variable with fallback to relative path
+      const API_URL = '/api/contact';
+      
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: `${formData.firstName} ${formData.lastName}`,
@@ -32,6 +440,12 @@ const Contact: React.FC = () => {
           message: formData.message
         })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error Response:', errorData);
+        throw new Error(errorData.message || 'API request failed with status: ' + response.status);
+      }
 
       const result = await response.json();
 
@@ -49,7 +463,10 @@ const Contact: React.FC = () => {
         throw new Error(result.message || 'Failed to send message');
       }
     } catch (error) {
-      console.error('Contact form error:', error);
+      console.error('Contact form error details:', {
+        error: error.message,
+        formData: formData
+      });
       toast.error(error.message || 'Failed to send message. Please try again.');
     } finally {
       setLoading(false);
@@ -85,45 +502,66 @@ const Contact: React.FC = () => {
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Contact Information */}
-          {/* <div className="space-y-8">
+          <div className="space-y-8">
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-6">Contact Information</h3>
-              
+
               <div className="space-y-6">
+                {/* Address */}
                 <div className="flex items-start">
                   <MapPin className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-1">Address</h4>
                     <p className="text-gray-600">
-                      {restaurantInfo.address.line1}<br />
-                      {restaurantInfo.address.line2}<br />
-                      {restaurantInfo.address.line3}
+                      <a
+                        href={`https://www.google.com/maps/place/${encodeURIComponent(
+                          `${restaurantInfo.address.line1}, ${restaurantInfo.address.line2}, ${restaurantInfo.address.line3}`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-black hover:underline"
+                      >
+                        {restaurantInfo.address.line1}<br />
+                        {restaurantInfo.address.line2}<br />
+                        {restaurantInfo.address.line3}
+                      </a>
                     </p>
                   </div>
                 </div>
 
+                {/* Phone */}
                 <div className="flex items-start">
                   <Phone className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-1">Phone</h4>
                     <p className="text-gray-600">
-                      Restaurant: {restaurantInfo.phone}<br />
-                      Catering: {restaurantInfo.mobile}
+                      <a href={`tel:${restaurantInfo.phone}`} className="text-black hover:underline">
+                        Restaurant: {restaurantInfo.phone}
+                      </a><br />
+                      <a href={`tel:${restaurantInfo.mobile}`} className="text-black hover:underline">
+                        Catering: {restaurantInfo.mobile}
+                      </a>
                     </p>
                   </div>
                 </div>
 
+                {/* Email */}
                 <div className="flex items-start">
                   <Mail className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-1">Email</h4>
                     <p className="text-gray-600">
-                      info@srimatha.com<br />
-                      catering@srimatha.com
+                      <a href="mailto:srimatha2223@gmail.com" className="text-black hover:underline">
+                        srimatha2223@gmail.com
+                      </a><br />
+                      <a href="mailto:catering@srimatha.com" className="text-black hover:underline">
+                        catering@srimatha.com
+                      </a>
                     </p>
                   </div>
                 </div>
 
+                {/* Operating Hours */}
                 <div className="flex items-start">
                   <Clock className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
                   <div>
@@ -137,7 +575,7 @@ const Contact: React.FC = () => {
               </div>
             </div>
 
-          
+            {/* Quick Actions */}
             <div className="space-y-4">
               <h4 className="text-xl font-bold text-gray-800">Quick Actions</h4>
               <div className="grid grid-cols-2 gap-4">
@@ -157,98 +595,7 @@ const Contact: React.FC = () => {
                 </button>
               </div>
             </div>
-          </div> */}
-{/* Contact Information */}
-<div className="space-y-8">
-  <div>
-    <h3 className="text-2xl font-bold text-gray-800 mb-6">Contact Information</h3>
-
-    <div className="space-y-6">
-      {/* Address */}
-      <div className="flex items-start">
-        <MapPin className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
-        <div>
-          <h4 className="font-semibold text-gray-800 mb-1">Address</h4>
-          <p className="text-gray-600">
-            <a
-              href={`https://www.google.com/maps/place/Sri+Matha+Family+Restaurant/@17.5276096,78.3656087,17z/data=!3m1!4b1!4m6!3m5!1s0x3bcb8d5401fd3031:0xf3978e60312fdb56!8m2!3d17.5276045!4d78.3681836!16s%2Fg%2F11srj29fl3?entry=ttu&g_ep=EgoyMDI1MDcxNS4xIKXMDSoASAFQAw%3D%3D=${encodeURIComponent(
-                `${restaurantInfo.address.line1}, ${restaurantInfo.address.line2}, ${restaurantInfo.address.line3}`
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-black hover:underline"
-            >
-              {restaurantInfo.address.line1}<br />
-              {restaurantInfo.address.line2}<br />
-              {restaurantInfo.address.line3}
-            </a>
-          </p>
-        </div>
-      </div>
-
-      {/* Phone */}
-      <div className="flex items-start">
-        <Phone className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
-        <div>
-          <h4 className="font-semibold text-gray-800 mb-1">Phone</h4>
-          <p className="text-gray-600">
-           
-            <a href={`tel:${restaurantInfo.mobile}`} className="text-black hover:underline">
-              Catering: {restaurantInfo.mobile}
-            </a>
-          </p>
-        </div>
-      </div>
-
-      {/* Email */}
-      <div className="flex items-start">
-        <Mail className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
-        <div>
-          <h4 className="font-semibold text-gray-800 mb-1">Email</h4>
-          <p className="text-gray-600">
-            <a href="mailto:srimatha2223@gmail.com" className="text-black hover:underline">
-              srimatha2223@gmail.com
-            </a><br />
-           
-          </p>
-        </div>
-      </div>
-
-      {/* Operating Hours */}
-      <div className="flex items-start">
-        <Clock className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
-        <div>
-          <h4 className="font-semibold text-gray-800 mb-1">Operating Hours</h4>
-          <p className="text-gray-600">
-            Monday - Sunday: 11:00 AM - 11:00 PM<br />
-            Catering: 24/7 Service Available
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {/* Quick Actions */}
-  <div className="space-y-4">
-    <h4 className="text-xl font-bold text-gray-800">Quick Actions</h4>
-    <div className="grid grid-cols-2 gap-4">
-      <button 
-        onClick={handleOrderNow}
-        className="flex items-center justify-center bg-[#501608] hover:bg-[#722010] text-white p-4 rounded-lg font-semibold transition-colors duration-300"
-      >
-        <Calendar className="mr-2" size={20} />
-        Order Now
-      </button>
-      <button 
-        onClick={handleCateringQuote}
-        className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg font-semibold transition-colors duration-300"
-      >
-        <MessageSquare className="mr-2" size={20} />
-        Catering Quote
-      </button>
-    </div>
-  </div>
-</div>
+          </div>
 
           {/* Contact Form */}
           <div className="bg-white rounded-lg shadow-lg p-8">
@@ -368,14 +715,22 @@ const Contact: React.FC = () => {
                 disabled={loading}
                 className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300" 
               >
-                {loading ? 'Sending...' : 'Send Message'}
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sending...
+                  </span>
+                ) : 'Send Message'}
               </button>
             </form>
           </div>
         </div>
 
         {/* Map Section */}
-      <div className="mt-16">
+        <div className="mt-16">
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <h3 className="text-2xl font-bold text-gray-800 p-6 pb-0">Our Location</h3>
             <div className="p-4">
