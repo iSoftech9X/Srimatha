@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import CustomerManagement from './CustomerManagement';
 import OrderManagement from './OrderManagement';
 import MenuManagement from './MenuManagement'; // Import MenuManagement
+import Contactquotes from './Contactquotes';
 import { useApp } from '../context/AppContext';
 
 const AdminDashboard: React.FC = () => {
@@ -24,7 +25,8 @@ const AdminDashboard: React.FC = () => {
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
     { id: 'customers', name: 'Customers', icon: Users },
     { id: 'orders', name: 'Orders', icon: ShoppingBag },
-    { id: 'menu', name: 'Menu', icon: ShoppingBag } // Add Menu tab
+    { id: 'menu', name: 'Menu', icon: ShoppingBag },
+    {id: 'contactquotes', name: 'Contact Quotes', icon: ShoppingBag} // Add Menu tab
   ];
 
   const handleLogout = () => {
@@ -165,41 +167,15 @@ const AdminDashboard: React.FC = () => {
                 />
               </div>
               {/* Popular Items */}
-           
-            {/*<div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Popular Items</h3>
-                <div className="space-y-4">
-                  {adminStats.popularItems && adminStats.popularItems.length > 0 ? (
-                    adminStats.popularItems.map((item: any, index: number) => (
-                      <div key={item.id} className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
-                            <span className="text-orange-600 font-semibold text-sm">#{index + 1}</span>
-                          </div>
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-10 h-10 rounded-lg object-cover mr-3"
-                          />
-                          <div>
-                            <p className="font-medium text-gray-800">{item.name}</p>
-                            <p className="text-sm text-gray-600">₹{item.price}</p>
-                          </div>
-                        </div>
-                        <span className="text-green-600 font-semibold">Popular</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">No popular items data available.</p>
-                  )}
-                </div>
-              </div>*/}
+          
               
             </div> 
           )}
           {activeTab === 'customers' && <CustomerManagement />}
           {activeTab === 'orders' && <OrderManagement />}
-          {activeTab === 'menu' && <MenuManagement />} {/* Add MenuManagement for Menu tab */}
+          {activeTab === 'menu' && <MenuManagement />} 
+          {activeTab === 'contactquotes' && <Contactquotes />}
+          {/* Add MenuManagement for Menu tab */}
         </main>
       </div>
     </div>
