@@ -407,9 +407,19 @@ import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Calendar, MessageSquare } from 'lucide-react';
 import { restaurantInfo } from '../data/menuData';
 import toast from 'react-hot-toast';
+import { contactAPI } from '../services/api';
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+}
 
 const Contact: React.FC = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -424,33 +434,16 @@ const Contact: React.FC = () => {
     setLoading(true);
 
     try {
-      // Use environment variable with fallback to relative path
-      const API_URL = '/api/contact';
-      
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          phone: formData.phone,
-          subject: formData.subject,
-          message: formData.message
-        })
+      const response = await contactAPI.submitForm({
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.subject,
+        message: formData.message
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API Error Response:', errorData);
-        throw new Error(errorData.message || 'API request failed with status: ' + response.status);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success(result.message);
+      if (response && (response.status === 201 || response.success)) {
+        toast.success('Contact form submitted successfully. We will get back to you soon');
         setFormData({
           firstName: '',
           lastName: '',
@@ -460,23 +453,26 @@ const Contact: React.FC = () => {
           message: ''
         });
       } else {
-        throw new Error(result.message || 'Failed to send message');
+        throw new Error(response.message || 'Failed to send message');
       }
-    } catch (error) {
-      console.error('Contact form error details:', {
-        error: error.message,
-        formData: formData
-      });
-      toast.error(error.message || 'Failed to send message. Please try again.');
+    } catch (error: any) {
+      console.error('Contact form error:', error);
+      const errorMessage = error.response?.data?.message || 
+                         error.message || 
+                         'Failed to send message. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
   };
 
@@ -505,16 +501,15 @@ const Contact: React.FC = () => {
           <div className="space-y-8">
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-6">Contact Information</h3>
-
+              
               <div className="space-y-6">
-                {/* Address */}
                 <div className="flex items-start">
                   <MapPin className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-1">Address</h4>
                     <p className="text-gray-600">
                       <a
-                        href={`https://www.google.com/maps/place/${encodeURIComponent(
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                           `${restaurantInfo.address.line1}, ${restaurantInfo.address.line2}, ${restaurantInfo.address.line3}`
                         )}`}
                         target="_blank"
@@ -529,7 +524,6 @@ const Contact: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Phone */}
                 <div className="flex items-start">
                   <Phone className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
                   <div>
@@ -545,23 +539,21 @@ const Contact: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Email */}
                 <div className="flex items-start">
                   <Mail className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-1">Email</h4>
                     <p className="text-gray-600">
-                      <a href="mailto:srimatha2223@gmail.com" className="text-black hover:underline">
-                        srimatha2223@gmail.com
+                      <a href={`mailto:${restaurantInfo.email}`} className="text-black hover:underline">
+                        {restaurantInfo.email}
                       </a><br />
-                      <a href="mailto:catering@srimatha.com" className="text-black hover:underline">
-                        catering@srimatha.com
+                      <a href={`mailto:${restaurantInfo.cateringEmail}`} className="text-black hover:underline">
+                        {restaurantInfo.cateringEmail}
                       </a>
                     </p>
                   </div>
                 </div>
 
-                {/* Operating Hours */}
                 <div className="flex items-start">
                   <Clock className="text-orange-600 mt-1 mr-4 flex-shrink-0" size={24} />
                   <div>
@@ -575,7 +567,6 @@ const Contact: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions */}
             <div className="space-y-4">
               <h4 className="text-xl font-bold text-gray-800">Quick Actions</h4>
               <div className="grid grid-cols-2 gap-4">
@@ -614,7 +605,7 @@ const Contact: React.FC = () => {
                     value={formData.firstName}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Your first name"
+                    placeholder=" Enter Your first name"
                     required
                     disabled={loading}
                   />
@@ -630,7 +621,7 @@ const Contact: React.FC = () => {
                     value={formData.lastName}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Your last name"
+                    placeholder=" Enter Your last name"
                     required
                     disabled={loading}
                   />
@@ -715,15 +706,7 @@ const Contact: React.FC = () => {
                 disabled={loading}
                 className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300" 
               >
-                {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Sending...
-                  </span>
-                ) : 'Send Message'}
+                {loading ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           </div>
