@@ -192,9 +192,7 @@ const Contact: React.FC = () => {
         <div>
           <h4 className="font-semibold text-gray-800 mb-1">Phone</h4>
           <p className="text-gray-600">
-            {/* <a href={`tel:${restaurantInfo.phone}`} className="text-black hover:underline">
-              Restaurant: {restaurantInfo.phone}
-            </a><br /> */}
+           
             <a href={`tel:${restaurantInfo.mobile}`} className="text-black hover:underline">
               Catering: {restaurantInfo.mobile}
             </a>
@@ -211,9 +209,7 @@ const Contact: React.FC = () => {
             <a href="mailto:srimatha2223@gmail.com" className="text-black hover:underline">
               srimatha2223@gmail.com
             </a><br />
-            {/* <a href="mailto:catering@srimatha.com" className="text-black hover:underline">
-              catering@srimatha.com
-            </a> */}
+           
           </p>
         </div>
       </div>
