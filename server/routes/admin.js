@@ -1,5 +1,4 @@
 import express from 'express';
-// import bcrypt from 'bcrypt';
 import { authenticate, authorize } from '../middleware/auth.js';
 import db from '../services/postgres.js';
 // import bcrypt from 'bcrypt';

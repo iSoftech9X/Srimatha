@@ -1,4 +1,4 @@
-// Service aggregator for switching between mock and real DB
+
 import * as menuPostgres from './menuPostgres.js';
 import pool from './postgres.js';
 
