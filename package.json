@@ -12,6 +12,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.0.0",
+    "antd": "^5.26.6",
     "axios": "^1.6.2",
     "bcrypt": "^6.0.0",
     "lucide-react": "^0.344.0",
