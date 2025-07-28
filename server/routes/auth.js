@@ -106,22 +106,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-
-// auth.js
-router.get('/verify-token', authenticate, (req, res) => {
-  res.json({ success: true, valid: true, user: req.user });
-});
-
-// auth.js
-router.post('/refresh-token', authenticate, (req, res) => {
-  const newToken = jwt.sign(
-    { id: req.user.id, email: req.user.email, role: req.user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '1h' }
-  );
-  res.json({ success: true, token: newToken });
-});
-
 // Get user profile
 router.get('/profile', authenticate, async (req, res) => {
   try {
