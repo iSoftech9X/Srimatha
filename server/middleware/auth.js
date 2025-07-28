@@ -76,6 +76,9 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
+
+
+
 export function attachDb(req, res, next) {
   req.db = dbService; // now req.db.findMenuItems exists
   next();
