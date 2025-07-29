@@ -116,7 +116,7 @@ router.post('/', authenticate, authorize('admin'), async (req, res) => {
       is_gluten_free: item.isGlutenFree ?? false,
       image: item.image || null,
       preparation_time: item.preparationTime ?? 0,
-      spice_level: item.spiceLevel || 'medium',
+      spice_level: item.spiceLevel ,
       ingredients: item.ingredients || [],
       allergens: item.allergens || [],
       created_at: new Date(),
