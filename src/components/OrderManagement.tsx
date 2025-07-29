@@ -28,6 +28,7 @@ interface ExtendedOrder extends Order {
   customer_name?: string;
   user_phone?: string;
   customer_phone?: string;
+  zipcode?: number;
   order_type: 'dine-in' | 'takeaway' | 'delivery' | 'catering' | string;
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled' | string;
   total: number;
