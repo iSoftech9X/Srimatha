@@ -18,6 +18,9 @@ const AdminLogin: React.FC = () => {
     try {
       const result = await login(credentials.email, credentials.password);
       console.log('Login result:', result);
+      if (result.success && result.user?.token) {
+  localStorage.setItem('token', result.user.token); 
+}
       if (result.success && result.user?.role === 'admin') {
         navigate('/admin/dashboard');  
       } else if (result.success && result.user?.role === 'customer') {

@@ -38,7 +38,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         try {
           const user = JSON.parse(storedUser);
           if (user.role === 'admin') {
-            navigate('/admin');
+            navigate('/admin/dashboard');
           }
         } catch {}
       }

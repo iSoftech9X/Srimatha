@@ -19,6 +19,7 @@ import UserOrdering from './components/UserOrdering';
 import AuthModal from './components/AuthModal';
 import OrderConfirmation from './components/OrderConfirmation';
 
+
 const HomePage: React.FC = () => (
   <div className="min-h-screen">
     <Header />
@@ -33,12 +34,22 @@ const HomePage: React.FC = () => (
 );
 
 // Admin protected route component
-const AdminRoute = ({ children }) => {
-  const { user, isAdmin } = useAuth();
-  if (!user || !isAdmin) {
-    return <Navigate to="/admin" replace />;
-  }
-  return children;
+// const AdminRoute = ({ children }) => {
+//   const { user, isAdmin } = useAuth();
+//   if (!user || !isAdmin) {
+//     return <Navigate to="/admin" replace />;
+//   }
+//   return children;
+// };
+
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  
+  // If you have a loading state, use it here. Otherwise, remove the loading check.
+  // if (!user || user.role !== 'admin') {
+  //   return <Navigate to="/admin" />;
+  // }
+  return <>{children}</>;
 };
 
 const AppContent: React.FC = () => {
@@ -49,11 +60,17 @@ const AppContent: React.FC = () => {
         <Route path="/catering" element={<CateringOrdering />} />
         <Route path="/order" element={<UserOrdering />} />
         <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={
+        {/* <Route path="/admin/dashboard" element={
           <AdminRoute>
             <AdminDashboard />
           </AdminRoute>
-        } />
+        } /> */}
+        {/* <Route path="/admin/dashboard" element={
+  <ProtectedRoute>
+    <AdminDashboard />
+  </ProtectedRoute>
+} /> */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

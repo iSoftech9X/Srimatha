@@ -5,7 +5,8 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'customer' | 'guest';
+  role:  'customer' | 'guest'; 
+  token?: string;
   phone?: string;
 }
 
@@ -15,7 +16,7 @@ interface AuthContextType {
   register: (userData: any) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
-  isAdmin: boolean;
+  // isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,11 +31,13 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-
+// const [loading, setLoading] = useState(true);
   useEffect(() => {
     // Check for stored user data on mount
+    
     const storedUser = localStorage.getItem('srimatha_user');
     const storedToken = localStorage.getItem('token');
+      console.log('AuthProvider init:', storedUser, storedToken);
     if (storedUser && storedToken) {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -44,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('token');
       }
     }
+    // setLoading(false);
   }, []);
 
   
@@ -141,7 +145,7 @@ const register = async (userData: any): Promise<{ success: boolean; user?: User;
     register,
     logout,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
+    // isAdmin: user?.role === 'admin',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

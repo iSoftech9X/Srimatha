@@ -1,6 +1,7 @@
 
+
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Clock, CheckCircle, XCircle, Truck, Download, RefreshCw, Phone } from 'lucide-react';
+import { Search, Eye, Clock, CheckCircle, XCircle, Truck, Download, RefreshCw, Phone, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Order } from '../types';
 import toast from 'react-hot-toast';
@@ -11,7 +12,6 @@ interface OrderItem {
   name: string;
   quantity: number;
   price: number;
-  // Add other item properties as needed
 }
 
 interface Customer {
@@ -28,7 +28,11 @@ interface ExtendedOrder extends Order {
   customer_name?: string;
   user_phone?: string;
   customer_phone?: string;
-  zipcode?: number;
+  user_address_street?: string;
+  user_address_city?: string;
+  user_address_state?: string;
+  user_address_zipcode?: string;
+  user_address_country?: string;
   order_type: 'dine-in' | 'takeaway' | 'delivery' | 'catering' | string;
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled' | string;
   total: number;
@@ -47,7 +51,6 @@ const OrderManagement: React.FC = () => {
   const [orders, setOrders] = useState<ExtendedOrder[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Fetch orders on component mount
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -56,7 +59,6 @@ const OrderManagement: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await ordersAPI.getAllOrders({ limit: "1000000" });
-      console.log('API Response:', response.data);
       setOrders(response.data?.data?.orders || []);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
@@ -93,14 +95,17 @@ const OrderManagement: React.FC = () => {
     }
   };
 
-  // Filter logic
   const filteredOrders = orders.filter(order => {
     if (!order) return false;
 
     const matchesSearch = 
       (order.order_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (order.user?.name?.toLowerCase() || order.customer?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (order.user_phone || order.customer_phone || '').toString().includes(searchTerm);
+      (order.user_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (order.user_phone || '').toString().includes(searchTerm) ||
+      (order.user_address_street?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (order.user_address_city?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (order.user_address_state?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (order.user_address_zipcode?.toString() || '').includes(searchTerm);
 
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     const matchesType = typeFilter === 'all' || order.order_type === typeFilter;
@@ -123,7 +128,6 @@ const OrderManagement: React.FC = () => {
     return matchesSearch && matchesStatus && matchesType && matchesDate;
   });
 
-  // Status helpers
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -164,11 +168,16 @@ const OrderManagement: React.FC = () => {
 
   const exportOrders = () => {
     const csvContent = [
-      ['Order Number', 'Customer', 'Phone', 'Type', 'Status', 'Amount', 'Date'].join(','),
+      ['Order Number', 'Customer', 'Phone', 'Street', 'City', 'State', 'Zipcode', 'Country', 'Type', 'Status', 'Amount', 'Date'].join(','),
       ...filteredOrders.map(order => [
         order.order_number,
-        order.user?.name || order.customer?.name || order.user_name || order.customer_name || 'N/A',
-        order.user?.phone || order.customer?.phone || order.user_phone || order.customer_phone || 'N/A',
+        order.user_name || 'N/A',
+        order.user_phone || 'N/A',
+        order.user_address_street || '',
+        order.user_address_city || '',
+        order.user_address_state || '',
+        order.user_address_zipcode || '',
+        order.user_address_country || '',
         order.order_type,
         order.status,
         order.total,
@@ -184,6 +193,18 @@ const OrderManagement: React.FC = () => {
     a.click();
     window.URL.revokeObjectURL(url);
     toast.success('Orders exported successfully!');
+  };
+
+  const formatAddress = (order: ExtendedOrder) => {
+    const parts = [
+      order.user_address_street,
+      order.user_address_city,
+      order.user_address_state,
+      order.user_address_zipcode,
+      order.user_address_country
+    ].filter(Boolean);
+    
+    return parts.join(', ');
   };
 
   return (
@@ -303,6 +324,8 @@ const OrderManagement: React.FC = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Details</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status & Type</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -328,14 +351,22 @@ const OrderManagement: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {order.user?.name || order.customer?.name || order.user_name || order.customer_name || 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-500 flex items-center gap-2">
-                          <Phone size={12} />
-                          {order.user?.phone || order.customer?.phone || order.user_phone || order.customer_phone || 'N/A'}
-                        </div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {order.user_name || 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500 flex items-center gap-2">
+                        <Phone size={12} />
+                        {order.user_phone || 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-500 flex items-start gap-2">
+                        <MapPin size={12} className="mt-1" />
+                        <span className="line-clamp-2">
+                          {formatAddress(order) || 'N/A'}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -384,7 +415,7 @@ const OrderManagement: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                     No orders found matching your criteria
                   </td>
                 </tr>
@@ -398,7 +429,7 @@ const OrderManagement: React.FC = () => {
       {selectedOrder && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="absolute inset-0 bg-black opacity-30"></div>
-          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full z-10">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full z-10 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Order Details</h3>
@@ -410,33 +441,75 @@ const OrderManagement: React.FC = () => {
                 </button>
               </div>
               <div className="space-y-4">
-                <div>
-                  <span className="text-sm text-gray-500">Order Number:</span>
-                  <span className="text-gray-800 font-semibold"> {selectedOrder.order_number}</span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm text-gray-500">Order Number:</span>
+                    <p className="text-gray-800 font-semibold"> {selectedOrder.order_number}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Order Date:</span>
+                    <p className="text-gray-800 font-semibold">
+                      {new Date(selectedOrder.created_at).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-sm text-gray-500">Customer:</span>
-                  <span className="text-gray-800 font-semibold">
-                    {selectedOrder.user?.name || selectedOrder.customer?.name || selectedOrder.user_name || selectedOrder.customer_name || 'N/A'}
-                  </span>
+
+                <div className="border-t border-gray-200 pt-4">
+                  <h4 className="text-md font-semibold text-gray-800 mb-2">Customer Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-sm text-gray-500">Name:</span>
+                      <p className="text-gray-800 font-semibold">
+                        {selectedOrder.user_name || 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Phone:</span>
+                      <p className="text-gray-800 font-semibold">
+                        {selectedOrder.user_phone || 'N/A'}
+                      </p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="text-sm text-gray-500">Address:</span>
+                      <div className="text-gray-800 font-semibold">
+                        {selectedOrder.user_address_street && (
+                          <div>{selectedOrder.user_address_street}</div>
+                        )}
+                        {selectedOrder.user_address_city && selectedOrder.user_address_state && (
+                          <div>{selectedOrder.user_address_city}, {selectedOrder.user_address_state}</div>
+                        )}
+                        {selectedOrder.user_address_zipcode && (
+                          <div>{selectedOrder.user_address_zipcode}</div>
+                        )}
+                        {selectedOrder.user_address_country && (
+                          <div>{selectedOrder.user_address_country}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-sm text-gray-500">Phone:</span>
-                  <span className="text-gray-800 font-semibold">
-                    {selectedOrder.user?.phone || selectedOrder.customer?.phone || selectedOrder.user_phone || selectedOrder.customer_phone || 'N/A'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Order Type:</span>
-                  <span className="text-gray-800 font-semibold capitalize"> {selectedOrder.order_type}</span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Status:</span>
-                  <span className="text-gray-800 font-semibold capitalize"> {selectedOrder.status}</span>
+
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-sm text-gray-500">Order Type:</span>
+                      <p className="text-gray-800 font-semibold capitalize"> {selectedOrder.order_type}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Status:</span>
+                      <p className="text-gray-800 font-semibold capitalize"> {selectedOrder.status}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Payment Status:</span>
+                      <p className="text-gray-800 font-semibold capitalize">
+                        {selectedOrder.payment_status === 'paid' ? '✓ Paid' : '⏳ Pending'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {selectedOrder.items && selectedOrder.items.length > 0 && (
-                  <div className="mt-4 border-t border-gray-200 pt-4">
+                  <div className="border-t border-gray-200 pt-4">
                     <h4 className="text-md font-semibold text-gray-800 mb-2">Ordered Items</h4>
                     <ul className="space-y-2 max-h-40 overflow-y-auto pr-2">
                       {selectedOrder.items.map((item, idx) => (
