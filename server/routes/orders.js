@@ -285,6 +285,140 @@ router.post('/catering', async (req, res) => {
 
 
 
+// router.post('/', authenticate, async (req, res) => {
+//   try {
+//     const user = req.user;
+//     if (!user || !user.id) {
+//       return res.status(401).json({ success: false, message: 'Unauthorized' });
+//     }
+
+//     const {
+//       userName,
+//       userEmail,
+//       userPhone,
+//       userAddress = {},
+//       items,
+//       subtotal,
+//       total,
+//       orderType = 'regular',
+//       paymentStatus = 'pending'
+//     } = req.body;
+
+//     if (!Array.isArray(items) || items.length === 0) {
+//       return res.status(400).json({ success: false, message: 'No items provided' });
+//     }
+
+//     // Insert order summary with user details
+//     const orderNumber = `ORDER-${Date.now()}`;
+
+//     // const orderInsertQuery = `
+//     //   INSERT INTO orders 
+//     //   (order_number, customer_id, user_name, user_email, user_phone, status, subtotal, total, payment_status, order_type, created_at, updated_at) 
+//     //   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+//     //   RETURNING id, order_number, status, subtotal, total, payment_status, order_type, created_at, updated_at, user_name, user_email, user_phone
+//     // `;
+
+//     // const orderResult = await req.db.query(orderInsertQuery, [
+//     //   orderNumber,
+//     //   user.id,
+//     //   userName,
+//     //   userEmail,
+//     //   userPhone,
+//     //   userAddress,
+//     //   'pending',
+//     //   subtotal,
+//     //   total,
+//     //   paymentStatus,
+//     //   orderType,
+//     // ]);
+
+
+//     const orderInsertQuery = `
+//   INSERT INTO orders 
+//   (order_number, customer_id, user_name, user_email, user_phone, user_address_street, user_address_city, user_address_state, user_address_zipcode, user_address_country, status, subtotal, total, payment_status, order_type, created_at, updated_at) 
+//   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
+//   RETURNING id, order_number, status, subtotal, total, payment_status, order_type, created_at, updated_at, user_name, user_email, user_phone, user_address_street, user_address_city, user_address_state, user_address_zipcode, user_address_country
+// `;
+
+// const orderResult = await req.db.query(orderInsertQuery, [
+//   orderNumber,
+//   user.id,
+//   userName,
+//   userEmail,
+//   userPhone,
+//   userAddress?.street || null,
+//   userAddress?.city || null,
+//   userAddress?.state || null,
+//   userAddress?.zipcode || null,
+//   userAddress?.country || null,
+//   'pending',
+//   subtotal,
+//   total,
+//   paymentStatus,
+//   orderType,
+// ]);
+//     const orderId = orderResult.rows[0].id;
+
+//     // Insert each item with item_name
+//     const itemInsertQuery = `
+//       INSERT INTO order_items (order_id, menu_item_id, item_name, quantity, price, special_instructions)
+//       VALUES ($1, $2, $3, $4, $5, $6)
+//     `;
+
+//     for (const item of items) {
+//       if (!item.menuItemId) {
+//         return res.status(400).json({ success: false, message: 'One or more items missing id' });
+//       }
+//       await req.db.query(
+//         itemInsertQuery,
+//         [
+//           orderId,
+//           item.menuItemId,
+//           item.name || null,
+//           item.quantity,
+//           item.price,
+//           item.specialInstructions || null,
+//         ]
+//       );
+//     }
+
+//     // Return the order with user info and full items
+//     res.status(200).json({
+//       success: true,
+//       message: 'Order placed successfully',
+//       data: {
+//         order: {
+//           id: orderId,
+//           order_number: orderNumber,
+//           items,
+//           subtotal,
+//           total,
+//           orderType,
+//           paymentStatus,
+//           status: 'pending',
+//           userName,
+//           userEmail,
+//           userPhone,
+//           userAddress: {
+//         street: orderId.user_address_street,
+//         city: orderId.user_address_city,
+//         state: orderId.user_address_state,
+//         zipcode: orderId.user_address_zipcode,
+//         country: orderId.user_address_country
+//       }
+//         }
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Order place error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to place order',
+//       error: error.message
+//     });
+//   }
+// });
+
 router.post('/', authenticate, async (req, res) => {
   try {
     const user = req.user;
@@ -296,6 +430,7 @@ router.post('/', authenticate, async (req, res) => {
       userName,
       userEmail,
       userPhone,
+      address = {}, // Default to empty object to avoid undefined
       items,
       subtotal,
       total,
@@ -307,14 +442,17 @@ router.post('/', authenticate, async (req, res) => {
       return res.status(400).json({ success: false, message: 'No items provided' });
     }
 
-    // Insert order summary with user details
     const orderNumber = `ORDER-${Date.now()}`;
 
     const orderInsertQuery = `
       INSERT INTO orders 
-      (order_number, customer_id, user_name, user_email, user_phone, status, subtotal, total, payment_status, order_type, created_at, updated_at) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
-      RETURNING id, order_number, status, subtotal, total, payment_status, order_type, created_at, updated_at, user_name, user_email, user_phone
+      (order_number, customer_id, user_name, user_email, user_phone, 
+       user_address_street, user_address_city, user_address_state, user_address_zipcode, user_address_country, 
+       status, subtotal, total, payment_status, order_type, created_at, updated_at) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
+      RETURNING id, order_number, status, subtotal, total, payment_status, order_type, 
+                created_at, updated_at, user_name, user_email, user_phone, 
+                user_address_street, user_address_city, user_address_state, user_address_zipcode, user_address_country
     `;
 
     const orderResult = await req.db.query(orderInsertQuery, [
@@ -323,6 +461,11 @@ router.post('/', authenticate, async (req, res) => {
       userName,
       userEmail,
       userPhone,
+      address.street || null,
+      address.city || null,
+      address.state || null,
+      address.zipcode || null,
+      address.country || null,
       'pending',
       subtotal,
       total,
@@ -330,9 +473,10 @@ router.post('/', authenticate, async (req, res) => {
       orderType,
     ]);
 
-    const orderId = orderResult.rows[0].id;
+    const orderRow = orderResult.rows[0];
+    const orderId = orderRow.id;
 
-    // Insert each item with item_name
+    // Insert order items
     const itemInsertQuery = `
       INSERT INTO order_items (order_id, menu_item_id, item_name, quantity, price, special_instructions)
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -342,39 +486,43 @@ router.post('/', authenticate, async (req, res) => {
       if (!item.menuItemId) {
         return res.status(400).json({ success: false, message: 'One or more items missing id' });
       }
-      await req.db.query(
-        itemInsertQuery,
-        [
-          orderId,
-          item.menuItemId,
-          item.name || null,
-          item.quantity,
-          item.price,
-          item.specialInstructions || null,
-        ]
-      );
+      await req.db.query(itemInsertQuery, [
+        orderId,
+        item.menuItemId,
+        item.name || null,
+        item.quantity,
+        item.price,
+        item.specialInstructions || null,
+      ]);
     }
 
-    // Return the order with user info and full items
     res.status(200).json({
       success: true,
       message: 'Order placed successfully',
       data: {
         order: {
           id: orderId,
-          order_number: orderNumber,
+          order_number: orderRow.order_number,
           items,
           subtotal,
           total,
           orderType,
           paymentStatus,
           status: 'pending',
-          userName,
-          userEmail,
-          userPhone
+          userName: orderRow.user_name,
+          userEmail: orderRow.user_email,
+          userPhone: orderRow.user_phone,
+          userAddress: {
+            street: orderRow.user_address_street,
+            city: orderRow.user_address_city,
+            state: orderRow.user_address_state,
+            zipcode: orderRow.user_address_zipcode,
+            country: orderRow.user_address_country
+          }
         }
       }
     });
+
   } catch (error) {
     console.error('Order place error:', error);
     res.status(500).json({
@@ -384,6 +532,7 @@ router.post('/', authenticate, async (req, res) => {
     });
   }
 });
+
 
 router.patch('/:id/cancel', authenticate, async (req, res) => {
   try {
@@ -561,7 +710,7 @@ router.get('/stream', authenticate, authorize('admin'), (req, res) => {
 // Get catering orders specifically (Admin only)
 router.get('/catering', authenticate, authorize('admin'), (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 1000, status } = req.query;
 
     let filteredOrders = [...cateringOrders];
     
