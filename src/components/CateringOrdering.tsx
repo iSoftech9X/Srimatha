@@ -461,7 +461,7 @@ const CateringOrdering: React.FC = () => {
                       )}
                     </div>
 
-                    {order.status !== 'cancelled' && order.status !== 'completed' && (
+                    {/* {order.status !== 'cancelled' && order.status !== 'completed' && (
                       <div className="mt-4">
                         {showCancelForm === order.id ? (
                           <div className="bg-gray-50 p-4 rounded-lg">
@@ -500,7 +500,47 @@ const CateringOrdering: React.FC = () => {
                           </div>
                         )}
                       </div>
-                    )}
+                    )} */}
+                    {order.status !== 'cancelled' && order.status !== 'completed' && order.status !== 'delivered' && (
+  <div className="mt-4">
+    {showCancelForm === order.id ? (
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <h4 className="font-medium text-gray-700 mb-2">Cancel Order</h4>
+        <textarea
+          value={cancelReason}
+          onChange={(e) => setCancelReason(e.target.value)}
+          placeholder="Please provide a reason for cancellation..."
+          className="w-full p-2 border border-gray-300 rounded-md mb-2"
+          rows={3}
+        />
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={handleCancelFormClose}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-300"
+          >
+            Back
+          </button>
+          <button
+            onClick={() => cancelOrder(order.id)}
+            disabled={!cancelReason.trim() || cancellingOrderId === order.id}
+            className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 disabled:opacity-50"
+          >
+            {cancellingOrderId === order.id ? 'Cancelling...' : 'Confirm Cancellation'}
+          </button>
+        </div>
+      </div>
+    ) : (
+      <div className="flex justify-end">
+        <button
+          onClick={() => handleCancelClick(order.id)}
+          className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 text-sm font-medium"
+        >
+          Cancel Order
+        </button>
+      </div>
+    )}
+  </div>
+)}
                   </div>
                 ))}
               </div>
