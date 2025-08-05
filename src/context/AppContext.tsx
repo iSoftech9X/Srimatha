@@ -219,7 +219,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addMenuItem = async (itemData: Omit<MenuItem, 'id'>) => {
     try {
-      const response = await menuAPI.createItem(itemData);
+      const response = await menuAPI.createItem(
+        itemData);
       const newItem = response.data.data.item;
       setMenuItems(prev => [...prev, newItem]);
       toast.success('Menu item added successfully');

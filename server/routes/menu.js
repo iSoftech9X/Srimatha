@@ -21,6 +21,52 @@ router.get('/categories', async (req, res) => {
 });
 
 // Get all menu items with filtering, pagination, and sorting
+// router.get('/', async (req, res) => {
+//   try {
+//     const {
+//       category,
+//       isVegetarian,
+//       isAvailable = true,
+//       page = 1,
+//       limit = 1000,
+//       search,
+//       sortBy = 'name',
+//       sortOrder = 'asc'
+//     } = req.query;
+
+//     // Build query
+//     const query = {};
+//     if (category) query.category = category;
+//     if (isVegetarian !== undefined) query.isVegetarian = isVegetarian === 'true';
+//     if (isAvailable !== undefined) query.isAvailable = isAvailable === 'true';
+
+//     // Search functionality
+//     if (search) {
+//       query.name = { $regex: search, $options: 'i' };
+//     }
+
+//     // Pagination and sorting options
+//     const options = {
+//       limit: parseInt(limit),
+//       skip: (parseInt(page) - 1) * parseInt(limit),
+//       sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 }
+//     };
+
+//     const result = await req.db.findMenuItems(query, options);
+//     res.json({
+//       success: true,
+//       data: result
+//     });
+//   } catch (error) {
+//     console.error('Menu fetch error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch menu items',
+//       error: error.message
+//     });
+//   }
+// });
+//updated
 router.get('/', async (req, res) => {
   try {
     const {
@@ -31,28 +77,48 @@ router.get('/', async (req, res) => {
       limit = 1000,
       search,
       sortBy = 'name',
-      sortOrder = 'asc'
+      sortOrder = 'asc',
+      withCombos = 'false' // New optional parameter
     } = req.query;
 
-    // Build query
+    // Existing query building (unchanged)
     const query = {};
     if (category) query.category = category;
-    if (isVegetarian !== undefined) query.isVegetarian = isVegetarian === 'true';
-    if (isAvailable !== undefined) query.isAvailable = isAvailable === 'true';
+    if (isVegetarian !== undefined) query.is_vegetarian = isVegetarian === 'true';
+    if (isAvailable !== undefined) query.is_available = isAvailable === 'true';
 
-    // Search functionality
+    // Existing search (unchanged)
     if (search) {
       query.name = { $regex: search, $options: 'i' };
     }
 
-    // Pagination and sorting options
+    // Existing pagination/sort (unchanged)
     const options = {
       limit: parseInt(limit),
       skip: (parseInt(page) - 1) * parseInt(limit),
       sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 }
     };
 
+    // Existing database call (unchanged)
     const result = await req.db.findMenuItems(query, options);
+
+    // NEW: Add combo items if requested
+    // After getting results from database
+if (withCombos === 'true') {
+  result.items = result.items.map(item => {
+    if (item.is_combo && item.combo_items) {
+      return {
+        ...item,
+        comboItems: typeof item.combo_items === 'string' 
+          ? JSON.parse(item.combo_items)
+          : item.combo_items
+      };
+    }
+    return item;
+  });
+}
+
+    // Existing response format (unchanged)
     res.json({
       success: true,
       data: result
@@ -93,43 +159,133 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new menu item (Admin only)
+// router.post('/', authenticate, authorize('admin'), async (req, res) => {
+//   try {
+//     const item = req.body;
+
+//     // Basic validation
+//     // if (!item.name || !item.price || !item.category) {
+//     //   return res.status(400).json({
+//     //     success: false,
+//     //     message: 'Name, price, and category are required',
+//     //   });
+//     // }
+
+//     const newItem = {
+//       name: item.name,
+//       description: item.description || '',
+//       price: item.price,
+//       category: item.category,
+//       is_available: item.isAvailable ?? true,
+//       is_vegetarian: item.isVegetarian ?? false,
+//       is_vegan: item.isVegan ?? false,
+//       is_gluten_free: item.isGlutenFree ?? false,
+//       image: item.image || null,
+//       preparation_time: item.preparationTime ?? 0,
+//       spice_level: item.spiceLevel ,
+//       ingredients: item.ingredients || [],
+//       allergens: item.allergens || [],
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     };
+
+//     const savedItem = await req.db.addMenuItem(newItem);
+
+//     res.status(201).json({
+//       success: true,
+//       data: savedItem,
+//       message: 'Menu item created successfully',
+//     });
+//   } catch (error) {
+//     console.error('Create menu item error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to create menu item',
+//       error: error.message,
+//     });
+//   }
+// });
+
 router.post('/', authenticate, authorize('admin'), async (req, res) => {
   try {
     const item = req.body;
 
-    // Basic validation
-    // if (!item.name || !item.price || !item.category) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: 'Name, price, and category are required',
-    //   });
-    // }
+    // Validate required fields based on whether it's a combo or regular item
+    if (!item.name || !item.category) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name and category are required',
+      });
+    }
 
+    // For regular items, price is required
+    if (!item.isCombo && !item.price) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price is required for regular menu items',
+      });
+    }
+
+    // For combos, comboItems array is required
+    if (item.isCombo && (!item.comboItems || item.comboItems.length === 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Combo items are required for combos',
+      });
+    }
+
+    // Base item data
     const newItem = {
       name: item.name,
       description: item.description || '',
-      price: item.price,
       category: item.category,
+      is_combo: item.isCombo || false,
       is_available: item.isAvailable ?? true,
       is_vegetarian: item.isVegetarian ?? false,
       is_vegan: item.isVegan ?? false,
       is_gluten_free: item.isGlutenFree ?? false,
       image: item.image || null,
       preparation_time: item.preparationTime ?? 0,
-      spice_level: item.spiceLevel ,
+      spice_level: item.spiceLevel || null,
       ingredients: item.ingredients || [],
       allergens: item.allergens || [],
       created_at: new Date(),
       updated_at: new Date(),
     };
 
-    const savedItem = await req.db.addMenuItem(newItem);
+    // Handle combo-specific data
+    if (item.isCombo) {
+      newItem.combo_items = item.comboItems.map(comboItem => ({
+        menu_item_id: comboItem.id,
+        quantity: comboItem.quantity || 1,
+        spice_level: comboItem.spiceLevel || null 
+      }));
+      // Combo price is optional (can be calculated from items or set manually)
+      newItem.price = item.price || 0;
+    } else {
+      // Regular item must have price
+      newItem.price = item.price;
+    }
 
-    res.status(201).json({
-      success: true,
-      data: savedItem,
-      message: 'Menu item created successfully',
-    });
+   const savedItem = await req.db.addMenuItem(newItem);
+
+// Add combo items back to the response if this is a combo
+const responseData = {
+  ...newItem,
+  id: savedItem.id,
+  comboItems: newItem.combo_items || []  // Ensure fallback
+};
+console.log("comboItems in request:", item.comboItems);
+console.log("Mapped combo_items:", newItem.combo_items);
+console.log("Response data:", responseData);
+
+
+res.status(201).json({
+  success: true,
+  data: responseData, 
+  message: 'Menu item created successfully',
+});
+
   } catch (error) {
     console.error('Create menu item error:', error);
     res.status(500).json({

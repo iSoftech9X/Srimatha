@@ -11,5 +11,6 @@ CREATE TABLE IF NOT EXISTS menu_items (
   preparation_time INTEGER,
   spice_level VARCHAR(20),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  comboItems: newItem.combo_items || [] 
 );
