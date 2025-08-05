@@ -1,46 +1,17 @@
-// import React, { useState } from 'react';
 
-// import { 
-//   Users, 
-//   ShoppingBag, 
-//   BarChart3, 
-//   LogOut
-// } from 'lucide-react';
-// import { useAuth } from '../context/AuthContext';
-// import { useNavigate } from 'react-router-dom';
+
+
+// import React, { useState, useEffect } from 'react';
+// import { Users, ShoppingBag, BarChart3, LogOut } from 'lucide-react';
+// import { useNavigate, Navigate } from 'react-router-dom';
+// import axios from 'axios';
 // import CustomerManagement from './CustomerManagement';
 // import OrderManagement from './OrderManagement';
-// import MenuManagement from './MenuManagement'; // Import MenuManagement
+// import MenuManagement from './MenuManagement';
 // import Contactquotes from './Contactquotes';
-// import { useApp } from '../context/AppContext';
-// import { Navigate } from 'react-router-dom';
 
 // const AdminDashboard: React.FC = () => {
-//   const { user, logout, isAdmin } = useAuth();
-//   const { adminStats } = useApp();
-//   const navigate = useNavigate();
-//   const [activeTab, setActiveTab] = useState('dashboard');
-//   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-//   // Only keep dashboard, customers, orders, menu
-//   const sidebarItems = [
-//     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
-//     { id: 'customers', name: 'Customers', icon: Users },
-//     { id: 'orders', name: 'Orders', icon: ShoppingBag },
-//     { id: 'menu', name: 'Menu', icon: ShoppingBag },
-//     {id: 'contactquotes', name: 'Contact Quotes', icon: ShoppingBag} // Add Menu tab
-//   ];
-
-//   const token = localStorage.getItem('token');
-// axios.get('https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/admin/dashboard', {
-//   headers: {
-//     Authorization: `Bearer ${token}`,
-//   },
-// })
-// .then(response => {
-//   // handle data
-// });
-
+//   // Get token and user from localStorage
 //   const token = localStorage.getItem('token');
 //   const userRaw = localStorage.getItem('srimatha_user');
 //   let localUser = null;
@@ -50,19 +21,59 @@
 //     localUser = null;
 //   }
 
+//   // Redirect if not authenticated or not admin
 //   if (!token || !localUser || localUser.role !== 'admin') {
 //     return <Navigate to="/admin" />;
 //   }
 
+//   const navigate = useNavigate();
+//   const [activeTab, setActiveTab] = useState('dashboard');
+//   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+//   // Admin stats state
+//   const [adminStats, setAdminStats] = useState({
+//     totalCustomers: 0,
+//     totalOrders: 0,
+//     totalRevenue: 0,
+//   });
+//   const [loadingStats, setLoadingStats] = useState(true);
+//   const [statsError, setStatsError] = useState('');
+
+//   // Fetch admin stats directly from API
+//   useEffect(() => {
+//     setLoadingStats(true);
+//     axios.get('https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/admin/dashboard', {
+//       headers: { Authorization: `Bearer ${token}` },
+//     })
+//       .then(response => {
+//         console.log('Admin stats response:', response.data);
+//        const overview = response.data.data?.overview || {};
+//       setAdminStats({
+//         totalCustomers: overview.totalCustomers || 0,
+//         totalOrders: overview.totalOrders || 0,
+//         totalRevenue: overview.totalRevenue || 0,
+//       });
+//         setLoadingStats(false);
+//       })
+//       .catch(error => {
+//         setStatsError('Failed to load admin stats');
+//         setLoadingStats(false);
+//       });
+//   }, [token]);
+
+//   const sidebarItems = [
+//     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
+//     { id: 'customers', name: 'Customers', icon: Users },
+//     { id: 'orders', name: 'Orders', icon: ShoppingBag },
+//     { id: 'menu', name: 'Menu', icon: ShoppingBag },
+//     { id: 'contactquotes', name: 'Contact Quotes', icon: ShoppingBag }
+//   ];
+
 //   const handleLogout = () => {
-//     logout();
+//     localStorage.removeItem('token');
+//     localStorage.removeItem('srimatha_user');
 //     navigate('/');
 //   };
-
-//   // Don't render if not admin
-//   if (!user || !isAdmin) {
-//     return null;
-//   }
 
 //   // StatCard component
 //   const StatCard: React.FC<{
@@ -91,9 +102,7 @@
 //   return (
 //     <div className="min-h-screen bg-gray-100 flex">
 //       {/* Sidebar */}
-//       <div className={`bg-white shadow-lg transition-all duration-300 ${
-//         sidebarOpen ? 'w-64' : 'w-16'
-//       } md:w-64 relative`}>
+//       <div className={`bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'} md:w-64 relative`}>
 //         <div className="p-4">
 //           <div className="flex items-center">
 //             <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
@@ -168,39 +177,38 @@
 //           {activeTab === 'dashboard' && (
 //             <div className="space-y-6">
 //               {/* Stats Grid */}
-//               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//                 <StatCard
-//                   title="Total Customers"
-//                   value={adminStats.totalCustomers.toLocaleString()}
-//                   icon={<Users className="text-blue-600" size={24} />}
-//                   color="bg-blue-100"
-//                   trend=""
-//                 />
-//                 <StatCard
-//                   title="Total Orders"
-//                   value={adminStats.totalOrders.toLocaleString()}
-//                   icon={<ShoppingBag className="text-green-600" size={24} />}
-//                   color="bg-green-100"
-//                   trend=""
-//                 />
-//                 <StatCard
-//                   title="Total Revenue"
-//                   value={`₹${adminStats.totalRevenue.toLocaleString()}`}
-//                   icon={<BarChart3 className="text-yellow-600" size={24} />}
-//                   color="bg-yellow-100"
-//                   trend=""
-//                 />
-//               </div>
-//               {/* Popular Items */}
-          
-              
-//             </div> 
+//               {loadingStats ? (
+//                 <div>Loading stats...</div>
+//               ) : statsError ? (
+//                 <div className="text-red-600">{statsError}</div>
+//               ) : (
+//                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+//                   <StatCard
+//                     title="Total Customers"
+//                     value={adminStats.totalCustomers?.toLocaleString?.() || adminStats.totalCustomers}
+//                     icon={<Users className="text-blue-600" size={24} />}
+//                     color="bg-blue-100"
+//                   />
+//                   <StatCard
+//                     title="Total Orders"
+//                     value={adminStats.totalOrders?.toLocaleString?.() || adminStats.totalOrders}
+//                     icon={<ShoppingBag className="text-green-600" size={24} />}
+//                     color="bg-green-100"
+//                   />
+//                   <StatCard
+//                     title="Total Revenue"
+//                     value={`₹${adminStats.totalRevenue?.toLocaleString?.() || adminStats.totalRevenue}`}
+//                     icon={<BarChart3 className="text-yellow-600" size={24} />}
+//                     color="bg-yellow-100"
+//                   />
+//                 </div>
+//               )}
+//             </div>
 //           )}
 //           {activeTab === 'customers' && <CustomerManagement />}
 //           {activeTab === 'orders' && <OrderManagement />}
-//           {activeTab === 'menu' && <MenuManagement />} 
+//           {activeTab === 'menu' && <MenuManagement />}
 //           {activeTab === 'contactquotes' && <Contactquotes />}
-//           {/* Add MenuManagement for Menu tab */}
 //         </main>
 //       </div>
 //     </div>
@@ -208,8 +216,6 @@
 // };
 
 // export default AdminDashboard;
-
-
 import React, { useState, useEffect } from 'react';
 import { Users, ShoppingBag, BarChart3, LogOut } from 'lucide-react';
 import { useNavigate, Navigate } from 'react-router-dom';
@@ -256,12 +262,12 @@ const AdminDashboard: React.FC = () => {
     })
       .then(response => {
         console.log('Admin stats response:', response.data);
-       const overview = response.data.data?.overview || {};
-      setAdminStats({
-        totalCustomers: overview.totalCustomers || 0,
-        totalOrders: overview.totalOrders || 0,
-        totalRevenue: overview.totalRevenue || 0,
-      });
+        const overview = response.data.data?.overview || {};
+        setAdminStats({
+          totalCustomers: overview.totalCustomers || 0,
+          totalOrders: overview.totalOrders || 0,
+          totalRevenue: overview.totalRevenue || 0,
+        });
         setLoadingStats(false);
       })
       .catch(error => {
@@ -310,8 +316,8 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
-      <div className={`bg-white shadow-lg transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'} md:w-64 relative`}>
+      {/* Sidebar - Fixed with non-scrolling logout button */}
+      <div className={`bg-white shadow-lg fixed h-screen flex flex-col ${sidebarOpen ? 'w-64' : 'w-16'} md:w-64 z-10`}>
         <div className="p-4">
           <div className="flex items-center">
             <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
@@ -323,7 +329,9 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <nav className="mt-8">
+        
+        {/* Scrollable navigation area */}
+        <nav className="mt-8 flex-1 overflow-y-auto">
           {sidebarItems.map((item) => (
             <button
               key={item.id}
@@ -339,7 +347,9 @@ const AdminDashboard: React.FC = () => {
             </button>
           ))}
         </nav>
-        <div className="absolute bottom-4 left-4 right-4">
+        
+        {/* Fixed logout button at bottom */}
+        <div className="p-4 border-t border-gray-200">
           <button
             onClick={handleLogout}
             className="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
@@ -351,8 +361,9 @@ const AdminDashboard: React.FC = () => {
           </button>
         </div>
       </div>
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+
+      {/* Main Content - Adjusted for fixed sidebar */}
+      <div className="flex-1 flex flex-col ml-16 md:ml-64">
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -381,6 +392,7 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </header>
+        
         {/* Content */}
         <main className="flex-1 p-6 overflow-y-auto">
           {activeTab === 'dashboard' && (
