@@ -36,7 +36,10 @@ app.use(limiter);
 app.use(cors({
   origin: [
     'http://localhost:5173',                            // local dev
-    'https://main.dmf9m0mb091cb.amplifyapp.com'         // production Amplify frontend
+    'https://main.dmf9m0mb091cb.amplifyapp.com',// production Amplify frontend
+    'https://srimatha.co.in',
+    'https://www.srimatha.co.in',
+    'https://orders.srimatha.co.in'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
