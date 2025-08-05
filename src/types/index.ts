@@ -14,6 +14,10 @@ export interface Customer {
   notes?: string;
 }
 
+export interface ComboItem {
+  id: string;
+  quantity: number;
+}
 export interface MenuItem {
   id: string;
   name: string;
@@ -23,6 +27,8 @@ export interface MenuItem {
   category: string;
   popular: boolean;
   available: boolean;
+  isCombo: boolean; // New field to identify combo items
+  comboItems?: ComboItem[]; // Array of items included in the combo (only for combo items)
   ingredients?: string[];
   allergens?: string[];
   isVegetarian?: boolean;
@@ -41,6 +47,34 @@ export interface MenuItem {
   createdAt?: string;
   updatedAt?: string;
 }
+
+// export interface MenuItem {
+//   id: string;
+//   name: string;
+//   description: string;
+//   price: number;
+//   image: string;
+//   category: string;
+//   popular: boolean;
+//   available: boolean;
+//   ingredients?: string[];
+//   allergens?: string[];
+//   isVegetarian?: boolean;
+//   isVegan?: boolean;
+//   isGlutenFree?: boolean;
+//   spiceLevel?: 'none' | 'mild' | 'medium' | 'hot' | 'very-hot';
+//   preparationTime?: number;
+//   nutritionalInfo?: {
+//     calories?: number;
+//     protein?: number;
+//     carbs?: number;
+//     fat?: number;
+//     fiber?: number;
+//   };
+//   tags?: string[];
+//   createdAt?: string;
+//   updatedAt?: string;
+// }
 
 export interface CartItem {
   id: string;

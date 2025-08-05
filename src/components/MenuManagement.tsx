@@ -403,176 +403,445 @@ const MenuManagement: React.FC = () => {
 
       {/* Modern Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in">
-            <div className="p-5 text-white" style={{ backgroundColor: "#501608" }}>
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">
-                  {isEditMode ? "Edit Menu Item" : "Create New Item"}
-                </h2>
+        // <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+        //   <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in">
+        //     <div className="p-5 text-white" style={{ backgroundColor: "#501608" }}>
+        //       <div className="flex justify-between items-center">
+        //         <h2 className="text-xl font-semibold">
+        //           {isEditMode ? "Edit Menu Item" : "Create New Item"}
+        //         </h2>
+        //         <button
+        //           onClick={() => {
+        //             setIsModalOpen(false);
+        //             setFormData(defaultFormData);
+        //             setIsEditMode(false);
+        //             setEditId(null);
+        //           }}
+        //           className="text-white hover:text-gray-200"
+        //         >
+        //           <X size={24} />
+        //         </button>
+        //       </div>
+        //     </div>
+
+        //     <form onSubmit={handleFormSubmit} className="p-5 space-y-4">
+        //       <div>
+        //         <label className="block text-sm font-medium text-gray-700 mb-1">
+        //           Item Name
+        //         </label>
+        //         <input
+        //           type="text"
+        //           name="name"
+        //           placeholder="e.g., Margherita Pizza"
+        //           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        //           value={formData.name}
+        //           onChange={handleFormChange}
+        //           required
+        //         />
+        //       </div>
+
+        //       <div>
+        //         <label className="block text-sm font-medium text-gray-700 mb-1">
+        //           Description
+        //         </label>
+        //         <textarea
+        //           name="description"
+        //           placeholder="Describe the item..."
+        //           rows={3}
+        //           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        //           value={formData.description}
+        //           onChange={handleFormChange}
+        //         />
+        //       </div>
+
+        //       <div className="grid grid-cols-2 gap-4">
+        //         <div>
+        //           <label className="block text-sm font-medium text-gray-700 mb-1">
+        //             Price (₹)
+        //           </label>
+        //           <input
+        //             type="text"
+        //             name="price"
+        //             placeholder="0.00"
+        //             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        //             value={formData.price}
+        //             onChange={handleFormChange}
+        //             required
+        //           />
+        //         </div>
+        //         <div>
+        //           <label className="block text-sm font-medium text-gray-700 mb-1">
+        //             Category
+        //           </label>
+        //           <select
+        //             name="category"
+        //             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        //             value={formData.category}
+        //             onChange={handleFormChange}
+        //             required
+        //           >
+        //             <option value="">Select</option>
+        //             {categories.map((cat) => (
+        //               <option key={cat.id} value={cat.id}>
+        //                 {cat.name}
+        //               </option>
+        //             ))}
+        //           </select>
+        //         </div>
+        //       </div>
+
+        //       <div className="grid grid-cols-2 gap-4">
+        //         <div>
+        //           <label className="block text-sm font-medium text-gray-700 mb-1">
+        //             Type
+        //           </label>
+        //           <div className="flex border rounded-lg overflow-hidden">
+        //             <button
+        //               type="button"
+        //               className={`flex-1 py-2 text-center ${
+        //                 formData.isVegetarian
+        //                   ? "bg-green-500 text-white"
+        //                   : "bg-gray-100"
+        //               }`}
+        //               onClick={() =>
+        //                 setFormData({ ...formData, isVegetarian: true })
+        //               }
+        //             >
+        //               <div className="flex items-center justify-center gap-2">
+        //                 <Leaf size={16} /> Vegetarian
+        //               </div>
+        //             </button>
+        //             <button
+        //               type="button"
+        //               className={`flex-1 py-2 text-center ${
+        //                 !formData.isVegetarian
+        //                   ? "bg-red-500 text-white"
+        //                   : "bg-gray-100"
+        //               }`}
+        //               onClick={() =>
+        //                 setFormData({ ...formData, isVegetarian: false })
+        //               }
+        //             >
+        //               Non-Veg
+        //             </button>
+        //           </div>
+        //         </div>
+        //         <div>
+        //           <label className="block text-sm font-medium text-gray-700 mb-1">
+        //             Spice Level
+        //           </label>
+        //           <select
+        //             name="spiceLevel"
+        //             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        //             value={formData.spiceLevel}
+        //             onChange={handleFormChange}
+        //           >
+        //             <option value="">Select Level</option>
+        //             <optgroup label="🌶️ Spice Levels">
+        //               <option value="Mild">Mild</option>
+        //               <option value="Medium">Medium</option>
+        //               <option value="Hot">Hot</option>
+        //               <option value="Extreme">Extreme</option>
+        //             </optgroup>
+        //             <optgroup label="🍬 Sweetness Levels">
+        //               <option value="Light">Light</option>
+        //               <option value="Moderate">Moderate</option>
+        //               <option value="Very Sweet">Very Sweet</option>
+        //             </optgroup>
+        //           </select>
+        //         </div>
+        //       </div>
+
+        //       <div className="pt-4">
+        //         <button
+        //           type="submit"
+        //           disabled={formLoading}
+        //           className="w-full  text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity" style={{ backgroundColor: "#501608" }}
+        //         >
+        //           {formLoading ? (
+        //             <>
+        //               <Loader2 className="animate-spin" size={18} />
+        //               {isEditMode ? "Updating..." : "Creating..."}
+        //             </>
+        //           ) : isEditMode ? (
+        //             "Update Item"
+        //           ) : (
+        //             "Add Item"
+        //           )}
+        //         </button>
+        //       </div>
+        //     </form>
+        //   </div>
+        // </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in">
+        <div className="p-5 text-white" style={{ backgroundColor: "#501608" }}>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">
+              {isEditMode ? "Edit Menu Item" : "Create New Item"}
+            </h2>
+            <button
+              onClick={() => {
+                setIsModalOpen(false);
+                setFormData(defaultFormData);
+                setIsEditMode(false);
+                setEditId(null);
+              }}
+              className="text-white hover:text-gray-200"
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
+
+        <form onSubmit={handleFormSubmit} className="p-5 space-y-4">
+          {/* Combo Checkbox */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="isCombo"
+              checked={formData.isCombo || false}
+              onChange={(e) => {
+                const isChecked = e.target.checked;
+                setFormData({
+                  ...formData,
+                  isCombo: isChecked,
+                  category: isChecked 
+                    ? categories.find(cat => cat.name === "Combos")?.id || ""
+                    : formData.category,
+                  comboItems: isChecked ? (formData.comboItems || []) : []
+                });
+              }}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="isCombo" className="ml-2 block text-sm font-medium text-gray-700">
+              This is a Combo
+            </label>
+          </div>
+
+          {/* Item Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Item Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              placeholder={formData.isCombo ? "e.g., Family Meal Combo" : "e.g., Margherita Pizza"}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={formData.name}
+              onChange={(e) => handleFormChange({ target: { name: 'name', value: e.target.value }})}
+              required
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              name="description"
+              placeholder="Describe the item..."
+              rows={3}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={formData.description}
+              onChange={(e) => handleFormChange({ target: { name: 'description', value: e.target.value }})}
+            />
+          </div>
+
+          {/* Price and Category */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price (₹)
+              </label>
+              <input
+                type="text"
+                name="price"
+                placeholder="0.00"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={formData.price}
+                onChange={(e) => handleFormChange({ target: { name: 'price', value: e.target.value }})}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category
+              </label>
+              <select
+                name="category"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={formData.category}
+                onChange={(e) => handleFormChange({ target: { name: 'category', value: e.target.value }})}
+                required
+                disabled={formData.isCombo}
+              >
+                <option value="">Select</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Type and Spice Level */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Type
+              </label>
+              <div className="flex border rounded-lg overflow-hidden">
                 <button
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setFormData(defaultFormData);
-                    setIsEditMode(false);
-                    setEditId(null);
-                  }}
-                  className="text-white hover:text-gray-200"
+                  type="button"
+                  className={`flex-1 py-2 text-center ${
+                    formData.isVegetarian
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-100"
+                  }`}
+                  onClick={() =>
+                    setFormData({ ...formData, isVegetarian: true })
+                  }
                 >
-                  <X size={24} />
+                  <div className="flex items-center justify-center gap-2">
+                    <Leaf size={16} /> Vegetarian
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 py-2 text-center ${
+                    !formData.isVegetarian
+                      ? "bg-red-500 text-white"
+                      : "bg-gray-100"
+                  }`}
+                  onClick={() =>
+                    setFormData({ ...formData, isVegetarian: false })
+                  }
+                >
+                  Non-Veg
                 </button>
               </div>
             </div>
-
-            <form onSubmit={handleFormSubmit} className="p-5 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Item Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="e.g., Margherita Pizza"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.name}
-                  onChange={handleFormChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  placeholder="Describe the item..."
-                  rows={3}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.description}
-                  onChange={handleFormChange}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price (₹)
-                  </label>
-                  <input
-                    type="text"
-                    name="price"
-                    placeholder="0.00"
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={formData.price}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    name="category"
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={formData.category}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    <option value="">Select</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Type
-                  </label>
-                  <div className="flex border rounded-lg overflow-hidden">
-                    <button
-                      type="button"
-                      className={`flex-1 py-2 text-center ${
-                        formData.isVegetarian
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-100"
-                      }`}
-                      onClick={() =>
-                        setFormData({ ...formData, isVegetarian: true })
-                      }
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <Leaf size={16} /> Vegetarian
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      className={`flex-1 py-2 text-center ${
-                        !formData.isVegetarian
-                          ? "bg-red-500 text-white"
-                          : "bg-gray-100"
-                      }`}
-                      onClick={() =>
-                        setFormData({ ...formData, isVegetarian: false })
-                      }
-                    >
-                      Non-Veg
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Spice Level
-                  </label>
-                  <select
-                    name="spiceLevel"
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={formData.spiceLevel}
-                    onChange={handleFormChange}
-                  >
-                    <option value="">Select Level</option>
-                    <optgroup label="🌶️ Spice Levels">
-                      <option value="Mild">Mild</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Hot">Hot</option>
-                      <option value="Extreme">Extreme</option>
-                    </optgroup>
-                    <optgroup label="🍬 Sweetness Levels">
-                      <option value="Light">Light</option>
-                      <option value="Moderate">Moderate</option>
-                      <option value="Very Sweet">Very Sweet</option>
-                    </optgroup>
-                  </select>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={formLoading}
-                  className="w-full  text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity" style={{ backgroundColor: "#501608" }}
-                >
-                  {formLoading ? (
-                    <>
-                      <Loader2 className="animate-spin" size={18} />
-                      {isEditMode ? "Updating..." : "Creating..."}
-                    </>
-                  ) : isEditMode ? (
-                    "Update Item"
-                  ) : (
-                    "Add Item"
-                  )}
-                </button>
-              </div>
-            </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Spice Level
+              </label>
+              <select
+                name="spiceLevel"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={formData.spiceLevel}
+                onChange={(e) => handleFormChange({ target: { name: 'spiceLevel', value: e.target.value }})}
+              >
+                <option value="">Select Level</option>
+                <optgroup label="🌶️ Spice Levels">
+                  <option value="Mild">Mild</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hot">Hot</option>
+                  <option value="Extreme">Extreme</option>
+                </optgroup>
+                <optgroup label="🍬 Sweetness Levels">
+                  <option value="Light">Light</option>
+                  <option value="Moderate">Moderate</option>
+                  <option value="Very Sweet">Very Sweet</option>
+                </optgroup>
+              </select>
+            </div>
           </div>
-        </div>
+
+          {/* Combo Items Section (only shown when isCombo is true) */}
+          {formData.isCombo && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Combo Items
+                </label>
+                <div className="space-y-2">
+                  {formData.comboItems?.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <select
+                        value={item.id}
+                        onChange={(e) => {
+                          const newComboItems = [...formData.comboItems];
+                          newComboItems[index].id = e.target.value;
+                          setFormData({ ...formData, comboItems: newComboItems });
+                        }}
+                        className="flex-1 px-3 py-2 border rounded-lg"
+                        required
+                      >
+                        <option value="">Select Item</option>
+                        {menuItems.filter(i => !i.isCombo).map(item => (
+                          <option key={item.id} value={item.id}>{item.name}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Qty"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const newComboItems = [...formData.comboItems];
+                          newComboItems[index].quantity = parseInt(e.target.value) || 1;
+                          setFormData({ ...formData, comboItems: newComboItems });
+                        }}
+                        min="1"
+                        className="w-16 px-2 py-2 border rounded-lg"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newComboItems = [...formData.comboItems];
+                          newComboItems.splice(index, 1);
+                          setFormData({ ...formData, comboItems: newComboItems });
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        comboItems: [...(formData.comboItems || []), { id: "", quantity: 1 }]
+                      });
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  >
+                    <Plus size={16} /> Add Item to Combo
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={formLoading}
+              className="w-full text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity" 
+              style={{ backgroundColor: "#501608" }}
+            >
+              {formLoading ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  {isEditMode ? "Updating..." : "Creating..."}
+                </>
+              ) : isEditMode ? (
+                "Update Item"
+              ) : (
+                "Add Item"
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
       )}
     </div>
   );
