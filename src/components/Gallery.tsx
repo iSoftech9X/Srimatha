@@ -14,51 +14,7 @@ const Gallery: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const galleryImages = [
-    // {
-    //   src: 'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    //   alt: 'Elegant dining room',
-    //   category: 'Interior'
-    // },
-    // {
-    //   src: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    //   alt: 'Gourmet dish presentation',
-    //   category: 'Food'
-    // },
-    // {
-    //   src: 'https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    //   alt: 'Chef at work',
-    //   category: 'Kitchen'
-    // },
-    // {
-    //   src: 'https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    //   alt: 'Catering setup',
-    //   category: 'Events'
-    // },
-    // {
-    //   src: 'https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    //   alt: 'Butter chicken',
-    //   category: 'Food'
-    // },
-    // {
-    //   src: 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    //   alt: 'Food court area',
-    //   category: 'Interior'
-    // },
-    // {
-    //   src: 'https://images.pexels.com/photos/8844893/pexels-photo-8844893.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    //   alt: 'Chocolate dessert',
-    //   category: 'Food'
-    // },
-    // {
-    //   src: 'https://images.pexels.com/photos/3622479/pexels-photo-3622479.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    //   alt: 'Grilled salmon',
-    //   category: 'Food'
-    // },
-    // {
-    //   src: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    //   alt: 'Restaurant ambiance',
-    //   category: 'Interior'
-    // }
+  
     {
       src: gallery1,
       alt: 'Elegant dining room',
@@ -155,7 +111,7 @@ const Gallery: React.FC = () => {
               <img
                 src={selectedImage}
                 alt="Gallery image"
-                className="max-w-full max-h-full object-contain rounded-lg"
+                className="max-h-[60vh] max-w-[50vw] flex items-center justify-center"
               />
             </div>
           </div>
