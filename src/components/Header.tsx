@@ -272,7 +272,7 @@ const Header: React.FC = () => {
   return (
     <>
       {/* Top Bar */}
-      <div className="hidden md:block bg-orange-600 text-white py-2">
+      {/* <div className="hidden md:block bg-orange-600 text-white py-2">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-sm">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2"><Phone size={14} /><span>040-4859 5886/7</span></div>
@@ -288,7 +288,7 @@ const Header: React.FC = () => {
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Header */}
       <header className="shadow-lg sticky top-0 z-50 bg-[#501608]">
@@ -335,7 +335,7 @@ const Header: React.FC = () => {
                   >
                     <User size={20} />
                     {profile?.name || 'Profile'}
-                    {isProfileOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    {isProfileOpen }
                   </button>
                 )}
                 <button

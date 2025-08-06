@@ -1,5 +1,4 @@
 
-
 // import React, { useState, useEffect } from 'react';
 // import { Search, Eye, Clock, CheckCircle, XCircle, Truck, Download, RefreshCw, Phone, MapPin } from 'lucide-react';
 // import { useApp } from '../context/AppContext';
@@ -50,6 +49,16 @@
 //   const [selectedOrder, setSelectedOrder] = useState<ExtendedOrder | null>(null);
 //   const [orders, setOrders] = useState<ExtendedOrder[]>([]);
 //   const [isLoading, setIsLoading] = useState<boolean>(false);
+//   const [isMobileView, setIsMobileView] = useState<boolean>(window.innerWidth < 768);
+
+//   useEffect(() => {
+//     const handleResize = () => {
+//       setIsMobileView(window.innerWidth < 768);
+//     };
+
+//     window.addEventListener('resize', handleResize);
+//     return () => window.removeEventListener('resize', handleResize);
+//   }, []);
 
 //   useEffect(() => {
 //     fetchOrders();
@@ -208,81 +217,81 @@
 //   };
 
 //   return (
-//     <div className="space-y-6">
+//     <div className="space-y-6 p-2 sm:p-4 md:p-6">
 //       {/* Header Section */}
 //       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 //         <div>
-//           <h2 className="text-2xl font-bold text-gray-800">Order Management</h2>
-//           <p className="text-gray-600 mt-1">Track and manage customer orders</p>
+//           <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Order Management</h2>
+//           <p className="text-sm sm:text-base text-gray-600 mt-1">Track and manage customer orders</p>
 //         </div>
-//         <div className="flex gap-2">
+//         <div className="flex gap-2 w-full sm:w-auto">
 //           <button
 //             onClick={exportOrders}
-//             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors duration-300"
+//             className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold flex items-center gap-1 sm:gap-2 transition-colors duration-300 text-sm sm:text-base"
 //           >
-//             <Download size={20} />
-//             Export
+//             <Download size={16} className="sm:size-5" />
+//             <span className="hidden sm:inline">Export</span>
 //           </button>
 //           <button
 //             onClick={fetchOrders}
 //             disabled={isLoading}
-//             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors duration-300 disabled:opacity-50"
+//             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold flex items-center gap-1 sm:gap-2 transition-colors duration-300 disabled:opacity-50 text-sm sm:text-base"
 //           >
-//             <RefreshCw size={20} className={isLoading ? 'animate-spin' : ''} />
-//             {isLoading ? 'Refreshing...' : 'Refresh'}
+//             <RefreshCw size={16} className={`sm:size-5 ${isLoading ? 'animate-spin' : ''}`} />
+//             <span className="hidden sm:inline">{isLoading ? 'Refreshing...' : 'Refresh'}</span>
 //           </button>
 //         </div>
 //       </div>
 
 //       {/* Stats Cards */}
-//       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
-//           <div className="text-sm text-gray-600">Total Orders</div>
+//       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-4">
+//         <div className="bg-white p-2 sm:p-4 rounded-lg shadow-md">
+//           <div className="text-lg sm:text-2xl font-bold text-gray-800">{stats.total}</div>
+//           <div className="text-xs sm:text-sm text-gray-600">Total Orders</div>
 //         </div>
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-//           <div className="text-sm text-gray-600">Pending</div>
+//         <div className="bg-white p-2 sm:p-4 rounded-lg shadow-md">
+//           <div className="text-lg sm:text-2xl font-bold text-yellow-600">{stats.pending}</div>
+//           <div className="text-xs sm:text-sm text-gray-600">Pending</div>
 //         </div>
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-2xl font-bold text-blue-600">{stats.confirmed}</div>
-//           <div className="text-sm text-gray-600">Confirmed</div>
+//         <div className="bg-white p-2 sm:p-4 rounded-lg shadow-md">
+//           <div className="text-lg sm:text-2xl font-bold text-blue-600">{stats.confirmed}</div>
+//           <div className="text-xs sm:text-sm text-gray-600">Confirmed</div>
 //         </div>
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-2xl font-bold text-orange-600">{stats.preparing}</div>
-//           <div className="text-sm text-gray-600">Preparing</div>
+//         <div className="bg-white p-2 sm:p-4 rounded-lg shadow-md">
+//           <div className="text-lg sm:text-2xl font-bold text-orange-600">{stats.preparing}</div>
+//           <div className="text-xs sm:text-sm text-gray-600">Preparing</div>
 //         </div>
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-2xl font-bold text-green-600">{stats.ready}</div>
-//           <div className="text-sm text-gray-600">Ready</div>
+//         <div className="bg-white p-2 sm:p-4 rounded-lg shadow-md">
+//           <div className="text-lg sm:text-2xl font-bold text-green-600">{stats.ready}</div>
+//           <div className="text-xs sm:text-sm text-gray-600">Ready</div>
 //         </div>
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-2xl font-bold text-purple-600">{stats.delivered}</div>
-//           <div className="text-sm text-gray-600">Delivered</div>
+//         <div className="bg-white p-2 sm:p-4 rounded-lg shadow-md">
+//           <div className="text-lg sm:text-2xl font-bold text-purple-600">{stats.delivered}</div>
+//           <div className="text-xs sm:text-sm text-gray-600">Delivered</div>
 //         </div>
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
-//           <div className="text-sm text-gray-600">Cancelled</div>
+//         <div className="bg-white p-2 sm:p-4 rounded-lg shadow-md">
+//           <div className="text-lg sm:text-2xl font-bold text-red-600">{stats.cancelled}</div>
+//           <div className="text-xs sm:text-sm text-gray-600">Cancelled</div>
 //         </div>
 //       </div>
 
 //       {/* Filters Section */}
-//       <div className="bg-white rounded-lg shadow-md p-6">
-//         <div className="grid md:grid-cols-4 gap-4 mb-4">
+//       <div className="bg-white rounded-lg shadow-md p-3 sm:p-6">
+//         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4">
 //           <div className="relative">
-//             <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+//             <Search className="absolute left-3 top-3 text-gray-400" size={16} />
 //             <input
 //               type="text"
 //               placeholder="Search orders..."
 //               value={searchTerm}
 //               onChange={(e) => setSearchTerm(e.target.value)}
-//               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//               className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm sm:text-base"
 //             />
 //           </div>
 //           <select
 //             value={statusFilter}
 //             onChange={(e) => setStatusFilter(e.target.value)}
-//             className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//             className="px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm sm:text-base"
 //           >
 //             <option value="all">All Status</option>
 //             <option value="pending">Pending</option>
@@ -295,7 +304,7 @@
 //           <select
 //             value={typeFilter}
 //             onChange={(e) => setTypeFilter(e.target.value)}
-//             className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//             className="px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm sm:text-base"
 //           >
 //             <option value="all">All Types</option>
 //             <option value="dine-in">Dine In</option>
@@ -306,7 +315,7 @@
 //           <select
 //             value={dateFilter}
 //             onChange={(e) => setDateFilter(e.target.value)}
-//             className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//             className="px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm sm:text-base"
 //           >
 //             <option value="today">Today</option>
 //             <option value="yesterday">Yesterday</option>
@@ -318,119 +327,198 @@
 
 //       {/* Orders Table */}
 //       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-//         <div className="overflow-x-auto">
-//           <table className="w-full">
-//             <thead className="bg-gray-50">
-//               <tr>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Details</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status & Type</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-//               </tr>
-//             </thead>
-//             <tbody className="bg-white divide-y divide-gray-200">
-//               {filteredOrders.length > 0 ? (
-//                 filteredOrders.map((order) => (
-//                   <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-200">
-//                     <td className="px-6 py-4 whitespace-nowrap">
-//                       <div>
-//                         <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-//                           {order.order_number}
-//                           {order.order_type === 'catering' && (
-//                             <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">
-//                               CATERING
-//                             </span>
-//                           )}
+//         {isMobileView ? (
+//           /* Mobile View - Cards */
+//           <div className="space-y-2 p-2">
+//             {filteredOrders.length > 0 ? (
+//               filteredOrders.map((order) => (
+//                 <div key={order.id} className="border rounded-lg p-3 hover:shadow-md transition-shadow duration-200">
+//                   <div className="flex justify-between items-start">
+//                     <div>
+//                       <div className="font-semibold text-gray-800 flex items-center gap-1">
+//                         #{order.order_number}
+//                         {order.order_type === 'catering' && (
+//                           <span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full text-xs">
+//                             CATERING
+//                           </span>
+//                         )}
+//                       </div>
+//                       <div className="text-xs text-gray-500">
+//                         {new Date(order.created_at).toLocaleDateString()}
+//                       </div>
+//                     </div>
+//                     <div className="flex items-center gap-1">
+//                       <button
+//                         onClick={() => setSelectedOrder(order)}
+//                         className="text-blue-600 hover:text-blue-900 p-1 rounded"
+//                         title="View details"
+//                       >
+//                         <Eye size={16} />
+//                       </button>
+//                     </div>
+//                   </div>
+                  
+//                   <div className="mt-2 grid grid-cols-2 gap-2">
+//                     <div>
+//                       <div className="text-xs text-gray-500">Customer</div>
+//                       <div className="text-sm font-medium">{order.user_name || 'N/A'}</div>
+//                     </div>
+//                     <div>
+//                       <div className="text-xs text-gray-500">Amount</div>
+//                       <div className="text-sm font-medium">₹{order.total}</div>
+//                     </div>
+//                   </div>
+                  
+//                   <div className="mt-2">
+//                     <div className="flex items-center gap-1 text-xs text-gray-500">
+//                       <Phone size={12} />
+//                       {order.user_phone || 'N/A'}
+//                     </div>
+//                   </div>
+                  
+//                   <div className="mt-2 flex items-center justify-between">
+//                     <span className={`inline-flex items-center px-2 py-0.5 text-xs rounded-full border ${getStatusColor(order.status)}`}>
+//                       {getStatusIcon(order.status)}
+//                       <span className="ml-1 capitalize">{order.status}</span>
+//                     </span>
+                    
+//                     <select
+//                       value={order.status}
+//                       onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+//                       className="text-xs border border-gray-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-orange-500"
+//                     >
+//                       <option value="pending">Pending</option>
+//                       <option value="confirmed">Confirmed</option>
+//                       <option value="preparing">Preparing</option>
+//                       <option value="ready">Ready</option>
+//                       <option value="delivered">Delivered</option>
+//                       <option value="cancelled">Cancelled</option>
+//                     </select>
+//                   </div>
+//                 </div>
+//               ))
+//             ) : (
+//               <div className="p-4 text-center text-gray-500">
+//                 No orders found matching your criteria
+//               </div>
+//             )}
+//           </div>
+//         ) : (
+//           /* Desktop View - Table */
+//           <div className="overflow-x-auto">
+//             <table className="w-full">
+//               <thead className="bg-gray-50">
+//                 <tr>
+//                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Details</th>
+//                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+//                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+//                   {/* <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th> */}
+//                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+//                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status & Type</th>
+//                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+//                 </tr>
+//               </thead>
+//               <tbody className="bg-white divide-y divide-gray-200">
+//                 {filteredOrders.length > 0 ? (
+//                   filteredOrders.map((order) => (
+//                     <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-200">
+//                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+//                         <div>
+//                           <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+//                             {order.order_number}
+//                             {order.order_type === 'catering' && (
+//                               <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">
+//                                 CATERING
+//                               </span>
+//                             )}
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             {new Date(order.created_at).toLocaleString()}
+//                           </div>
 //                         </div>
-//                         <div className="text-sm text-gray-500">
-//                           {new Date(order.created_at).toLocaleString()}
+//                       </td>
+//                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+//                         <div className="text-sm font-medium text-gray-900">
+//                           {order.user_name || 'N/A'}
 //                         </div>
-//                       </div>
-//                     </td>
-//                     <td className="px-6 py-4 whitespace-nowrap">
-//                       <div className="text-sm font-medium text-gray-900">
-//                         {order.user_name || 'N/A'}
-//                       </div>
-//                     </td>
-//                     <td className="px-6 py-4 whitespace-nowrap">
-//                       <div className="text-sm text-gray-500 flex items-center gap-2">
-//                         <Phone size={12} />
-//                         {order.user_phone || 'N/A'}
-//                       </div>
-//                     </td>
-//                     <td className="px-6 py-4">
-//                       <div className="text-sm text-gray-500 flex items-start gap-2">
-//                         <MapPin size={12} className="mt-1" />
-//                         <span className="line-clamp-2">
-//                           {formatAddress(order) || 'N/A'}
-//                         </span>
-//                       </div>
-//                     </td>
-//                     <td className="px-6 py-4 whitespace-nowrap">
-//                       <div>
-//                         <div className="text-sm font-medium text-gray-900">₹{order.total}</div>
-//                         <div className="text-xs text-gray-500">
-//                           {order.payment_status === 'paid' ? '✓ Paid' : '⏳ Pending Payment'}
+//                       </td>
+//                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+//                         <div className="text-sm text-gray-500 flex items-center gap-2">
+//                           <Phone size={12} />
+//                           {order.user_phone || 'N/A'}
 //                         </div>
-//                       </div>
-//                     </td>
-//                     <td className="px-6 py-4 whitespace-nowrap">
-//                       <div className="space-y-2">
-//                         <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(order.status)}`}>
-//                           {getStatusIcon(order.status)}
-//                           <span className="ml-1 capitalize">{order.status}</span>
-//                         </span>
-//                         <div className={`text-xs capitalize ${order.order_type === 'catering' ? 'text-green-600 font-semibold' : 'text-gray-500'}`}>
-//                           {order.order_type}
+//                       </td>
+//                       {/* <td className="px-4 sm:px-6 py-4">
+//                         <div className="text-sm text-gray-500 flex items-start gap-2">
+//                           <MapPin size={12} className="mt-1" />
+//                           <span className="line-clamp-2">
+//                             {formatAddress(order) || 'N/A'}
+//                           </span>
 //                         </div>
-//                       </div>
-//                     </td>
-//                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-//                       <div className="flex items-center space-x-2">
-//                         <button
-//                           onClick={() => setSelectedOrder(order)}
-//                           className="text-blue-600 hover:text-blue-900 p-1 rounded"
-//                           title="View details"
-//                         >
-//                           <Eye size={16} />
-//                         </button>
-//                         <select
-//                           value={order.status}
-//                           onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-//                           className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-orange-500"
-//                         >
-//                           <option value="pending">Pending</option>
-//                           <option value="confirmed">Confirmed</option>
-//                           <option value="preparing">Preparing</option>
-//                           <option value="ready">Ready</option>
-//                           <option value="delivered">Delivered</option>
-//                           <option value="cancelled">Cancelled</option>
-//                         </select>
-//                       </div>
+//                       </td> */}
+//                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+//                         <div>
+//                           <div className="text-sm font-medium text-gray-900">₹{order.total}</div>
+//                           <div className="text-xs text-gray-500">
+//                             {order.payment_status === 'paid' ? '✓ Paid' : '⏳ Pending Payment'}
+//                           </div>
+//                         </div>
+//                       </td>
+//                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+//                         <div className="space-y-2">
+//                           <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(order.status)}`}>
+//                             {getStatusIcon(order.status)}
+//                             <span className="ml-1 capitalize">{order.status}</span>
+//                           </span>
+//                           <div className={`text-xs capitalize ${order.order_type === 'catering' ? 'text-green-600 font-semibold' : 'text-gray-500'}`}>
+//                             {order.order_type}
+//                           </div>
+//                         </div>
+//                       </td>
+//                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+//                         <div className="flex items-center space-x-2">
+//                           <button
+//                             onClick={() => setSelectedOrder(order)}
+//                             className="text-blue-600 hover:text-blue-900 p-1 rounded"
+//                             title="View details"
+//                           >
+//                             <Eye size={16} />
+//                           </button>
+//                           <select
+//                             value={order.status}
+//                             onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+//                             className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-orange-500"
+//                           >
+//                             <option value="pending">Pending</option>
+//                             <option value="confirmed">Confirmed</option>
+//                             <option value="preparing">Preparing</option>
+//                             <option value="ready">Ready</option>
+//                             <option value="delivered">Delivered</option>
+//                             <option value="cancelled">Cancelled</option>
+//                           </select>
+//                         </div>
+//                       </td>
+//                     </tr>
+//                   ))
+//                 ) : (
+//                   <tr>
+//                     <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+//                       No orders found matching your criteria
 //                     </td>
 //                   </tr>
-//                 ))
-//               ) : (
-//                 <tr>
-//                   <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-//                     No orders found matching your criteria
-//                   </td>
-//                 </tr>
-//               )}
-//             </tbody>
-//           </table>
-//         </div>
+//                 )}
+//               </tbody>
+//             </table>
+//           </div>
+//         )}
 //       </div>
 
 //       {/* Order Details Modal */}
 //       {selectedOrder && (
-//         <div className="fixed inset-0 flex items-center justify-center z-50">
+//         <div className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4">
 //           <div className="absolute inset-0 bg-black opacity-30"></div>
-//           <div className="bg-white rounded-lg shadow-lg max-w-lg w-full z-10 max-h-[90vh] overflow-y-auto">
-//             <div className="p-6">
+//           <div className="bg-white rounded-lg shadow-lg w-full max-w-md sm:max-w-lg md:max-w-xl z-10 max-h-[90vh] overflow-y-auto">
+//             <div className="p-4 sm:p-6">
 //               <div className="flex justify-between items-center mb-4">
 //                 <h3 className="text-lg font-semibold text-gray-800">Order Details</h3>
 //                 <button
@@ -441,7 +529,7 @@
 //                 </button>
 //               </div>
 //               <div className="space-y-4">
-//                 <div className="grid grid-cols-2 gap-4">
+//                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 //                   <div>
 //                     <span className="text-sm text-gray-500">Order Number:</span>
 //                     <p className="text-gray-800 font-semibold"> {selectedOrder.order_number}</p>
@@ -490,7 +578,7 @@
 //                 </div>
 
 //                 <div className="border-t border-gray-200 pt-4">
-//                   <div className="grid grid-cols-2 gap-4">
+//                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 //                     <div>
 //                       <span className="text-sm text-gray-500">Order Type:</span>
 //                       <p className="text-gray-800 font-semibold capitalize"> {selectedOrder.order_type}</p>
@@ -530,10 +618,10 @@
 //                 </div>
 //               </div>
 //             </div>
-//             <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end gap-2">
+//             <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 rounded-b-lg flex justify-end gap-2">
 //               <button
 //                 onClick={() => setSelectedOrder(null)}
-//                 className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg font-semibold transition-colors duration-300"
+//                 className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors duration-300 text-sm sm:text-base"
 //               >
 //                 Close
 //               </button>
@@ -557,7 +645,6 @@ interface OrderItem {
   id: number;
   name: string;
   quantity: number;
-  price: number;
 }
 
 interface Customer {
@@ -581,7 +668,6 @@ interface ExtendedOrder extends Order {
   user_address_country?: string;
   order_type: 'dine-in' | 'takeaway' | 'delivery' | 'catering' | string;
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled' | string;
-  total: number;
   created_at: string;
   payment_status?: string;
   items?: OrderItem[];
@@ -724,7 +810,7 @@ const OrderManagement: React.FC = () => {
 
   const exportOrders = () => {
     const csvContent = [
-      ['Order Number', 'Customer', 'Phone', 'Street', 'City', 'State', 'Zipcode', 'Country', 'Type', 'Status', 'Amount', 'Date'].join(','),
+      ['Order Number', 'Customer', 'Phone', 'Street', 'City', 'State', 'Zipcode', 'Country', 'Type', 'Status', 'Date'].join(','),
       ...filteredOrders.map(order => [
         order.order_number,
         order.user_name || 'N/A',
@@ -736,7 +822,6 @@ const OrderManagement: React.FC = () => {
         order.user_address_country || '',
         order.order_type,
         order.status,
-        order.total,
         new Date(order.created_at).toLocaleDateString()
       ].join(','))
     ].join('\n');
@@ -905,15 +990,9 @@ const OrderManagement: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <div>
-                      <div className="text-xs text-gray-500">Customer</div>
-                      <div className="text-sm font-medium">{order.user_name || 'N/A'}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">Amount</div>
-                      <div className="text-sm font-medium">₹{order.total}</div>
-                    </div>
+                  <div className="mt-2">
+                    <div className="text-xs text-gray-500">Customer</div>
+                    <div className="text-sm font-medium">{order.user_name || 'N/A'}</div>
                   </div>
                   
                   <div className="mt-2">
@@ -959,8 +1038,6 @@ const OrderManagement: React.FC = () => {
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Details</th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                  {/* <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th> */}
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status & Type</th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -993,22 +1070,6 @@ const OrderManagement: React.FC = () => {
                         <div className="text-sm text-gray-500 flex items-center gap-2">
                           <Phone size={12} />
                           {order.user_phone || 'N/A'}
-                        </div>
-                      </td>
-                      {/* <td className="px-4 sm:px-6 py-4">
-                        <div className="text-sm text-gray-500 flex items-start gap-2">
-                          <MapPin size={12} className="mt-1" />
-                          <span className="line-clamp-2">
-                            {formatAddress(order) || 'N/A'}
-                          </span>
-                        </div>
-                      </td> */}
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">₹{order.total}</div>
-                          <div className="text-xs text-gray-500">
-                            {order.payment_status === 'paid' ? '✓ Paid' : '⏳ Pending Payment'}
-                          </div>
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
@@ -1049,7 +1110,7 @@ const OrderManagement: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
                       No orders found matching your criteria
                     </td>
                   </tr>
@@ -1150,19 +1211,11 @@ const OrderManagement: React.FC = () => {
                       {selectedOrder.items.map((item, idx) => (
                         <li key={idx} className="flex justify-between text-sm text-gray-700">
                           <span>{item.name} x {item.quantity}</span>
-                          <span>₹{item.price}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
-
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="flex justify-between text-sm font-semibold text-gray-800">
-                    <span>Total Amount:</span>
-                    <span>₹{selectedOrder.total}</span>
-                  </div>
-                </div>
               </div>
             </div>
             <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 rounded-b-lg flex justify-end gap-2">
