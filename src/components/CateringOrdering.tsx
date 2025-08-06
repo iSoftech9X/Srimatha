@@ -1770,7 +1770,7 @@ const CateringOrdering: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="bg-[#501608] rounded-2xl p-8 md:p-12 text-white mb-12">
+            <div className="bg-[#ea580a] rounded-2xl p-8 md:p-12 text-white mb-12">
               <div className="max-w-3xl">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
                   Make Your Event Unforgettable
