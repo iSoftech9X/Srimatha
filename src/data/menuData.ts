@@ -25,6 +25,7 @@ export const restaurantInfo = {
   phone: '040-4859 5886/7',
   mobile: '(+91)74166 70123',
   website: 'www.srimatha.co.in',
+  email: 'info@srimatha.com',
   address: {
     line1: 'Plot1/P, Sri Sai Balaji Towers',
     line2: 'Rajeev Gandhi Nagar Colony,',
