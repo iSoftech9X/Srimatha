@@ -1,3 +1,4 @@
+
 // import React, { useState, useEffect } from "react";
 // import {
 //   Star,
@@ -90,6 +91,17 @@
 //   const [searchQuery, setSearchQuery] = useState("");
 //   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 //   const [isScrolled, setIsScrolled] = useState(false);
+//   const [numberOfPersons, setNumberOfPersons] = useState<number>(1);
+//   const [eventDate, setEventDate] = useState<string>("");
+//   const [eventType, setEventType] = useState<string>("");
+//   const [eventTypes] = useState<string[]>([
+//     "Wedding",
+//     "Corporate Event",
+//     "Birthday Party",
+//     "Anniversary",
+//     "Graduation",
+//     "Other",
+//   ]);
 
 //   // Handle scroll event
 //   useEffect(() => {
@@ -262,6 +274,21 @@
 //   };
 
 //   const handlePlaceOrder = async () => {
+//     if (!eventDate) {
+//       toast.error("Please select an event date");
+//       return;
+//     }
+
+//     if (!eventType) {
+//       toast.error("Please select an event type");
+//       return;
+//     }
+
+//     if (numberOfPersons < 1) {
+//       toast.error("Number of persons must be at least 1");
+//       return;
+//     }
+
 //     try {
 //       const orderPayload = {
 //         userName: user?.name,
@@ -275,6 +302,11 @@
 //           price: item.menuItem.price,
 //           specialInstructions: item.specialInstructions,
 //         })),
+//         eventDetails: {
+//           numberOfPersons,
+//           eventDate,
+//           eventType,
+//         },
 //         subtotal: cartTotal,
 //         total: cartTotal,
 //         paymentStatus: "pending",
@@ -301,6 +333,11 @@
 //       return;
 //     }
 
+//     if (cart.length === 0) {
+//       toast.error("Your cart is empty");
+//       return;
+//     }
+
 //     setShowAddressConfirmation(true);
 //     setIsEditingAddress(false);
 //     fetchUserProfile();
@@ -315,8 +352,15 @@
 //           fetchAllItems(),
 //         ]);
 
-//         const categories = categoriesResponse.data.data || [];
-//         setMenuCategories([{ id: "all", name: "All Dishes" }, ...categories]);
+//         // Create filter categories - "All Dishes" and "Combos"
+//         const filterCategories = [
+//           { id: "all", name: "All Dishes" },
+//           { id: "combos", name: "Combos" }
+//         ];
+        
+//         setMenuCategories(filterCategories);
+        
+//         // Set all items
 //         setMenuItems(items);
 //         setAllItemsLoaded(true);
 //         setError("");
@@ -369,23 +413,29 @@
 //     const matchesSearch =
 //       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 //       item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+//     // Category filtering logic
 //     const matchesCategory =
-//       activeCategory === "all" || item.category === activeCategory;
+//       activeCategory === "all" || 
+//       (activeCategory === "combos" && item.category === "combos");
+    
 //     return matchesSearch && matchesCategory && item.available;
 //   });
 
+//   // Group items by their actual categories
 //   const groupedItems = filteredItems.reduce((acc, item) => {
-//     const category = menuCategories.find((c) => c.id === item.category) || {
-//       id: "other",
-//       name: "Other",
-//     };
-//     if (!acc[category.id]) {
-//       acc[category.id] = {
-//         categoryName: category.name,
+//     const categoryId = item.category || "other";
+//     const categoryName = 
+//       item.category === "combos" ? "Combos" : 
+//       item.category || "Other";
+
+//     if (!acc[categoryId]) {
+//       acc[categoryId] = {
+//         categoryName,
 //         items: [],
 //       };
 //     }
-//     acc[category.id].items.push(item);
+//     acc[categoryId].items.push(item);
 //     return acc;
 //   }, {} as Record<string, { categoryName: string; items: MenuItem[] }>);
 
@@ -616,7 +666,7 @@
 //           </div>
 //         ) : (
 //           <>
-//             <div className="bg-[#ea580c] rounded-2xl p-8 md:p-12 text-white mb-12">
+//             <div className="bg-[#ea580a] rounded-2xl p-8 md:p-12 text-white mb-12">
 //               <div className="max-w-3xl">
 //                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
 //                   Make Your Event Unforgettable
@@ -643,36 +693,50 @@
 //               </div>
 //             </div>
 
-//             <div className="flex flex-wrap justify-center gap-2 mb-6 max-w-6xl mx-auto">
-//               {menuCategories.map((category) => (
+//             {/* Combined Filter and Search - Side by Side */}
+//             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+//               {/* Category Filter Buttons */}
+//               <div className="flex gap-2">
 //                 <button
-//                   key={category.id}
-//                   onClick={() => setActiveCategory(category.id)}
+//                   onClick={() => setActiveCategory("all")}
 //                   className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
-//                     activeCategory === category.id
+//                     activeCategory === "all"
 //                       ? "bg-[#501608] hover:bg-[#722010] text-white shadow-lg"
 //                       : "bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600"
 //                   }`}
 //                 >
-//                   {category.name}
+//                   All Dishes
 //                 </button>
-//               ))}
-//             </div>
-
-//             {/* Search Bar */}
-//             <div className="relative mb-8 max-w-2xl mx-auto">
-//               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-//                 <Search className="h-5 w-5 text-gray-400" />
+//                 <button
+//                   onClick={() => setActiveCategory("combos")}
+//                   className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
+//                     activeCategory === "combos"
+//                       ? "bg-[#501608] hover:bg-[#722010] text-white shadow-lg"
+//                       : "bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600"
+//                   }`}
+//                 >
+//                   Combos
+//                 </button>
 //               </div>
-//               <input
-//                 type="text"
-//                 placeholder="Search dishes..."
-//                 className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#501608] focus:border-[#501608]"
-//                 value={searchQuery}
-//                 onChange={(e) => setSearchQuery(e.target.value)}
-//               />
+
+//               {/* Search Bar - Takes remaining space */}
+//               <div className="flex-1 w-full max-w-2xl">
+//                 <div className="relative">
+//                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                     <Search className="h-5 w-5 text-gray-400" />
+//                   </div>
+//                   <input
+//                     type="text"
+//                     placeholder="Search dishes..."
+//                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#501608] focus:border-[#501608]"
+//                     value={searchQuery}
+//                     onChange={(e) => setSearchQuery(e.target.value)}
+//                   />
+//                 </div>
+//               </div>
 //             </div>
 
+//             {/* Menu Items Display */}
 //             {loading ? (
 //               <div className="text-center py-20 text-xl text-gray-500">
 //                 Loading menu...
@@ -809,65 +873,125 @@
 //                   <p>Your catering cart is empty</p>
 //                 </div>
 //               ) : (
-//                 <div className="space-y-4">
-//                   {cart.map((item) => (
-//                     <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
-//                       <div className="flex items-start justify-between mb-2">
-//                         <div className="flex-1">
-//                           <h4 className="font-medium text-gray-800">
-//                             {item.menuItem.name}
-//                           </h4>
-//                           <p className="text-sm text-gray-600">
-//                             {item.menuItem.description}
-//                           </p>
-//                           {item.specialInstructions && (
-//                             <p className="text-xs text-orange-600 mt-1">
-//                               <strong>Details:</strong>{" "}
-//                               {item.specialInstructions}
-//                             </p>
-//                           )}
-//                         </div>
-//                         <button
-//                           onClick={() => removeFromCart(item.id)}
-//                           className=""
-//                           style={{ color: "#501608" }}
-//                         >
-//                           <X size={16} />
-//                         </button>
+//                 <>
+//                   {/* Event Details Form */}
+//                   <div className="bg-gray-50 p-4 rounded-lg mb-6">
+//                     <h4 className="font-medium text-gray-800 mb-4">
+//                       Event Details
+//                     </h4>
+                    
+//                     <div className="space-y-4">
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1">
+//                           Number of Persons
+//                         </label>
+//                         <input
+//                           type="number"
+//                           min="1"
+//                           value={numberOfPersons}
+//                           onChange={(e) =>
+//                             setNumberOfPersons(parseInt(e.target.value) || 1)
+//                           }
+//                           className="w-full p-2 border border-gray-300 rounded-md"
+//                           placeholder="Enter number of persons"
+//                         />
 //                       </div>
-//                       <div className="flex justify-between items-center">
-//                         <span
-//                           className="text-lg font-bold"
-//                           style={{ color: "#501608" }}
-//                         >
-//                           {/* ₹{(item.menuItem.price * item.quantity).toLocaleString()} */}
-//                         </span>
-//                         <div className="flex items-center gap-2">
-//                           <button
-//                             onClick={() => handleDecrement(item.id)}
-//                             className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-1 transition-colors duration-300"
-//                           >
-//                             <Minus size={16} />
-//                           </button>
-//                           <span className="w-8 text-center">
-//                             {item.quantity}
-//                           </span>
-//                           <button
-//                             onClick={() => handleIncrement(item.id)}
-//                             className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-1 transition-colors duration-300"
-//                           >
-//                             <Plus size={16} />
-//                           </button>
-//                         </div>
+                      
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1">
+//                           Event Date
+//                         </label>
+//                         <input
+//                           type="date"
+//                           value={eventDate}
+//                           onChange={(e) => setEventDate(e.target.value)}
+//                           className="w-full p-2 border border-gray-300 rounded-md"
+//                           min={new Date().toISOString().split('T')[0]}
+//                         />
+//                       </div>
+                      
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1">
+//                           Event Type
+//                         </label>
+//                         <input
+//                           type="text"
+//                           value={eventType}
+//                           onChange={(e) => setEventType(e.target.value)}
+//                           placeholder="Enter event type"
+//                           className="w-full p-2 border border-gray-300 rounded-md"
+//                         />
 //                       </div>
 //                     </div>
-//                   ))}
-//                 </div>
+//                   </div>
+
+//                   {/* Cart Items */}
+//                   <div className="space-y-4">
+//                     {cart.map((item) => (
+//                       <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
+//                         <div className="flex items-start justify-between mb-2">
+//                           <div className="flex-1">
+//                             <h4 className="font-medium text-gray-800">
+//                               {item.menuItem.name}
+//                             </h4>
+//                             <p className="text-sm text-gray-600">
+//                               {item.menuItem.description}
+//                             </p>
+//                             {item.specialInstructions && (
+//                               <p className="text-xs text-orange-600 mt-1">
+//                                 <strong>Details:</strong>{" "}
+//                                 {item.specialInstructions}
+//                               </p>
+//                             )}
+//                           </div>
+//                           <button
+//                             onClick={() => removeFromCart(item.id)}
+//                             className=""
+//                             style={{ color: "#501608" }}
+//                           >
+//                             <X size={16} />
+//                           </button>
+//                         </div>
+//                         <div className="flex justify-between items-center">
+//                           <span
+//                             className="text-lg font-bold"
+//                             style={{ color: "#501608" }}
+//                           >
+//                             {/* ₹{(item.menuItem.price * item.quantity).toLocaleString()} */}
+//                           </span>
+//                           <div className="flex items-center gap-2">
+//                             <button
+//                               onClick={() => handleDecrement(item.id)}
+//                               className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-1 transition-colors duration-300"
+//                             >
+//                               <Minus size={16} />
+//                             </button>
+//                             <span className="w-8 text-center">
+//                               {item.quantity}
+//                             </span>
+//                             <button
+//                               onClick={() => handleIncrement(item.id)}
+//                               className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-1 transition-colors duration-300"
+//                             >
+//                               <Plus size={16} />
+//                             </button>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     ))}
+//                   </div>
+//                 </>
 //               )}
 //             </div>
 
 //             {cart.length > 0 && (
 //               <div className="border-t border-gray-200 p-6 bg-white">
+//                 <div className="flex justify-between items-center mb-4">
+//                   <span className="font-medium">Subtotal:</span>
+//                   <span className="font-bold" style={{ color: "#501608" }}>
+//                     {/* ₹{cartTotal.toLocaleString()} */}
+//                   </span>
+//                 </div>
 //                 <button
 //                   onClick={handleCheckoutClick}
 //                   className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300"
@@ -1102,10 +1226,13 @@
 //                 Go to Home Page
 //               </button>
 //               <button
-//                 onClick={() => setShowSuccessPopup(false)}
+//                 onClick={() => {
+//                   setShowSuccessPopup(false);
+//                   setShowOrderHistory(true);
+//                 }}
 //                 className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold transition-colors duration-300"
 //               >
-//                 Continue Order
+//                 View Order Details
 //               </button>
 //             </div>
 //           </div>
@@ -1469,8 +1596,15 @@ const CateringOrdering: React.FC = () => {
           fetchAllItems(),
         ]);
 
-        const categories = categoriesResponse.data.data || [];
-        setMenuCategories([{ id: "all", name: "All Dishes" }, ...categories]);
+        // Create filter categories - "All Dishes" and "Combos"
+        const filterCategories = [
+          { id: "all", name: "All Dishes" },
+          { id: "combos", name: "Combos" }
+        ];
+        
+        setMenuCategories(filterCategories);
+        
+        // Set all items
         setMenuItems(items);
         setAllItemsLoaded(true);
         setError("");
@@ -1523,23 +1657,29 @@ const CateringOrdering: React.FC = () => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Category filtering logic
     const matchesCategory =
-      activeCategory === "all" || item.category === activeCategory;
+      activeCategory === "all" || 
+      (activeCategory === "combos" && item.category === "combos");
+    
     return matchesSearch && matchesCategory && item.available;
   });
 
+  // Group items by their actual categories
   const groupedItems = filteredItems.reduce((acc, item) => {
-    const category = menuCategories.find((c) => c.id === item.category) || {
-      id: "other",
-      name: "Other",
-    };
-    if (!acc[category.id]) {
-      acc[category.id] = {
-        categoryName: category.name,
+    const categoryId = item.category || "other";
+    const categoryName = 
+      item.category === "combos" ? "Combos" : 
+      item.category || "Other";
+
+    if (!acc[categoryId]) {
+      acc[categoryId] = {
+        categoryName,
         items: [],
       };
     }
-    acc[category.id].items.push(item);
+    acc[categoryId].items.push(item);
     return acc;
   }, {} as Record<string, { categoryName: string; items: MenuItem[] }>);
 
@@ -1552,6 +1692,16 @@ const CateringOrdering: React.FC = () => {
       minute: "2-digit",
     };
     return new Date(dateString).toLocaleDateString("en-US", options);
+  };
+
+  // Helper function to determine if order can be cancelled
+  const canCancelOrder = (status: string) => {
+    return status === "pending"; // Only allow cancellation for pending orders
+  };
+
+  // Helper function to determine if order is in non-cancellable state
+  const isNonCancellableState = (status: string) => {
+    return ["confirmed", "preparing", "ready"].includes(status);
   };
 
   return (
@@ -1712,57 +1862,61 @@ const CateringOrdering: React.FC = () => {
                       )}
                     </div>
 
-                    {order.status !== "cancelled" &&
-                      order.status !== "completed" &&
-                      order.status !== "delivered" && (
-                        <div className="mt-4">
-                          {showCancelForm === order.id ? (
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                              <h4 className="font-medium text-gray-700 mb-2">
-                                Cancel Order
-                              </h4>
-                              <textarea
-                                value={cancelReason}
-                                onChange={(e) =>
-                                  setCancelReason(e.target.value)
-                                }
-                                placeholder="Please provide a reason for cancellation..."
-                                className="w-full p-2 border border-gray-300 rounded-md mb-2"
-                                rows={3}
-                              />
-                              <div className="flex justify-end gap-2">
-                                <button
-                                  onClick={handleCancelFormClose}
-                                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-300"
-                                >
-                                  Back
-                                </button>
-                                <button
-                                  onClick={() => cancelOrder(order.id)}
-                                  disabled={
-                                    !cancelReason.trim() ||
-                                    cancellingOrderId === order.id
-                                  }
-                                  className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 disabled:opacity-50"
-                                >
-                                  {cancellingOrderId === order.id
-                                    ? "Cancelling..."
-                                    : "Confirm Cancellation"}
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex justify-end">
+                    {canCancelOrder(order.status) ? (
+                      <div className="mt-4">
+                        {showCancelForm === order.id ? (
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="font-medium text-gray-700 mb-2">
+                              Cancel Order
+                            </h4>
+                            <textarea
+                              value={cancelReason}
+                              onChange={(e) =>
+                                setCancelReason(e.target.value)
+                              }
+                              placeholder="Please provide a reason for cancellation..."
+                              className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                              rows={3}
+                            />
+                            <div className="flex justify-end gap-2">
                               <button
-                                onClick={() => handleCancelClick(order.id)}
-                                className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 text-sm font-medium"
+                                onClick={handleCancelFormClose}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-300"
                               >
-                                Cancel Order
+                                Back
+                              </button>
+                              <button
+                                onClick={() => cancelOrder(order.id)}
+                                disabled={
+                                  !cancelReason.trim() ||
+                                  cancellingOrderId === order.id
+                                }
+                                className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 disabled:opacity-50"
+                              >
+                                {cancellingOrderId === order.id
+                                  ? "Cancelling..."
+                                  : "Confirm Cancellation"}
                               </button>
                             </div>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        ) : (
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() => handleCancelClick(order.id)}
+                              className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 text-sm font-medium"
+                            >
+                              Cancel Order
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : isNonCancellableState(order.status) ? (
+                      <div className="mt-4 text-right">
+                        <p className="text-sm text-gray-500">
+                          Please contact owner to cancel this order
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -1797,36 +1951,50 @@ const CateringOrdering: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-2 mb-6 max-w-6xl mx-auto">
-              {menuCategories.map((category) => (
+            {/* Combined Filter and Search - Side by Side */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+              {/* Category Filter Buttons */}
+              <div className="flex gap-2">
                 <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
+                  onClick={() => setActiveCategory("all")}
                   className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
-                    activeCategory === category.id
+                    activeCategory === "all"
                       ? "bg-[#501608] hover:bg-[#722010] text-white shadow-lg"
                       : "bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600"
                   }`}
                 >
-                  {category.name}
+                  All Dishes
                 </button>
-              ))}
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative mb-8 max-w-2xl mx-auto">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <button
+                  onClick={() => setActiveCategory("combos")}
+                  className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
+                    activeCategory === "combos"
+                      ? "bg-[#501608] hover:bg-[#722010] text-white shadow-lg"
+                      : "bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600"
+                  }`}
+                >
+                  Combos
+                </button>
               </div>
-              <input
-                type="text"
-                placeholder="Search dishes..."
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#501608] focus:border-[#501608]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+
+              {/* Search Bar - Takes remaining space */}
+              <div className="flex-1 w-full max-w-2xl">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search dishes..."
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#501608] focus:border-[#501608]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
 
+            {/* Menu Items Display */}
             {loading ? (
               <div className="text-center py-20 text-xl text-gray-500">
                 Loading menu...
@@ -2000,36 +2168,18 @@ const CateringOrdering: React.FC = () => {
                         />
                       </div>
                       
-                      {/* <div>
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Event Type
                         </label>
-                        <select
+                        <input
+                          type="text"
                           value={eventType}
                           onChange={(e) => setEventType(e.target.value)}
+                          placeholder="Enter event type"
                           className="w-full p-2 border border-gray-300 rounded-md"
-                        >
-                          <option value="">Select event type</option>
-                          {eventTypes.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </select>
-                      </div> */}
-                      <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Event Type
-  </label>
-  <input
-    type="text"
-    value={eventType}
-    onChange={(e) => setEventType(e.target.value)}
-    placeholder="Enter event type"
-    className="w-full p-2 border border-gray-300 rounded-md"
-  />
-</div>
-
+                        />
+                      </div>
                     </div>
                   </div>
 
