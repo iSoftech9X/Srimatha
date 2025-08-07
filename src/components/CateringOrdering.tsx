@@ -2042,11 +2042,11 @@ const CateringOrdering: React.FC = () => {
                                   <h4 className="text-lg font-bold text-gray-800">
                                     {item.name}
                                   </h4>
-                                  {quantity > 0 && (
+                                  {/* {quantity > 0 && (
                                     <span className="bg-[#501608] text-white text-xs px-2 py-1 rounded-full">
                                       {quantity} in cart
                                     </span>
-                                  )}
+                                  )} */}
                                 </div>
                                 <p className="text-gray-600 mb-4 text-sm">
                                   {item.description}
