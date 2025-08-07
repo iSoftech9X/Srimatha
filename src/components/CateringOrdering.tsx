@@ -1912,7 +1912,7 @@ const CateringOrdering: React.FC = () => {
                       </div>
                     ) : isNonCancellableState(order.status) ? (
                       <div className="mt-4 text-right">
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-800 " style={{ fontWeight: "bold" }}>
                           Please contact owner to cancel this order
                         </p>
                       </div>
