@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Plus,
+  Eye,
   Edit,
   Trash2,
   ToggleLeft,
@@ -31,6 +32,13 @@ type MenuItem = {
   image?: string;
   preparationTime?: number;
   spiceLevel?: string;
+  isCombo?: boolean;
+  comboItems?: {
+    id: string;
+    quantity: number;
+    name: string;
+    spiceLevel?: 'none' | 'mild' | 'medium' | 'hot' | 'very-hot';
+  }[];
 };
 
 type Category = {
@@ -126,6 +134,7 @@ const MenuManagement: React.FC = () => {
     }
   };
 
+  
   const handleEdit = (item: MenuItem) => {
     setIsEditMode(true);
     setEditId(item.id);
@@ -135,6 +144,8 @@ const MenuManagement: React.FC = () => {
       price: item.price,
       category: item.category,
       isVegetarian: item.isVegetarian,
+      isCombo:item.comboItems||false, // ✅ make sure this is included
+    comboItems: item.comboItems || [], // ✅ also needed for combo logic
       available: item.available,
       spiceLevel: item.spiceLevel || "",
     });
@@ -196,6 +207,24 @@ const MenuManagement: React.FC = () => {
   const displayedCategories = showAllCategories
     ? categories
     : categories.slice(0, 5);
+  const handleView = (item: MenuItem) => {
+  if (!item.comboItems || item.comboItems.length === 0) {
+    toast.info("No combo items found.");
+    return;
+  }
+
+  const details = item.comboItems
+    .map(
+      (combo: any, idx: number) =>
+        `${idx + 1}. ${combo.name || "Unnamed item"} - Quantity: ${combo.quantity}, Spice: ${
+          combo.spice_level || "N/A"
+        }`
+    )
+    .join("\n");
+
+  window.alert(`Combo Items in "${item.name}":\n\n${details}`);
+};
+
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -321,258 +350,77 @@ const MenuManagement: React.FC = () => {
           </button>
         </div>
       ) : (
+       
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-xl shadow-sm overflow-hidden transition-all hover:shadow-md border"
-            >
-              <div className="p-5">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{item.name}</h3>
-                      {item.isVegetarian && (
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                          <Leaf size={12} /> Veg
-                        </span>
-                      )}
-                    </div>
-                    <span className="inline-block mt-1 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
-                      {categories.find((c) => c.id === item.category)?.name ||
-                        item.category}
-                    </span>
-                    <p className="mt-2 text-gray-600 text-sm">
-                      {item.description}
-                    </p>
+  {filteredItems.map((item) => (
+    <div
+      key={item.id}
+      className="bg-white rounded-xl shadow-sm overflow-hidden transition-all hover:shadow-md border relative"
+    >
+      {/* 👁️ Eye icon positioned in top-right */}
+     {item.isCombo && (
+  <button
+    onClick={() => handleView(item)}
+    className="absolute top-3 right-3 text-gray-500 hover:text-blue-600 p-1 bg-white rounded-full shadow"
+    title="View Combo Items"
+  >
+    <Eye size={18} />
+  </button>
+)}
 
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-xl font-bold text-gray-800">
-                        ₹{item.price}
-                      </span>
-                      {item.spiceLevel && (
-                        <span className="flex items-center gap-1 text-sm text-orange-600">
-                          <Flame size={14} /> {item.spiceLevel}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 px-5 py-3 flex justify-between items-center border-t">
-                <button
-                  // onClick={() => handleToggleAvailability(item)}
-                  // className={`px-3 py-1 rounded-full text-sm flex items-center gap-1 ${
-                  //   item.available
-                  //     ? "bg-green-100 text-green-800"
-                  //     : "bg-gray-200 text-gray-700"
-                  // }`}
-                >
-                  {/* {item.available ? (
-                    <>
-                      <ToggleRight size={16} /> Available
-                    </>
-                  ) : (
-                    <>
-                      <ToggleLeft size={16} /> Unavailable
-                    </>
-                  )} */}
-                </button>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
-                    title="Edit"
-                  >
-                    <Edit size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-full"
-                    title="Delete"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
+      <div className="p-5">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">{item.name}</h3>
+              {item.isVegetarian && (
+                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                  <Leaf size={12} /> Veg
+                </span>
+              )}
             </div>
-          ))}
+            <span className="inline-block mt-1 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+              {categories.find((c) => c.id === item.category)?.name || item.category}
+            </span>
+            <p className="mt-2 text-gray-600 text-sm">{item.description}</p>
+
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-xl font-bold text-gray-800">₹{item.price}</span>
+              {item.spiceLevel && (
+                <span className="flex items-center gap-1 text-sm text-orange-600">
+                  <Flame size={14} /> {item.spiceLevel}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="bg-gray-50 px-5 py-3 flex justify-between items-center border-t">
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleEdit(item)}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+            title="Edit"
+          >
+            <Edit size={18} />
+          </button>
+          <button
+            onClick={() => handleDelete(item.id)}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-full"
+            title="Delete"
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
       )}
 
       {/* Modern Modal */}
       {isModalOpen && (
-        // <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-        //   <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in">
-        //     <div className="p-5 text-white" style={{ backgroundColor: "#501608" }}>
-        //       <div className="flex justify-between items-center">
-        //         <h2 className="text-xl font-semibold">
-        //           {isEditMode ? "Edit Menu Item" : "Create New Item"}
-        //         </h2>
-        //         <button
-        //           onClick={() => {
-        //             setIsModalOpen(false);
-        //             setFormData(defaultFormData);
-        //             setIsEditMode(false);
-        //             setEditId(null);
-        //           }}
-        //           className="text-white hover:text-gray-200"
-        //         >
-        //           <X size={24} />
-        //         </button>
-        //       </div>
-        //     </div>
-
-        //     <form onSubmit={handleFormSubmit} className="p-5 space-y-4">
-        //       <div>
-        //         <label className="block text-sm font-medium text-gray-700 mb-1">
-        //           Item Name
-        //         </label>
-        //         <input
-        //           type="text"
-        //           name="name"
-        //           placeholder="e.g., Margherita Pizza"
-        //           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        //           value={formData.name}
-        //           onChange={handleFormChange}
-        //           required
-        //         />
-        //       </div>
-
-        //       <div>
-        //         <label className="block text-sm font-medium text-gray-700 mb-1">
-        //           Description
-        //         </label>
-        //         <textarea
-        //           name="description"
-        //           placeholder="Describe the item..."
-        //           rows={3}
-        //           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        //           value={formData.description}
-        //           onChange={handleFormChange}
-        //         />
-        //       </div>
-
-        //       <div className="grid grid-cols-2 gap-4">
-        //         <div>
-        //           <label className="block text-sm font-medium text-gray-700 mb-1">
-        //             Price (₹)
-        //           </label>
-        //           <input
-        //             type="text"
-        //             name="price"
-        //             placeholder="0.00"
-        //             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        //             value={formData.price}
-        //             onChange={handleFormChange}
-        //             required
-        //           />
-        //         </div>
-        //         <div>
-        //           <label className="block text-sm font-medium text-gray-700 mb-1">
-        //             Category
-        //           </label>
-        //           <select
-        //             name="category"
-        //             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        //             value={formData.category}
-        //             onChange={handleFormChange}
-        //             required
-        //           >
-        //             <option value="">Select</option>
-        //             {categories.map((cat) => (
-        //               <option key={cat.id} value={cat.id}>
-        //                 {cat.name}
-        //               </option>
-        //             ))}
-        //           </select>
-        //         </div>
-        //       </div>
-
-        //       <div className="grid grid-cols-2 gap-4">
-        //         <div>
-        //           <label className="block text-sm font-medium text-gray-700 mb-1">
-        //             Type
-        //           </label>
-        //           <div className="flex border rounded-lg overflow-hidden">
-        //             <button
-        //               type="button"
-        //               className={`flex-1 py-2 text-center ${
-        //                 formData.isVegetarian
-        //                   ? "bg-green-500 text-white"
-        //                   : "bg-gray-100"
-        //               }`}
-        //               onClick={() =>
-        //                 setFormData({ ...formData, isVegetarian: true })
-        //               }
-        //             >
-        //               <div className="flex items-center justify-center gap-2">
-        //                 <Leaf size={16} /> Vegetarian
-        //               </div>
-        //             </button>
-        //             <button
-        //               type="button"
-        //               className={`flex-1 py-2 text-center ${
-        //                 !formData.isVegetarian
-        //                   ? "bg-red-500 text-white"
-        //                   : "bg-gray-100"
-        //               }`}
-        //               onClick={() =>
-        //                 setFormData({ ...formData, isVegetarian: false })
-        //               }
-        //             >
-        //               Non-Veg
-        //             </button>
-        //           </div>
-        //         </div>
-        //         <div>
-        //           <label className="block text-sm font-medium text-gray-700 mb-1">
-        //             Spice Level
-        //           </label>
-        //           <select
-        //             name="spiceLevel"
-        //             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        //             value={formData.spiceLevel}
-        //             onChange={handleFormChange}
-        //           >
-        //             <option value="">Select Level</option>
-        //             <optgroup label="🌶️ Spice Levels">
-        //               <option value="Mild">Mild</option>
-        //               <option value="Medium">Medium</option>
-        //               <option value="Hot">Hot</option>
-        //               <option value="Extreme">Extreme</option>
-        //             </optgroup>
-        //             <optgroup label="🍬 Sweetness Levels">
-        //               <option value="Light">Light</option>
-        //               <option value="Moderate">Moderate</option>
-        //               <option value="Very Sweet">Very Sweet</option>
-        //             </optgroup>
-        //           </select>
-        //         </div>
-        //       </div>
-
-        //       <div className="pt-4">
-        //         <button
-        //           type="submit"
-        //           disabled={formLoading}
-        //           className="w-full  text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity" style={{ backgroundColor: "#501608" }}
-        //         >
-        //           {formLoading ? (
-        //             <>
-        //               <Loader2 className="animate-spin" size={18} />
-        //               {isEditMode ? "Updating..." : "Creating..."}
-        //             </>
-        //           ) : isEditMode ? (
-        //             "Update Item"
-        //           ) : (
-        //             "Add Item"
-        //           )}
-        //         </button>
-        //       </div>
-        //     </form>
-        //   </div>
-        // </div>
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in">
         <div className="p-5 text-white" style={{ backgroundColor: "#501608" }}>
@@ -595,29 +443,35 @@ const MenuManagement: React.FC = () => {
         </div>
 
         <form onSubmit={handleFormSubmit} className="p-5 space-y-4">
-          {/* Combo Checkbox */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="isCombo"
-              checked={formData.isCombo || false}
-              onChange={(e) => {
-                const isChecked = e.target.checked;
-                setFormData({
-                  ...formData,
-                  isCombo: isChecked,
-                  category: isChecked 
-                    ? categories.find(cat => cat.name === "Combos")?.id || ""
-                    : formData.category,
-                  comboItems: isChecked ? (formData.comboItems || []) : []
-                });
-              }}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="isCombo" className="ml-2 block text-sm font-medium text-gray-700">
-              This is a Combo
-            </label>
-          </div>
+         
+          {!isEditMode || (isEditMode && formData.isCombo) ? (
+  <div className="flex items-center">
+    <input
+      type="checkbox"
+      id="isCombo"
+      checked={formData.isCombo || false}
+      onChange={(e) => {
+        const isChecked = e.target.checked;
+        setFormData({
+          ...formData,
+          isCombo: isChecked,
+          category: isChecked
+            ? categories.find((cat) => cat.name === "Combos")?.id || ""
+            : formData.category,
+          comboItems: isChecked ? formData.comboItems || [] : [],
+        });
+      }}
+      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+    />
+    <label
+      htmlFor="isCombo"
+      className="ml-2 block text-sm font-medium text-gray-700"
+    >
+      This is a Combo
+    </label>
+  </div>
+) : null}
+
 
           {/* Item Name */}
           <div>
@@ -762,20 +616,31 @@ const MenuManagement: React.FC = () => {
                   {formData.comboItems?.map((item, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <select
-                        value={item.id}
-                        onChange={(e) => {
-                          const newComboItems = [...formData.comboItems];
-                          newComboItems[index].id = e.target.value;
-                          setFormData({ ...formData, comboItems: newComboItems });
-                        }}
-                        className="flex-1 px-3 py-2 border rounded-lg"
-                        required
-                      >
-                        <option value="">Select Item</option>
-                        {menuItems.filter(i => !i.isCombo).map(item => (
-                          <option key={item.id} value={item.id}>{item.name}</option>
-                        ))}
-                      </select>
+  value={item.id}
+  onChange={(e) => {
+ 
+     const selectedId = parseInt(e.target.value);
+    const selectedItem = menuItems.find(i => i.id === selectedId);
+
+    const newComboItems = [...formData.comboItems];
+    newComboItems[index] = {
+      ...newComboItems[index],
+      id: selectedId,
+      name: selectedItem?.name || "", // Include name
+    };
+
+    setFormData({ ...formData, comboItems: newComboItems });
+  }}
+  className="flex-1 px-3 py-2 border rounded-lg"
+  required
+>
+  <option value="">Select Item</option>
+  {menuItems.filter(i => !i.isCombo).map(item => (
+    <option key={item.id} value={item.id}>{item.name}</option>
+  ))}
+</select>
+
+
                       <input
                         type="number"
                         placeholder="Qty"
@@ -807,7 +672,7 @@ const MenuManagement: React.FC = () => {
                     onClick={() => {
                       setFormData({
                         ...formData,
-                        comboItems: [...(formData.comboItems || []), { id: "", quantity: 1 }]
+                        comboItems: [...(formData.comboItems || []), { id: "", quantity: 1,name: "" }],
                       });
                     }}
                     className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"

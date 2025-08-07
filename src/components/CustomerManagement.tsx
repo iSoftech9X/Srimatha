@@ -453,7 +453,7 @@ const CustomerManagement: React.FC = () => {
   const fetchCustomers = async (page = 1) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers?page=${page}&limit=10`, {
+      const res = await fetch('http://localhost:5000/api/customers', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -496,7 +496,7 @@ const CustomerManagement: React.FC = () => {
 
     try {
       const res = await fetch(
-        `https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers/${editingCustomer.id}`,
+        `http://localhost:5000/api/customers/${editingCustomer.id}`,
         {
           method: 'PATCH',
           headers: {
@@ -529,7 +529,7 @@ const CustomerManagement: React.FC = () => {
 
     try {
       const res = await fetch(
-        `https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers/${id}`,
+        `http://localhost:5000/api/customers/${id}`,
         {
           method: 'DELETE',
           headers: {
