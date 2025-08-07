@@ -157,14 +157,15 @@ router.get('/', async (req, res) => {
 // Get single menu item
 router.get('/:id', async (req, res) => {
   try {
-    const result = await req.db.findMenuItems({ id: req.params.id });
-    const item = result.items && result.items.length > 0 ? result.items[0] : null;
+    const item = await req.db.findMenuItemById(req.params.id);
+
     if (!item) {
       return res.status(404).json({
         success: false,
         message: 'Menu item not found'
       });
     }
+
     res.json({
       success: true,
       data: { item }
@@ -178,6 +179,7 @@ router.get('/:id', async (req, res) => {
     });
   }
 });
+
 
 // router.get('/:id', async (req, res) => {
 //   try {
@@ -533,6 +535,75 @@ router.get('/featured/popular', async (req, res) => {
 });
 
 // Create new menu item (Admin only)
+// router.patch('/:id', authenticate, authorize('admin'), async (req, res) => {
+//   try {
+//     const itemId = req.params.id;
+//     const updates = req.body;
+
+//     // Check if item exists
+//     const existingItem = await req.db.findMenuItems({ id: itemId });
+//     if (!existingItem.items || existingItem.items.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Menu item not found'
+//       });
+//     }
+
+//     // Prevent restricted field updates
+//     if (updates.id || updates.createdAt || updates.created_at) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Cannot update ID or creation date'
+//       });
+//     }
+
+//     // Prepare safe field mapping (optional chaining avoids undefined)
+//     const mappedUpdates = {
+//       ...(updates.name && { name: updates.name }),
+//       ...(updates.description !== undefined && { description: updates.description }),
+//       ...(updates.price !== undefined && { price: updates.price }),
+//       ...(updates.category && { category: updates.category }),
+//       ...(updates.isVegetarian !== undefined && { is_vegetarian: updates.isVegetarian }),
+//       ...(updates.isAvailable !== undefined && { is_available: updates.isAvailable }),
+//       ...(updates.image !== undefined && { image: updates.image }),
+//       ...(updates.preparationTime !== undefined && { preparation_time: updates.preparationTime }),
+//       ...(updates.spiceLevel !== undefined && { spice_level: updates.spiceLevel }),
+//       updated_at: new Date(),
+//     };
+
+//     // Update the menu item itself
+// const updatedItem = await req.db.updateMenuItem(itemId, mappedUpdates);
+
+// // If it's a combo, handle combo_items
+// if (updates.is_combo && Array.isArray(updates.comboItems)) {
+//   await req.db.query('DELETE FROM combo_items WHERE combo_id = $1', [itemId]);
+
+//   for (const item of updates.comboItems) {
+//     const { menu_item_id, quantity, spice_level } = item;
+//     await req.db.query(`
+//       INSERT INTO combo_items (combo_id, menu_item_id, quantity, spice_level)
+//       VALUES ($1, $2, $3, $4)
+//     `, [itemId, menu_item_id, quantity || 1, spice_level || 'Medium']);
+//   }
+// }
+
+
+//     res.json({
+//       success: true,
+//       data: updatedItem,
+//       message: 'Menu item updated successfully'
+//     });
+
+//   } catch (error) {
+//     console.error('Menu item patch error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to update menu item',
+//       error: error.message
+//     });
+//   }
+// });
+
 router.patch('/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
     const itemId = req.params.id;
@@ -555,7 +626,7 @@ router.patch('/:id', authenticate, authorize('admin'), async (req, res) => {
       });
     }
 
-    // Prepare safe field mapping (optional chaining avoids undefined)
+    // Build update payload
     const mappedUpdates = {
       ...(updates.name && { name: updates.name }),
       ...(updates.description !== undefined && { description: updates.description }),
@@ -566,9 +637,12 @@ router.patch('/:id', authenticate, authorize('admin'), async (req, res) => {
       ...(updates.image !== undefined && { image: updates.image }),
       ...(updates.preparationTime !== undefined && { preparation_time: updates.preparationTime }),
       ...(updates.spiceLevel !== undefined && { spice_level: updates.spiceLevel }),
+      ...(updates.is_combo !== undefined && { is_combo: updates.is_combo }), // store combo flag
+      ...(updates.is_combo && Array.isArray(updates.comboItems) && { combo_items: updates.comboItems }), // store combo items array as JSONB
       updated_at: new Date(),
     };
 
+    // Update the menu_items table
     const updatedItem = await req.db.updateMenuItem(itemId, mappedUpdates);
 
     res.json({
@@ -586,6 +660,10 @@ router.patch('/:id', authenticate, authorize('admin'), async (req, res) => {
     });
   }
 });
+
+
+
+
 
 
 

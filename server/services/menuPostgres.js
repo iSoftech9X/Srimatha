@@ -151,6 +151,42 @@ export async function addCateringOrder(order) {
 //   );
 //   return result.rows[0];
 // }
+export async function findMenuItemById(id) {
+  const sql = `SELECT * FROM menu_items WHERE id = $1`;
+  const result = await db.query(sql, [id]);
+
+  if (result.rows.length === 0) return null;
+
+  const row = result.rows[0];
+
+  let parsedComboItems = [];
+
+  if (row.is_combo && row.combo_items) {
+    try {
+      parsedComboItems = typeof row.combo_items === 'string'
+        ? JSON.parse(row.combo_items)
+        : row.combo_items;
+    } catch (err) {
+      console.warn('Failed to parse combo_items:', err);
+    }
+  }
+
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    price: row.price,
+    category: row.category,
+    available: row.is_available,
+    isVegetarian: row.is_vegetarian,
+    isVegan: row.is_vegan,
+    isGlutenFree: row.is_gluten_free,
+    image: row.image,
+    preparationTime: row.preparation_time,
+    spiceLevel: row.spice_level,
+    comboItems: parsedComboItems
+  };
+}
 
 
 export async function addMenuItem(menuItem) {
@@ -262,7 +298,6 @@ export async function updateMenuItem(id, updates) {
     throw new Error('No fields provided for update');
   }
 
-  // Convert keys to snake_case for SQL
   const setClauses = keys.map((key, index) => `${camelToSnake(key)} = $${index + 1}`);
   const values = Object.values(updates);
 
@@ -276,7 +311,6 @@ export async function updateMenuItem(id, updates) {
   const result = await pool.query(sql, [...values, id]);
   return result.rows[0];
 }
-
 
 
 

@@ -213,6 +213,8 @@ const MenuManagement: React.FC = () => {
     return;
   }
 
+  
+
   const details = item.comboItems
     .map(
       (combo: any, idx: number) =>
