@@ -11,6 +11,8 @@
 //   Minus,
 //   Search,
 //   Home,
+//   ChevronDown,
+//   ChevronUp,
 // } from "lucide-react";
 // import { useAuth } from "../context/AuthContext";
 // import { useApp } from "../context/AppContext";
@@ -102,6 +104,8 @@
 //     "Graduation",
 //     "Other",
 //   ]);
+//   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+//   const [showDropdown, setShowDropdown] = useState<number | null>(null);
 
 //   // Handle scroll event
 //   useEffect(() => {
@@ -205,6 +209,7 @@
 //       );
 //       setShowCancelForm(null);
 //       setCancelReason("");
+//       setShowDropdown(null);
 //     } catch (err) {
 //       toast.error("Failed to cancel order. Please try again.");
 //       console.error("Error cancelling order:", err);
@@ -355,11 +360,11 @@
 //         // Create filter categories - "All Dishes" and "Combos"
 //         const filterCategories = [
 //           { id: "all", name: "All Dishes" },
-//           { id: "combos", name: "Combos" }
+//           { id: "combos", name: "Combos" },
 //         ];
-        
+
 //         setMenuCategories(filterCategories);
-        
+
 //         // Set all items
 //         setMenuItems(items);
 //         setAllItemsLoaded(true);
@@ -413,21 +418,20 @@
 //     const matchesSearch =
 //       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 //       item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
 //     // Category filtering logic
 //     const matchesCategory =
-//       activeCategory === "all" || 
+//       activeCategory === "all" ||
 //       (activeCategory === "combos" && item.category === "combos");
-    
+
 //     return matchesSearch && matchesCategory && item.available;
 //   });
 
 //   // Group items by their actual categories
 //   const groupedItems = filteredItems.reduce((acc, item) => {
 //     const categoryId = item.category || "other";
-//     const categoryName = 
-//       item.category === "combos" ? "Combos" : 
-//       item.category || "Other";
+//     const categoryName =
+//       item.category === "combos" ? "Combos" : item.category || "Other";
 
 //     if (!acc[categoryId]) {
 //       acc[categoryId] = {
@@ -448,6 +452,44 @@
 //       minute: "2-digit",
 //     };
 //     return new Date(dateString).toLocaleDateString("en-US", options);
+//   };
+
+//   // Helper function to determine if order can be cancelled
+//   const canCancelOrder = (status: string) => {
+//     return status === "pending"; // Only allow cancellation for pending orders
+//   };
+
+//   // Helper function to determine if order is in non-cancellable state
+//   const isNonCancellableState = (status: string) => {
+//     return ["confirmed", "preparing", "ready"].includes(status);
+//   };
+
+//   // Get status color based on order status
+//   const getStatusColor = (status: string) => {
+//     switch (status.toLowerCase()) {
+//       case "pending":
+//         return "bg-yellow-100 text-yellow-800";
+//       case "confirmed":
+//         return "bg-green-100 text-green-800";
+//       case "preparing":
+//         return "bg-purple-100 text-purple-800";
+//       case "ready":
+//         return "bg-indigo-100 text-indigo-800";
+//       case "completed":
+//         return "bg-green-100 text-green-800";
+//       case "cancelled":
+//         return "bg-red-100 text-red-800";
+//       default:
+//         return "bg-gray-100 text-gray-800";
+//     }
+//   };
+
+//   const toggleOrderExpand = (orderId: number) => {
+//     setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
+//   };
+
+//   const toggleDropdown = (orderId: number) => {
+//     setShowDropdown(showDropdown === orderId ? null : orderId);
 //   };
 
 //   return (
@@ -563,102 +605,138 @@
 //                           {formatDate(order.created_at)}
 //                         </p>
 //                       </div>
-//                       <div className="text-right">
+//                       <div className="flex items-center gap-2">
 //                         <span
-//                           className={`px-3 py-1 rounded-full text-xs font-medium ${
-//                             order.status === "completed"
-//                               ? "bg-green-100 text-green-800"
-//                               : order.status === "cancelled"
-//                               ? "bg-red-100 text-red-800"
-//                               : "bg-yellow-100 text-yellow-800"
-//                           }`}
+//                           className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+//                             order.status
+//                           )}`}
 //                         >
-//                           {order.status}
+//                           {order.status.charAt(0).toUpperCase() +
+//                             order.status.slice(1)}
 //                         </span>
-//                       </div>
-//                     </div>
-
-//                     <div className="mt-4">
-//                       <h4 className="font-medium text-gray-700 mb-2">Items:</h4>
-//                       {order.items && order.items.length > 0 ? (
-//                         <ul className="space-y-2">
-//                           {order.items.map((item) => (
-//                             <li
-//                               key={item.id}
-//                               className="flex justify-between text-sm"
+//                         <div className="relative">
+//                           <button
+//                             onClick={() => toggleDropdown(order.id)}
+//                             className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+//                           >
+//                             <svg
+//                               xmlns="http://www.w3.org/2000/svg"
+//                               className="h-5 w-5 text-gray-500"
+//                               viewBox="0 0 20 20"
+//                               fill="currentColor"
 //                             >
-//                               <span>
-//                                 {item.quantity}x{" "}
-//                                 <span style={{ fontWeight: "bold" }}>
-//                                   {item.name}
-//                                 </span>
-//                                 {item.special_instructions && (
-//                                   <span className="text-xs text-gray-500 ml-2">
-//                                     ({item.special_instructions})
-//                                   </span>
-//                                 )}
-//                               </span>
-//                             </li>
-//                           ))}
-//                         </ul>
-//                       ) : (
-//                         <p className="text-sm text-gray-500">
-//                           No item details available
-//                         </p>
-//                       )}
-//                     </div>
-
-//                     {order.status !== "cancelled" &&
-//                       order.status !== "completed" &&
-//                       order.status !== "delivered" && (
-//                         <div className="mt-4">
-//                           {showCancelForm === order.id ? (
-//                             <div className="bg-gray-50 p-4 rounded-lg">
-//                               <h4 className="font-medium text-gray-700 mb-2">
-//                                 Cancel Order
-//                               </h4>
-//                               <textarea
-//                                 value={cancelReason}
-//                                 onChange={(e) =>
-//                                   setCancelReason(e.target.value)
-//                                 }
-//                                 placeholder="Please provide a reason for cancellation..."
-//                                 className="w-full p-2 border border-gray-300 rounded-md mb-2"
-//                                 rows={3}
-//                               />
-//                               <div className="flex justify-end gap-2">
+//                               <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+//                             </svg>
+//                           </button>
+//                           {showDropdown === order.id && (
+//                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+//                               {canCancelOrder(order.status) && (
 //                                 <button
-//                                   onClick={handleCancelFormClose}
-//                                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-300"
+//                                   onClick={() => handleCancelClick(order.id)}
+//                                   className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
 //                                 >
-//                                   Back
+//                                   Cancel Order
 //                                 </button>
-//                                 <button
-//                                   onClick={() => cancelOrder(order.id)}
-//                                   disabled={
-//                                     !cancelReason.trim() ||
-//                                     cancellingOrderId === order.id
-//                                   }
-//                                   className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 disabled:opacity-50"
-//                                 >
-//                                   {cancellingOrderId === order.id
-//                                     ? "Cancelling..."
-//                                     : "Confirm Cancellation"}
-//                                 </button>
-//                               </div>
-//                             </div>
-//                           ) : (
-//                             <div className="flex justify-end">
+//                               )}
 //                               <button
-//                                 onClick={() => handleCancelClick(order.id)}
-//                                 className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 text-sm font-medium"
+//                                 onClick={() => toggleOrderExpand(order.id)}
+//                                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
 //                               >
-//                                 Cancel Order
+//                                 {expandedOrderId === order.id
+//                                   ? "Hide Items"
+//                                   : "View Items"}
 //                               </button>
 //                             </div>
 //                           )}
 //                         </div>
-//                       )}
+//                       </div>
+//                     </div>
+
+//                     <div className="mt-4 flex justify-between items-center">
+//                       <div></div>
+//                       <button
+//                         onClick={() => toggleOrderExpand(order.id)}
+//                         className="text-sm text-[#501608] hover:underline flex items-center gap-1"
+//                       >
+//                         {expandedOrderId === order.id ? (
+//                           <>
+//                             <span>Hide Items</span>
+//                             <ChevronUp size={16} />
+//                           </>
+//                         ) : (
+//                           <>
+//                             <span>View Items</span>
+//                             <ChevronDown size={16} />
+//                           </>
+//                         )}
+//                       </button>
+//                     </div>
+
+//                     {expandedOrderId === order.id && (
+//                       <div className="mt-4 bg-gray-50 p-4 rounded-lg">
+//                         <h4 className="font-medium text-gray-700 mb-3">
+//                           Order Items:
+//                         </h4>
+//                         <div className="flex flex-wrap gap-2">
+//                           {order.items && order.items.length > 0 ? (
+//                             order.items.map((item) => (
+//                               <div
+//                                 key={item.id}
+//                                 className="bg-white px-3 py-2 rounded-md shadow-sm text-sm"
+//                               >
+//                                 <span className="font-medium">
+//                                   {item.quantity}x {item.name}
+//                                 </span>
+//                                 {item.special_instructions && (
+//                                   <span className="text-orange-600 ml-2">
+//                                     ({item.special_instructions})
+//                                   </span>
+//                                 )}
+//                               </div>
+//                             ))
+//                           ) : (
+//                             <p className="text-sm text-gray-500">
+//                               No item details available
+//                             </p>
+//                           )}
+//                         </div>
+//                       </div>
+//                     )}
+
+//                     {showCancelForm === order.id && (
+//                       <div className="mt-4 bg-gray-50 p-4 rounded-lg">
+//                         <h4 className="font-medium text-gray-700 mb-2">
+//                           Cancel Order
+//                         </h4>
+//                         <textarea
+//                           value={cancelReason}
+//                           onChange={(e) => setCancelReason(e.target.value)}
+//                           placeholder="Please provide a reason for cancellation..."
+//                           className="w-full p-2 border border-gray-300 rounded-md mb-2"
+//                           rows={3}
+//                         />
+//                         <div className="flex justify-end gap-2">
+//                           <button
+//                             onClick={handleCancelFormClose}
+//                             className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-300"
+//                           >
+//                             Back
+//                           </button>
+//                           <button
+//                             onClick={() => cancelOrder(order.id)}
+//                             disabled={
+//                               !cancelReason.trim() ||
+//                               cancellingOrderId === order.id
+//                             }
+//                             className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 disabled:opacity-50"
+//                           >
+//                             {cancellingOrderId === order.id
+//                               ? "Cancelling..."
+//                               : "Confirm Cancellation"}
+//                           </button>
+//                         </div>
+//                       </div>
+//                     )}
 //                   </div>
 //                 ))}
 //               </div>
@@ -666,7 +744,7 @@
 //           </div>
 //         ) : (
 //           <>
-//             <div className="bg-[#ea580a] rounded-2xl p-8 md:p-12 text-white mb-12">
+//             <div className="bg-[#e88824] rounded-2xl p-8 md:p-12 text-white mb-12">
 //               <div className="max-w-3xl">
 //                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
 //                   Make Your Event Unforgettable
@@ -779,58 +857,56 @@
 //                               key={item.id}
 //                               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
 //                             >
-//                               <div className="p-6">
-//                                 <div className="flex justify-between items-start mb-3">
-//                                   <h4 className="text-lg font-bold text-gray-800">
-//                                     {item.name}
-//                                   </h4>
-//                                   {quantity > 0 && (
-//                                     <span className="bg-[#501608] text-white text-xs px-2 py-1 rounded-full">
-//                                       {quantity} in cart
-//                                     </span>
-//                                   )}
+//                               <div className="p-6 flex gap-4">
+//                                 <div className="flex-shrink-0">
+//                                   <img
+//                                     src={item.image || "/placeholder.png"}
+//                                     alt={item.name}
+//                                     className="w-24 h-24 object-cover rounded-full mx-auto"
+//                                   />
 //                                 </div>
-//                                 <p className="text-gray-600 mb-4 text-sm">
-//                                   {item.description}
-//                                 </p>
-//                                 <div className="flex items-center justify-between">
-//                                   <span
-//                                     className="text-lg font-bold"
-//                                     style={{ color: "#501608" }}
-//                                   >
-//                                     {/* ₹{item.price} */}
-//                                   </span>
-//                                   {quantity > 0 ? (
-//                                     <div className="flex items-center gap-2">
+//                                 <div className="flex-grow">
+//                                   <div className="flex justify-between items-start mb-3">
+//                                     <h4 className="text-lg font-bold text-gray-800">
+//                                       {item.name}
+//                                     </h4>
+//                                   </div>
+//                                   <p className="text-gray-600 mb-4 text-sm">
+//                                     {item.description}
+//                                   </p>
+//                                   <div className="flex items-center justify-end">
+//                                     {quantity > 0 ? (
+//                                       <div className="flex items-center gap-2">
+//                                         <button
+//                                           onClick={() =>
+//                                             handleDecrement(cartItem!.id)
+//                                           }
+//                                           className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-2 transition-colors duration-300"
+//                                         >
+//                                           <Minus size={16} />
+//                                         </button>
+//                                         <span className="w-8 text-center">
+//                                           {quantity}
+//                                         </span>
+//                                         <button
+//                                           onClick={() =>
+//                                             handleIncrement(cartItem!.id)
+//                                           }
+//                                           className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-2 transition-colors duration-300"
+//                                         >
+//                                           <Plus size={16} />
+//                                         </button>
+//                                       </div>
+//                                     ) : (
 //                                       <button
-//                                         onClick={() =>
-//                                           handleDecrement(cartItem!.id)
-//                                         }
-//                                         className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-2 transition-colors duration-300"
-//                                       >
-//                                         <Minus size={16} />
-//                                       </button>
-//                                       <span className="w-8 text-center">
-//                                         {quantity}
-//                                       </span>
-//                                       <button
-//                                         onClick={() =>
-//                                           handleIncrement(cartItem!.id)
-//                                         }
-//                                         className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-2 transition-colors duration-300"
+//                                         onClick={() => handleAddToCart(item)}
+//                                         className="bg-[#501608] hover:bg-[#722010] text-white py-2 px-4 rounded-full font-semibold transition-colors duration-300 flex items-center gap-2"
 //                                       >
 //                                         <Plus size={16} />
+//                                         Add
 //                                       </button>
-//                                     </div>
-//                                   ) : (
-//                                     <button
-//                                       onClick={() => handleAddToCart(item)}
-//                                       className="bg-[#501608] hover:bg-[#722010] text-white py-2 px-4 rounded-full font-semibold transition-colors duration-300 flex items-center gap-2"
-//                                     >
-//                                       <Plus size={16} />
-//                                       Add
-//                                     </button>
-//                                   )}
+//                                     )}
+//                                   </div>
 //                                 </div>
 //                               </div>
 //                             </div>
@@ -879,7 +955,7 @@
 //                     <h4 className="font-medium text-gray-800 mb-4">
 //                       Event Details
 //                     </h4>
-                    
+
 //                     <div className="space-y-4">
 //                       <div>
 //                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -896,7 +972,7 @@
 //                           placeholder="Enter number of persons"
 //                         />
 //                       </div>
-                      
+
 //                       <div>
 //                         <label className="block text-sm font-medium text-gray-700 mb-1">
 //                           Event Date
@@ -906,10 +982,10 @@
 //                           value={eventDate}
 //                           onChange={(e) => setEventDate(e.target.value)}
 //                           className="w-full p-2 border border-gray-300 rounded-md"
-//                           min={new Date().toISOString().split('T')[0]}
+//                           min={new Date().toISOString().split("T")[0]}
 //                         />
 //                       </div>
-                      
+
 //                       <div>
 //                         <label className="block text-sm font-medium text-gray-700 mb-1">
 //                           Event Type
@@ -928,54 +1004,57 @@
 //                   {/* Cart Items */}
 //                   <div className="space-y-4">
 //                     {cart.map((item) => (
-//                       <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
-//                         <div className="flex items-start justify-between mb-2">
-//                           <div className="flex-1">
+//                       <div
+//                         key={item.id}
+//                         className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+//                       >
+//                         <div className="flex-shrink-0">
+//                           <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-200">
+//                             <img
+//                               src={item.menuItem.image || "/placeholder.png"}
+//                               alt={item.menuItem.name}
+//                               className="h-full w-full object-cover"
+//                             />
+//                           </div>
+//                         </div>
+//                         <div className="flex-1 min-w-0">
+//                           <div className="flex justify-between items-start">
 //                             <h4 className="font-medium text-gray-800">
 //                               {item.menuItem.name}
 //                             </h4>
-//                             <p className="text-sm text-gray-600">
-//                               {item.menuItem.description}
+//                             <button
+//                               onClick={() => removeFromCart(item.id)}
+//                               className="text-gray-400 hover:text-gray-600"
+//                             >
+//                               <X size={16} />
+//                             </button>
+//                           </div>
+//                           <p className="text-sm text-gray-600">
+//                             {item.menuItem.description}
+//                           </p>
+//                           {item.specialInstructions && (
+//                             <p className="text-xs text-orange-600 mt-1">
+//                               <strong>Details:</strong>{" "}
+//                               {item.specialInstructions}
 //                             </p>
-//                             {item.specialInstructions && (
-//                               <p className="text-xs text-orange-600 mt-1">
-//                                 <strong>Details:</strong>{" "}
-//                                 {item.specialInstructions}
-//                               </p>
-//                             )}
-//                           </div>
-//                           <button
-//                             onClick={() => removeFromCart(item.id)}
-//                             className=""
-//                             style={{ color: "#501608" }}
-//                           >
-//                             <X size={16} />
-//                           </button>
+//                           )}
 //                         </div>
-//                         <div className="flex justify-between items-center">
-//                           <span
-//                             className="text-lg font-bold"
-//                             style={{ color: "#501608" }}
+//                         <div className="flex items-center gap-2">
+//                           <button
+//                             onClick={() => handleDecrement(item.id)}
+//                             className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-1 transition-colors duration-300"
 //                           >
-//                             {/* ₹{(item.menuItem.price * item.quantity).toLocaleString()} */}
+//                             <Minus size={16} />
+//                           </button>
+//                           <span className="w-8 text-center">
+//                             {item.quantity}
 //                           </span>
-//                           <div className="flex items-center gap-2">
-//                             <button
-//                               onClick={() => handleDecrement(item.id)}
-//                               className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-1 transition-colors duration-300"
-//                             >
-//                               <Minus size={16} />
-//                             </button>
-//                             <span className="w-8 text-center">
-//                               {item.quantity}
-//                             </span>
-//                             <button
-//                               onClick={() => handleIncrement(item.id)}
-//                               className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-1 transition-colors duration-300"
-//                             >
-//                               <Plus size={16} />
-//                             </button>
-//                           </div>
+//                           <button
+//                             onClick={() => handleIncrement(item.id)}
+//                             className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-1 transition-colors duration-300"
+//                           >
+//                             <Plus size={16} />
+//                           </button>
 //                         </div>
 //                       </div>
 //                     ))}
@@ -987,10 +1066,10 @@
 //             {cart.length > 0 && (
 //               <div className="border-t border-gray-200 p-6 bg-white">
 //                 <div className="flex justify-between items-center mb-4">
-//                   <span className="font-medium">Subtotal:</span>
+//                   {/* <span className="font-medium">Subtotal:</span>
 //                   <span className="font-bold" style={{ color: "#501608" }}>
-//                     {/* ₹{cartTotal.toLocaleString()} */}
-//                   </span>
+//                     ₹{cartTotal.toFixed(2)}
+//                   </span> */}
 //                 </div>
 //                 <button
 //                   onClick={handleCheckoutClick}
@@ -1255,6 +1334,8 @@ import {
   Minus,
   Search,
   Home,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
@@ -1346,6 +1427,16 @@ const CateringOrdering: React.FC = () => {
     "Graduation",
     "Other",
   ]);
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [showDropdown, setShowDropdown] = useState<number | null>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
+
+  const toggleDescription = (itemId: string) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
+  };
 
   // Handle scroll event
   useEffect(() => {
@@ -1449,6 +1540,7 @@ const CateringOrdering: React.FC = () => {
       );
       setShowCancelForm(null);
       setCancelReason("");
+      setShowDropdown(null);
     } catch (err) {
       toast.error("Failed to cancel order. Please try again.");
       console.error("Error cancelling order:", err);
@@ -1599,11 +1691,11 @@ const CateringOrdering: React.FC = () => {
         // Create filter categories - "All Dishes" and "Combos"
         const filterCategories = [
           { id: "all", name: "All Dishes" },
-          { id: "combos", name: "Combos" }
+          { id: "combos", name: "Combos" },
         ];
-        
+
         setMenuCategories(filterCategories);
-        
+
         // Set all items
         setMenuItems(items);
         setAllItemsLoaded(true);
@@ -1657,21 +1749,20 @@ const CateringOrdering: React.FC = () => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // Category filtering logic
     const matchesCategory =
-      activeCategory === "all" || 
+      activeCategory === "all" ||
       (activeCategory === "combos" && item.category === "combos");
-    
+
     return matchesSearch && matchesCategory && item.available;
   });
 
   // Group items by their actual categories
   const groupedItems = filteredItems.reduce((acc, item) => {
     const categoryId = item.category || "other";
-    const categoryName = 
-      item.category === "combos" ? "Combos" : 
-      item.category || "Other";
+    const categoryName =
+      item.category === "combos" ? "Combos" : item.category || "Other";
 
     if (!acc[categoryId]) {
       acc[categoryId] = {
@@ -1702,6 +1793,34 @@ const CateringOrdering: React.FC = () => {
   // Helper function to determine if order is in non-cancellable state
   const isNonCancellableState = (status: string) => {
     return ["confirmed", "preparing", "ready"].includes(status);
+  };
+
+  // Get status color based on order status
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "confirmed":
+        return "bg-green-100 text-green-800";
+      case "preparing":
+        return "bg-purple-100 text-purple-800";
+      case "ready":
+        return "bg-indigo-100 text-indigo-800";
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const toggleOrderExpand = (orderId: number) => {
+    setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
+  };
+
+  const toggleDropdown = (orderId: number) => {
+    setShowDropdown(showDropdown === orderId ? null : orderId);
   };
 
   return (
@@ -1817,106 +1936,138 @@ const CateringOrdering: React.FC = () => {
                           {formatDate(order.created_at)}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="flex items-center gap-2">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            order.status === "completed"
-                              ? "bg-green-100 text-green-800"
-                              : order.status === "cancelled"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            order.status
+                          )}`}
                         >
-                          {order.status}
+                          {order.status.charAt(0).toUpperCase() +
+                            order.status.slice(1)}
                         </span>
+                        <div className="relative">
+                          <button
+                            onClick={() => toggleDropdown(order.id)}
+                            className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5 text-gray-500"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          </button>
+                          {showDropdown === order.id && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                              {canCancelOrder(order.status) && (
+                                <button
+                                  onClick={() => handleCancelClick(order.id)}
+                                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                >
+                                  Cancel Order
+                                </button>
+                              )}
+                              <button
+                                onClick={() => toggleOrderExpand(order.id)}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                {expandedOrderId === order.id
+                                  ? "Hide Items"
+                                  : "View Items"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="mt-4">
-                      <h4 className="font-medium text-gray-700 mb-2">Items:</h4>
-                      {order.items && order.items.length > 0 ? (
-                        <ul className="space-y-2">
-                          {order.items.map((item) => (
-                            <li
-                              key={item.id}
-                              className="flex justify-between text-sm"
-                            >
-                              <span>
-                                {item.quantity}x{" "}
-                                <span style={{ fontWeight: "bold" }}>
-                                  {item.name}
+                    <div className="mt-4 flex justify-between items-center">
+                      <div></div>
+                      <button
+                        onClick={() => toggleOrderExpand(order.id)}
+                        className="text-sm text-[#501608] hover:underline flex items-center gap-1"
+                      >
+                        {expandedOrderId === order.id ? (
+                          <>
+                            <span>Hide Items</span>
+                            <ChevronUp size={16} />
+                          </>
+                        ) : (
+                          <>
+                            <span>View Items</span>
+                            <ChevronDown size={16} />
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {expandedOrderId === order.id && (
+                      <div className="mt-4 bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-medium text-gray-700 mb-3">
+                          Order Items:
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {order.items && order.items.length > 0 ? (
+                            order.items.map((item) => (
+                              <div
+                                key={item.id}
+                                className="bg-white px-3 py-2 rounded-md shadow-sm text-sm"
+                              >
+                                <span className="font-medium">
+                                  {item.quantity}x {item.name}
                                 </span>
                                 {item.special_instructions && (
-                                  <span className="text-xs text-gray-500 ml-2">
+                                  <span className="text-orange-600 ml-2">
                                     ({item.special_instructions})
                                   </span>
                                 )}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-gray-500">
-                          No item details available
-                        </p>
-                      )}
-                    </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-gray-500">
+                              No item details available
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
-                    {canCancelOrder(order.status) ? (
-                      <div className="mt-4">
-                        {showCancelForm === order.id ? (
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <h4 className="font-medium text-gray-700 mb-2">
-                              Cancel Order
-                            </h4>
-                            <textarea
-                              value={cancelReason}
-                              onChange={(e) =>
-                                setCancelReason(e.target.value)
-                              }
-                              placeholder="Please provide a reason for cancellation..."
-                              className="w-full p-2 border border-gray-300 rounded-md mb-2"
-                              rows={3}
-                            />
-                            <div className="flex justify-end gap-2">
-                              <button
-                                onClick={handleCancelFormClose}
-                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-300"
-                              >
-                                Back
-                              </button>
-                              <button
-                                onClick={() => cancelOrder(order.id)}
-                                disabled={
-                                  !cancelReason.trim() ||
-                                  cancellingOrderId === order.id
-                                }
-                                className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 disabled:opacity-50"
-                              >
-                                {cancellingOrderId === order.id
-                                  ? "Cancelling..."
-                                  : "Confirm Cancellation"}
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex justify-end">
-                            <button
-                              onClick={() => handleCancelClick(order.id)}
-                              className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 text-sm font-medium"
-                            >
-                              Cancel Order
-                            </button>
-                          </div>
-                        )}
+                    {showCancelForm === order.id && (
+                      <div className="mt-4 bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-medium text-gray-700 mb-2">
+                          Cancel Order
+                        </h4>
+                        <textarea
+                          value={cancelReason}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          placeholder="Please provide a reason for cancellation..."
+                          className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                          rows={3}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={handleCancelFormClose}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-300"
+                          >
+                            Back
+                          </button>
+                          <button
+                            onClick={() => cancelOrder(order.id)}
+                            disabled={
+                              !cancelReason.trim() ||
+                              cancellingOrderId === order.id
+                            }
+                            className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-300 disabled:opacity-50"
+                          >
+                            {cancellingOrderId === order.id
+                              ? "Cancelling..."
+                              : "Confirm Cancellation"}
+                          </button>
+                        </div>
                       </div>
-                    ) : isNonCancellableState(order.status) ? (
-                      <div className="mt-4 text-right">
-                        <p className="text-sm text-gray-800 " style={{ fontWeight: "bold" }}>
-                          Please contact owner to cancel this order
-                        </p>
-                      </div>
-                    ) : null}
+                    )}
                   </div>
                 ))}
               </div>
@@ -1924,7 +2075,7 @@ const CateringOrdering: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="bg-[#ea580a] rounded-2xl p-8 md:p-12 text-white mb-12">
+            <div className="bg-[#e88824] rounded-2xl p-8 md:p-12 text-white mb-12">
               <div className="max-w-3xl">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
                   Make Your Event Unforgettable
@@ -2037,58 +2188,68 @@ const CateringOrdering: React.FC = () => {
                               key={item.id}
                               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
                             >
-                              <div className="p-6">
-                                <div className="flex justify-between items-start mb-3">
-                                  <h4 className="text-lg font-bold text-gray-800">
-                                    {item.name}
-                                  </h4>
-                                  {/* {quantity > 0 && (
-                                    <span className="bg-[#501608] text-white text-xs px-2 py-1 rounded-full">
-                                      {quantity} in cart
-                                    </span>
-                                  )} */}
+                              <div className="p-6 flex gap-4">
+                                <div className="flex-shrink-0">
+                                  <img
+                                    src={item.image || "/placeholder.png"}
+                                    alt={item.name}
+                                    className="w-24 h-24 object-cover rounded-full mx-auto"
+                                  />
                                 </div>
-                                <p className="text-gray-600 mb-4 text-sm">
-                                  {item.description}
-                                </p>
-                                <div className="flex items-center justify-between">
-                                  <span
-                                    className="text-lg font-bold"
-                                    style={{ color: "#501608" }}
-                                  >
-                                    {/* ₹{item.price} */}
-                                  </span>
-                                  {quantity > 0 ? (
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        onClick={() =>
-                                          handleDecrement(cartItem!.id)
-                                        }
-                                        className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-2 transition-colors duration-300"
+                                <div className="flex-grow">
+                                  <div className="flex justify-between items-start mb-3">
+                                    <h4 className="text-lg font-bold text-gray-800">
+                                      {item.name}
+                                    </h4>
+                                  </div>
+                                  <div className="text-gray-600 mb-4 text-sm relative">
+                                    <p 
+                                      className={`${expandedDescriptions[item.id] ? '' : 'line-clamp-2'} transition-all duration-200`}
+                                    >
+                                      {item.description}
+                                    </p>
+                                    {item.description && item.description.length > 100 && (
+                                      <button 
+                                        onClick={() => toggleDescription(item.id)}
+                                        className="text-[#501608] hover:underline text-xs mt-1"
                                       >
-                                        <Minus size={16} />
+                                        {expandedDescriptions[item.id] ? 'Show less' : 'Show more'}
                                       </button>
-                                      <span className="w-8 text-center">
-                                        {quantity}
-                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center justify-end">
+                                    {quantity > 0 ? (
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={() =>
+                                            handleDecrement(cartItem!.id)
+                                          }
+                                          className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-2 transition-colors duration-300"
+                                        >
+                                          <Minus size={16} />
+                                        </button>
+                                        <span className="w-8 text-center">
+                                          {quantity}
+                                        </span>
+                                        <button
+                                          onClick={() =>
+                                            handleIncrement(cartItem!.id)
+                                          }
+                                          className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-2 transition-colors duration-300"
+                                        >
+                                          <Plus size={16} />
+                                        </button>
+                                      </div>
+                                    ) : (
                                       <button
-                                        onClick={() =>
-                                          handleIncrement(cartItem!.id)
-                                        }
-                                        className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-2 transition-colors duration-300"
+                                        onClick={() => handleAddToCart(item)}
+                                        className="bg-[#501608] hover:bg-[#722010] text-white py-2 px-4 rounded-full font-semibold transition-colors duration-300 flex items-center gap-2"
                                       >
                                         <Plus size={16} />
+                                        Add
                                       </button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleAddToCart(item)}
-                                      className="bg-[#501608] hover:bg-[#722010] text-white py-2 px-4 rounded-full font-semibold transition-colors duration-300 flex items-center gap-2"
-                                    >
-                                      <Plus size={16} />
-                                      Add
-                                    </button>
-                                  )}
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -2137,7 +2298,7 @@ const CateringOrdering: React.FC = () => {
                     <h4 className="font-medium text-gray-800 mb-4">
                       Event Details
                     </h4>
-                    
+
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -2154,7 +2315,7 @@ const CateringOrdering: React.FC = () => {
                           placeholder="Enter number of persons"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Event Date
@@ -2164,10 +2325,10 @@ const CateringOrdering: React.FC = () => {
                           value={eventDate}
                           onChange={(e) => setEventDate(e.target.value)}
                           className="w-full p-2 border border-gray-300 rounded-md"
-                          min={new Date().toISOString().split('T')[0]}
+                          min={new Date().toISOString().split("T")[0]}
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Event Type
@@ -2186,54 +2347,57 @@ const CateringOrdering: React.FC = () => {
                   {/* Cart Items */}
                   <div className="space-y-4">
                     {cart.map((item) => (
-                      <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex-shrink-0">
+                          <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-200">
+                            <img
+                              src={item.menuItem.image || "/placeholder.png"}
+                              alt={item.menuItem.name}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
                             <h4 className="font-medium text-gray-800">
                               {item.menuItem.name}
                             </h4>
-                            <p className="text-sm text-gray-600">
-                              {item.menuItem.description}
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="text-gray-400 hover:text-gray-600"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {item.menuItem.description}
+                          </p>
+                          {item.specialInstructions && (
+                            <p className="text-xs text-orange-600 mt-1">
+                              <strong>Details:</strong>{" "}
+                              {item.specialInstructions}
                             </p>
-                            {item.specialInstructions && (
-                              <p className="text-xs text-orange-600 mt-1">
-                                <strong>Details:</strong>{" "}
-                                {item.specialInstructions}
-                              </p>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => removeFromCart(item.id)}
-                            className=""
-                            style={{ color: "#501608" }}
-                          >
-                            <X size={16} />
-                          </button>
+                          )}
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span
-                            className="text-lg font-bold"
-                            style={{ color: "#501608" }}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleDecrement(item.id)}
+                            className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-1 transition-colors duration-300"
                           >
-                            {/* ₹{(item.menuItem.price * item.quantity).toLocaleString()} */}
+                            <Minus size={16} />
+                          </button>
+                          <span className="w-8 text-center">
+                            {item.quantity}
                           </span>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleDecrement(item.id)}
-                              className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-1 transition-colors duration-300"
-                            >
-                              <Minus size={16} />
-                            </button>
-                            <span className="w-8 text-center">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() => handleIncrement(item.id)}
-                              className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-1 transition-colors duration-300"
-                            >
-                              <Plus size={16} />
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleIncrement(item.id)}
+                            className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-1 transition-colors duration-300"
+                          >
+                            <Plus size={16} />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -2245,10 +2409,7 @@ const CateringOrdering: React.FC = () => {
             {cart.length > 0 && (
               <div className="border-t border-gray-200 p-6 bg-white">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="font-medium">Subtotal:</span>
-                  <span className="font-bold" style={{ color: "#501608" }}>
-                    {/* ₹{cartTotal.toLocaleString()} */}
-                  </span>
+                
                 </div>
                 <button
                   onClick={handleCheckoutClick}
