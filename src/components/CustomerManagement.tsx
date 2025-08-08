@@ -453,7 +453,7 @@ const CustomerManagement: React.FC = () => {
   const fetchCustomers = async (page = 1) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers?page=${page}&limit=10`, {
+      const res = await fetch('https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

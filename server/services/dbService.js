@@ -4,6 +4,7 @@ import pool from './postgres.js';
 
 export default {
    findMenuItems: menuPostgres.findMenuItems,
+    findMenuItemById: menuPostgres.findMenuItemById,
   getMenuCategories: menuPostgres.getMenuCategories,
    query: (text, params) => pool.query(text, params),
   addMenuItem: menuPostgres.addMenuItem,

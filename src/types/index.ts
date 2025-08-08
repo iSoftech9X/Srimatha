@@ -17,6 +17,8 @@ export interface Customer {
 export interface ComboItem {
   id: string;
   quantity: number;
+  name: string;
+  spiceLevel?: 'none' | 'mild' | 'medium' | 'hot' | 'very-hot';
 }
 export interface MenuItem {
   id: string;

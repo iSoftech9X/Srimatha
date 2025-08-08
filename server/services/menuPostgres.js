@@ -80,30 +80,52 @@ export async function findMenuItems(_, options = {}) {
 
   const result = await db.query(sql, params);
 
-  const items = result.rows.map(row => ({
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    price: row.price,
-    category: row.category,
-    available: row.is_available,
-    isVegetarian: row.is_vegetarian,
-    image: row.image,
-    preparationTime: row.preparation_time,
-    spiceLevel: row.spice_level,
-  }));
+  const items = result.rows.map(row => {
+    let parsedComboItems = [];
 
-  // Optional: get total count for pagination
+    if (row.is_combo && row.combo_items) {
+      console.log('Parsing combo_items for item:', row.id);
+      if (typeof row.combo_items === 'string') {
+        try {
+          parsedComboItems = JSON.parse(row.combo_items);
+        } catch (err) {
+          console.warn('Failed to parse combo_items for item:', row.id, err);
+        }
+      } else if (Array.isArray(row.combo_items)) {
+        parsedComboItems = row.combo_items;
+
+      }
+
+    }
+
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      price: row.price,
+      category: row.category,
+      available: row.is_available,
+      isVegetarian: row.is_vegetarian,
+      isVegan: row.is_vegan,
+      isGlutenFree: row.is_gluten_free,
+      image: row.image,
+      preparationTime: row.preparation_time,
+      spiceLevel: row.spice_level,
+     comboItems: parsedComboItems  
+    };
+  });
+
   const countResult = await db.query('SELECT COUNT(*) FROM menu_items');
   const total = parseInt(countResult.rows[0].count, 10);
 
   return {
-    items,
+  items: result.rows,
     total,
     page: Math.floor(offset / limit) + 1,
     totalPages: Math.ceil(total / limit)
   };
 }
+
 
 // In your dbService.js (or wherever your DB functions are):
 
@@ -129,6 +151,42 @@ export async function addCateringOrder(order) {
 //   );
 //   return result.rows[0];
 // }
+export async function findMenuItemById(id) {
+  const sql = `SELECT * FROM menu_items WHERE id = $1`;
+  const result = await db.query(sql, [id]);
+
+  if (result.rows.length === 0) return null;
+
+  const row = result.rows[0];
+
+  let parsedComboItems = [];
+
+  if (row.is_combo && row.combo_items) {
+    try {
+      parsedComboItems = typeof row.combo_items === 'string'
+        ? JSON.parse(row.combo_items)
+        : row.combo_items;
+    } catch (err) {
+      console.warn('Failed to parse combo_items:', err);
+    }
+  }
+
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    price: row.price,
+    category: row.category,
+    available: row.is_available,
+    isVegetarian: row.is_vegetarian,
+    isVegan: row.is_vegan,
+    isGlutenFree: row.is_gluten_free,
+    image: row.image,
+    preparationTime: row.preparation_time,
+    spiceLevel: row.spice_level,
+    comboItems: parsedComboItems
+  };
+}
 
 
 export async function addMenuItem(menuItem) {
@@ -148,13 +206,15 @@ export async function addMenuItem(menuItem) {
     allergens,
     created_at,
     updated_at,
+    is_combo,        // ✅ NEW
+    combo_items      // ✅ NEW
   } = menuItem;
 
   const result = await pool.query(
     `INSERT INTO menu_items 
-      (name, description, price, category, is_available, is_vegetarian, is_vegan, is_gluten_free, image, preparation_time, spice_level, ingredients, allergens, created_at, updated_at)
+      (name, description, price, category, is_available, is_vegetarian, is_vegan, is_gluten_free, image, preparation_time, spice_level, ingredients, allergens, created_at, updated_at, is_combo, combo_items)
      VALUES
-      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
      RETURNING *`,
     [
       name,
@@ -171,12 +231,15 @@ export async function addMenuItem(menuItem) {
       ingredients,
       allergens,
       created_at,
-      updated_at
+      updated_at,
+      is_combo,
+      JSON.stringify(combo_items || [])   // ✅ Make sure it's saved as JSON
     ]
   );
 
   return result.rows[0];
 }
+
 
 
 
@@ -229,15 +292,37 @@ function camelToSnake(str) {
   return str.replace(/([A-Z])/g, letter => `_${letter.toLowerCase()}`);
 }
 
+// export async function updateMenuItem(id, updates) {
+//   const keys = Object.keys(updates);
+//   if (keys.length === 0) {
+//     throw new Error('No fields provided for update');
+//   }
+
+//   const setClauses = keys.map((key, index) => `${camelToSnake(key)} = $${index + 1}`);
+//   const values = Object.values(updates);
+
+//   const sql = `
+//     UPDATE menu_items
+//     SET ${setClauses.join(', ')}
+//     WHERE id = $${keys.length + 1}
+//     RETURNING *
+//   `;
+
+//   const result = await pool.query(sql, [...values, id]);
+//   return result.rows[0];
+// }
+
 export async function updateMenuItem(id, updates) {
   const keys = Object.keys(updates);
   if (keys.length === 0) {
     throw new Error('No fields provided for update');
   }
 
-  // Convert keys to snake_case for SQL
   const setClauses = keys.map((key, index) => `${camelToSnake(key)} = $${index + 1}`);
-  const values = Object.values(updates);
+
+  const values = Object.entries(updates).map(([key, value]) =>
+    key === 'combo_items' ? JSON.stringify(value) : value
+  );
 
   const sql = `
     UPDATE menu_items
@@ -249,7 +334,6 @@ export async function updateMenuItem(id, updates) {
   const result = await pool.query(sql, [...values, id]);
   return result.rows[0];
 }
-
 
 
 
