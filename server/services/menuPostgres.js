@@ -292,6 +292,26 @@ function camelToSnake(str) {
   return str.replace(/([A-Z])/g, letter => `_${letter.toLowerCase()}`);
 }
 
+// export async function updateMenuItem(id, updates) {
+//   const keys = Object.keys(updates);
+//   if (keys.length === 0) {
+//     throw new Error('No fields provided for update');
+//   }
+
+//   const setClauses = keys.map((key, index) => `${camelToSnake(key)} = $${index + 1}`);
+//   const values = Object.values(updates);
+
+//   const sql = `
+//     UPDATE menu_items
+//     SET ${setClauses.join(', ')}
+//     WHERE id = $${keys.length + 1}
+//     RETURNING *
+//   `;
+
+//   const result = await pool.query(sql, [...values, id]);
+//   return result.rows[0];
+// }
+
 export async function updateMenuItem(id, updates) {
   const keys = Object.keys(updates);
   if (keys.length === 0) {
@@ -299,7 +319,10 @@ export async function updateMenuItem(id, updates) {
   }
 
   const setClauses = keys.map((key, index) => `${camelToSnake(key)} = $${index + 1}`);
-  const values = Object.values(updates);
+
+  const values = Object.entries(updates).map(([key, value]) =>
+    key === 'combo_items' ? JSON.stringify(value) : value
+  );
 
   const sql = `
     UPDATE menu_items

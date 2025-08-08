@@ -535,6 +535,83 @@ router.get('/featured/popular', async (req, res) => {
 });
 
 // Create new menu item (Admin only)
+// PATCH menu item by ID
+router.patch('/:id', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const itemId = req.params.id;
+    const updates = req.body;
+
+    // Check if item exists
+    const existingItem = await req.db.findMenuItems({ id: itemId });
+    if (!existingItem.items || existingItem.items.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Menu item not found'
+      });
+    }
+
+    if (updates.id || updates.createdAt || updates.created_at) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot update ID or creation date'
+      });
+    }
+
+    const mappedUpdates = {
+      ...(updates.name && { name: updates.name }),
+      ...(updates.description !== undefined && { description: updates.description }),
+      ...(updates.price !== undefined && { price: updates.price }),
+      ...(updates.category && { category: updates.category }),
+      ...(updates.isVegetarian !== undefined && { is_vegetarian: updates.isVegetarian }),
+      ...(updates.isAvailable !== undefined && { is_available: updates.isAvailable }),
+      ...(updates.image !== undefined && { image: updates.image }),
+      ...(updates.preparationTime !== undefined && { preparation_time: updates.preparationTime }),
+      ...(updates.spiceLevel !== undefined && { spice_level: updates.spiceLevel }),
+      ...(updates.is_combo !== undefined && { is_combo: updates.is_combo }),
+      updated_at: new Date(),
+    };
+
+    // if (updates.is_combo && Array.isArray(updates.comboItems)) {
+    //   mappedUpdates.combo_items = updates.comboItems;
+    // }
+    const isComboFlag = updates.is_combo ?? updates.isCombo;
+
+if (isComboFlag !== undefined) {
+  mappedUpdates.is_combo = isComboFlag;
+}
+
+if (isComboFlag && Array.isArray(updates.comboItems)) {
+  mappedUpdates.combo_items = updates.comboItems.map(item => ({
+    menu_item_id: item.id,
+     name: item.name,
+    quantity: item.quantity,
+    spice_level: item.spice_level || item.spiceLevel || "Medium"
+  }));
+} else if (!isComboFlag) {
+  // Clear combo items when switching off combo
+  mappedUpdates.combo_items = [];
+}
+
+
+    const updatedItem = await req.db.updateMenuItem(itemId, mappedUpdates);
+
+    res.json({
+      success: true,
+      data: updatedItem,
+      message: 'Menu item updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Menu item patch error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update menu item',
+      error: error.message
+    });
+  }
+});
+
+
 // router.patch('/:id', authenticate, authorize('admin'), async (req, res) => {
 //   try {
 //     const itemId = req.params.id;
@@ -557,7 +634,7 @@ router.get('/featured/popular', async (req, res) => {
 //       });
 //     }
 
-//     // Prepare safe field mapping (optional chaining avoids undefined)
+//     // Build update payload
 //     const mappedUpdates = {
 //       ...(updates.name && { name: updates.name }),
 //       ...(updates.description !== undefined && { description: updates.description }),
@@ -568,25 +645,13 @@ router.get('/featured/popular', async (req, res) => {
 //       ...(updates.image !== undefined && { image: updates.image }),
 //       ...(updates.preparationTime !== undefined && { preparation_time: updates.preparationTime }),
 //       ...(updates.spiceLevel !== undefined && { spice_level: updates.spiceLevel }),
+//       ...(updates.is_combo !== undefined && { is_combo: updates.is_combo }), // store combo flag
+//       ...(updates.is_combo && Array.isArray(updates.comboItems) && { combo_items: updates.comboItems }), // store combo items array as JSONB
 //       updated_at: new Date(),
 //     };
 
-//     // Update the menu item itself
-// const updatedItem = await req.db.updateMenuItem(itemId, mappedUpdates);
-
-// // If it's a combo, handle combo_items
-// if (updates.is_combo && Array.isArray(updates.comboItems)) {
-//   await req.db.query('DELETE FROM combo_items WHERE combo_id = $1', [itemId]);
-
-//   for (const item of updates.comboItems) {
-//     const { menu_item_id, quantity, spice_level } = item;
-//     await req.db.query(`
-//       INSERT INTO combo_items (combo_id, menu_item_id, quantity, spice_level)
-//       VALUES ($1, $2, $3, $4)
-//     `, [itemId, menu_item_id, quantity || 1, spice_level || 'Medium']);
-//   }
-// }
-
+//     // Update the menu_items table
+//     const updatedItem = await req.db.updateMenuItem(itemId, mappedUpdates);
 
 //     res.json({
 //       success: true,
@@ -603,63 +668,6 @@ router.get('/featured/popular', async (req, res) => {
 //     });
 //   }
 // });
-
-router.patch('/:id', authenticate, authorize('admin'), async (req, res) => {
-  try {
-    const itemId = req.params.id;
-    const updates = req.body;
-
-    // Check if item exists
-    const existingItem = await req.db.findMenuItems({ id: itemId });
-    if (!existingItem.items || existingItem.items.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Menu item not found'
-      });
-    }
-
-    // Prevent restricted field updates
-    if (updates.id || updates.createdAt || updates.created_at) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot update ID or creation date'
-      });
-    }
-
-    // Build update payload
-    const mappedUpdates = {
-      ...(updates.name && { name: updates.name }),
-      ...(updates.description !== undefined && { description: updates.description }),
-      ...(updates.price !== undefined && { price: updates.price }),
-      ...(updates.category && { category: updates.category }),
-      ...(updates.isVegetarian !== undefined && { is_vegetarian: updates.isVegetarian }),
-      ...(updates.isAvailable !== undefined && { is_available: updates.isAvailable }),
-      ...(updates.image !== undefined && { image: updates.image }),
-      ...(updates.preparationTime !== undefined && { preparation_time: updates.preparationTime }),
-      ...(updates.spiceLevel !== undefined && { spice_level: updates.spiceLevel }),
-      ...(updates.is_combo !== undefined && { is_combo: updates.is_combo }), // store combo flag
-      ...(updates.is_combo && Array.isArray(updates.comboItems) && { combo_items: updates.comboItems }), // store combo items array as JSONB
-      updated_at: new Date(),
-    };
-
-    // Update the menu_items table
-    const updatedItem = await req.db.updateMenuItem(itemId, mappedUpdates);
-
-    res.json({
-      success: true,
-      data: updatedItem,
-      message: 'Menu item updated successfully'
-    });
-
-  } catch (error) {
-    console.error('Menu item patch error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update menu item',
-      error: error.message
-    });
-  }
-});
 
 
 
