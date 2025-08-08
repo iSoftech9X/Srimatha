@@ -15,6 +15,8 @@ import orderRoutes from './routes/orders.js';
 import adminRoutes from './routes/admin.js';
 import contactRoutes from './routes/contact.js';
 import cateringRoutes from './routes/catering.js';
+import emailRoutes from './routes/email.js';
+
 
 dotenv.config();
 
@@ -35,8 +37,8 @@ app.use(limiter);
 // CORS configuration (always allow localhost:5173 for dev)
 app.use(cors({
   origin: [
-    'http://localhost:5173',                            // local dev
-    'https://main.dmf9m0mb091cb.amplifyapp.com',// production Amplify frontend
+    'http://localhost:5173',                            
+    'https://main.dmf9m0mb091cb.amplifyapp.com',
     'https://srimatha.co.in',
     'https://www.srimatha.co.in',
     'https://orders.srimatha.co.in'
@@ -74,6 +76,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/catering', cateringRoutes);
+app.use('/api/email', emailRoutes);
+
 
 // Health check endpoint
 
