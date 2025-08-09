@@ -106,6 +106,14 @@
 //   ]);
 //   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
 //   const [showDropdown, setShowDropdown] = useState<number | null>(null);
+//   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
+
+//   const toggleDescription = (itemId: string) => {
+//     setExpandedDescriptions(prev => ({
+//       ...prev,
+//       [itemId]: !prev[itemId]
+//     }));
+//   };
 
 //   // Handle scroll event
 //   useEffect(() => {
@@ -871,9 +879,21 @@
 //                                       {item.name}
 //                                     </h4>
 //                                   </div>
-//                                   <p className="text-gray-600 mb-4 text-sm">
-//                                     {item.description}
-//                                   </p>
+//                                   <div className="text-gray-600 mb-4 text-sm relative">
+//                                     <p 
+//                                       className={`${expandedDescriptions[item.id] ? '' : 'line-clamp-2'} transition-all duration-200`}
+//                                     >
+//                                       {item.description}
+//                                     </p>
+//                                     {item.description && item.description.length > 100 && (
+//                                       <button 
+//                                         onClick={() => toggleDescription(item.id)}
+//                                         className="text-[#501608] hover:underline text-xs mt-1"
+//                                       >
+//                                         {expandedDescriptions[item.id] ? 'Show less' : 'Show more'}
+//                                       </button>
+//                                     )}
+//                                   </div>
 //                                   <div className="flex items-center justify-end">
 //                                     {quantity > 0 ? (
 //                                       <div className="flex items-center gap-2">
@@ -1066,10 +1086,7 @@
 //             {cart.length > 0 && (
 //               <div className="border-t border-gray-200 p-6 bg-white">
 //                 <div className="flex justify-between items-center mb-4">
-//                   {/* <span className="font-medium">Subtotal:</span>
-//                   <span className="font-bold" style={{ color: "#501608" }}>
-//                     ₹{cartTotal.toFixed(2)}
-//                   </span> */}
+                
 //                 </div>
 //                 <button
 //                   onClick={handleCheckoutClick}
@@ -1322,6 +1339,9 @@
 // };
 
 // export default CateringOrdering;
+
+
+
 import React, { useState, useEffect } from "react";
 import {
   Star,
@@ -1336,6 +1356,7 @@ import {
   Home,
   ChevronDown,
   ChevronUp,
+  Eye,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
@@ -1376,6 +1397,14 @@ type Address = {
   state: string;
   zipcode: string;
   country: string;
+};
+
+type ComboItem = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
 };
 
 const CateringOrdering: React.FC = () => {
@@ -1430,6 +1459,8 @@ const CateringOrdering: React.FC = () => {
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [showDropdown, setShowDropdown] = useState<number | null>(null);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
+  const [viewingComboId, setViewingComboId] = useState<string | null>(null);
+  const [comboDetails, setComboDetails] = useState<ComboItem[]>([]);
 
   const toggleDescription = (itemId: string) => {
     setExpandedDescriptions(prev => ({
@@ -1501,6 +1532,18 @@ const CateringOrdering: React.FC = () => {
     } catch (error) {
       console.error("Error fetching items:", error);
       return accumulatedItems;
+    }
+  };
+
+  const fetchComboDetails = async (comboId: string) => {
+    try {
+      const response = await menuAPI.getComboDetails(comboId);
+      const items = response.data.items || response.data.data?.items || [];
+      setComboDetails(items);
+      setViewingComboId(comboId);
+    } catch (error) {
+      console.error("Error fetching combo details:", error);
+      toast.error("Failed to load combo details");
     }
   };
 
@@ -2201,6 +2244,15 @@ const CateringOrdering: React.FC = () => {
                                     <h4 className="text-lg font-bold text-gray-800">
                                       {item.name}
                                     </h4>
+                                    {item.category === "combos" && (
+                                      <button
+                                        onClick={() => fetchComboDetails(item.id)}
+                                        className="text-[#501608] hover:text-[#722010] p-1"
+                                        title="View combo items"
+                                      >
+                                        <Eye size={18} />
+                                      </button>
+                                    )}
                                   </div>
                                   <div className="text-gray-600 mb-4 text-sm relative">
                                     <p 
@@ -2264,6 +2316,72 @@ const CateringOrdering: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Combo Details Modal */}
+      {viewingComboId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Combo Items
+                </h3>
+                <button
+                  onClick={() => {
+                    setViewingComboId(null);
+                    setComboDetails([]);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {comboDetails.length > 0 ? (
+                  comboDetails.map((comboItem) => (
+                    <div
+                      key={comboItem.id}
+                      className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-800">
+                          {comboItem.name}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {comboItem.description}
+                        </p>
+                        <p className="text-sm text-gray-700 mt-1">
+                          Quantity: {comboItem.quantity}
+                        </p>
+                      </div>
+                      <div className="text-[#501608] font-medium">
+                        ${comboItem.price.toFixed(2)}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-gray-500 py-4">
+                    Loading combo details...
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => {
+                    setViewingComboId(null);
+                    setComboDetails([]);
+                  }}
+                  className="px-4 py-2 bg-[#501608] text-white rounded-md hover:bg-[#722010]"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showCart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
