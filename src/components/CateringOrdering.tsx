@@ -1179,7 +1179,7 @@ const CateringOrdering: React.FC = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Number of Persons
                         </label>
-                        <input
+                        {/* <input
                           type="number"
                           min="1"
                           value={numberOfPersons}
@@ -1188,7 +1188,30 @@ const CateringOrdering: React.FC = () => {
                           }
                           className="w-full p-2 border border-gray-300 rounded-md"
                           placeholder="Enter number of persons"
-                        />
+                        /> */}
+                        <input
+  type="number"
+  min="1"
+  value={numberOfPersons}
+  onChange={(e) => {
+    const val = e.target.value;
+    // Allow empty string while typing
+    if (val === "") {
+      setNumberOfPersons("");
+    } else {
+      setNumberOfPersons(Math.max(1, parseInt(val)));
+    }
+  }}
+  onBlur={() => {
+    // If user leaves it empty, reset to 1
+    if (numberOfPersons === "" || numberOfPersons < 1) {
+      setNumberOfPersons(1);
+    }
+  }}
+  className="w-full p-2 border border-gray-300 rounded-md"
+  placeholder="Enter number of persons"
+/>
+
                       </div>
 
                       <div>
