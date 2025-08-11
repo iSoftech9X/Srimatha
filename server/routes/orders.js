@@ -466,6 +466,57 @@ router.get('/my-orders', authenticate, async (req, res) => {
 });
 
 // === 2. Get all orders (Admin only) ===
+// router.get('/', authenticate, authorize('admin'), async (req, res) => {
+//   try {
+//     const { page = 1, limit = 10, status, customerId, orderType } = req.query;
+
+//     const dbOrders = await findOrders({
+//       customerId,
+//       status,
+//       orderType,
+//       limit: parseInt(limit),
+//       skip: (parseInt(page) - 1) * parseInt(limit)
+//     });
+
+//     const orderIds = dbOrders.map(order => order.id);
+//     const itemsResult = await req.db.query(`
+//       SELECT order_id, menu_item_id, item_name, quantity, price, special_instructions
+//       FROM order_items
+//       WHERE order_id = ANY($1)
+//     `, [orderIds]);
+
+//     const itemsByOrder = {};
+//     itemsResult.rows.forEach(item => {
+//       if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
+//       itemsByOrder[item.order_id].push({
+//         menuItemId: item.menu_item_id,
+//         name: item.item_name,
+//         quantity: item.quantity,
+//         price: item.price,
+//         specialInstructions: item.special_instructions
+//       });
+//     });
+
+//     const ordersWithItems = dbOrders.map(order => ({
+//       ...order,
+//       items: itemsByOrder[order.id] || []
+//     }));
+
+//     res.json({
+//       success: true,
+//       data: {
+//         orders: ordersWithItems,
+//         total: ordersWithItems.length,
+//         page: parseInt(page),
+//         totalPages: Math.ceil(ordersWithItems.length / parseInt(limit))
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Orders fetch error:', error);
+//     res.status(500).json({ success: false, message: 'Failed to fetch orders', error: error.message });
+//   }
+// });
+
 router.get('/', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { page = 1, limit = 10, status, customerId, orderType } = req.query;
@@ -479,6 +530,8 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
     });
 
     const orderIds = dbOrders.map(order => order.id);
+
+    // Fetch all items for these orders
     const itemsResult = await req.db.query(`
       SELECT order_id, menu_item_id, item_name, quantity, price, special_instructions
       FROM order_items
@@ -497,8 +550,33 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
       });
     });
 
+    // Build orders with items + event details
     const ordersWithItems = dbOrders.map(order => ({
-      ...order,
+      id: order.id,
+      order_number: order.order_number,
+      customer_id: order.customer_id,
+      status: order.status,
+      subtotal: order.subtotal,
+      total: order.total,
+      payment_status: order.payment_status,
+      order_type: order.order_type,
+      created_at: order.created_at,
+      updated_at: order.updated_at,
+      cancellation_reason: order.cancellation_reason,
+      user_name: order.user_name,
+      user_email: order.user_email,
+      user_phone: order.user_phone,
+      user_address_street: order.user_address_street,
+      user_address_city: order.user_address_city,
+      user_address_state: order.user_address_state,
+      user_address_zipcode: order.user_address_zipcode,
+      user_address_country: order.user_address_country,
+      // ✅ Include event details explicitly
+      eventDetails: {
+        numberOfPersons: order.event_number_of_persons,
+        eventDate: order.event_date,
+        eventType: order.event_type
+      },
       items: itemsByOrder[order.id] || []
     }));
 
@@ -516,6 +594,7 @@ router.get('/', authenticate, authorize('admin'), async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch orders', error: error.message });
   }
 });
+
 
 // === 3. Create Catering Order ===
 router.post('/catering', async (req, res) => {
@@ -555,6 +634,79 @@ router.post('/catering', async (req, res) => {
 });
 
 // === 4. Create Regular Order ===
+// router.post('/', authenticate, async (req, res) => {
+//   try {
+//     const user = req.user;
+//     if (!user || !user.id) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+//     const {
+//       userName, userEmail, userPhone,
+//       address = {}, items, subtotal, total,
+//       orderType = 'regular', paymentStatus = 'pending'
+//     } = req.body;
+
+//     if (!Array.isArray(items) || items.length === 0)
+//       return res.status(400).json({ success: false, message: 'No items provided' });
+
+//     const orderNumber = `ORDER-${Date.now()}`;
+//     const orderResult = await req.db.query(`
+//       INSERT INTO orders 
+//       (order_number, customer_id, user_name, user_email, user_phone,
+//        user_address_street, user_address_city, user_address_state, user_address_zipcode, user_address_country,
+//        status, subtotal, total, payment_status, order_type, created_at, updated_at) 
+//       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW(),NOW())
+//       RETURNING *`, [
+//       orderNumber, user.id, userName, userEmail, userPhone,
+//       address.street || null, address.city || null, address.state || null,
+//       address.zipcode || null, address.country || null,
+//       'pending', subtotal, total, paymentStatus, orderType
+//     ]);
+
+//     const orderRow = orderResult.rows[0];
+
+//     for (const item of items) {
+//       await req.db.query(`
+//         INSERT INTO order_items (order_id, menu_item_id, item_name, quantity, price, special_instructions)
+//         VALUES ($1, $2, $3, $4, $5, $6)
+//       `, [
+//         orderRow.id,
+//         item.menuItemId,
+//         item.name || null,
+//         item.quantity,
+//         item.price,
+//         item.specialInstructions || null
+//       ]);
+//     }
+
+//     // 📩 Email
+//     await sendOrderPlacedEmail(userEmail, userName, orderNumber);
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Order placed successfully',
+//       data: {
+//         order: {
+//           id: orderRow.id,
+//           order_number: orderNumber,
+//           items,
+//           subtotal,
+//           total,
+//           orderType,
+//           paymentStatus,
+//           status: 'pending',
+//           userName,
+//           userEmail,
+//           userPhone,
+//           userAddress: address
+//         }
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Order place error:', error);
+//     res.status(500).json({ success: false, message: 'Failed to place order', error: error.message });
+//   }
+// });
+
 router.post('/', authenticate, async (req, res) => {
   try {
     const user = req.user;
@@ -563,24 +715,33 @@ router.post('/', authenticate, async (req, res) => {
     const {
       userName, userEmail, userPhone,
       address = {}, items, subtotal, total,
-      orderType = 'regular', paymentStatus = 'pending'
+      orderType = 'regular', paymentStatus = 'pending',
+      eventDetails = {}  // Added eventDetails with default empty object
     } = req.body;
 
     if (!Array.isArray(items) || items.length === 0)
       return res.status(400).json({ success: false, message: 'No items provided' });
+
+    // Extract event details with fallbacks for camelCase and snake_case
+    const eventNumberOfPersons = eventDetails.numberOfPersons || eventDetails.event_number_of_persons || null;
+    const eventDate = eventDetails.eventDate || eventDetails.event_date || null;
+    const eventType = eventDetails.eventType || eventDetails.event_type || null;
 
     const orderNumber = `ORDER-${Date.now()}`;
     const orderResult = await req.db.query(`
       INSERT INTO orders 
       (order_number, customer_id, user_name, user_email, user_phone,
        user_address_street, user_address_city, user_address_state, user_address_zipcode, user_address_country,
-       status, subtotal, total, payment_status, order_type, created_at, updated_at) 
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW(),NOW())
+       status, subtotal, total, payment_status, order_type, 
+       event_number_of_persons, event_date, event_type,
+       created_at, updated_at) 
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,NOW(),NOW())
       RETURNING *`, [
       orderNumber, user.id, userName, userEmail, userPhone,
       address.street || null, address.city || null, address.state || null,
       address.zipcode || null, address.country || null,
-      'pending', subtotal, total, paymentStatus, orderType
+      'pending', subtotal, total, paymentStatus, orderType,
+      eventNumberOfPersons, eventDate, eventType  // Added event details
     ]);
 
     const orderRow = orderResult.rows[0];
@@ -599,34 +760,47 @@ router.post('/', authenticate, async (req, res) => {
       ]);
     }
 
-    // 📩 Email
+    // Send confirmation email
     await sendOrderPlacedEmail(userEmail, userName, orderNumber);
 
     res.status(200).json({
-      success: true,
-      message: 'Order placed successfully',
-      data: {
-        order: {
-          id: orderRow.id,
-          order_number: orderNumber,
-          items,
-          subtotal,
-          total,
-          orderType,
-          paymentStatus,
-          status: 'pending',
-          userName,
-          userEmail,
-          userPhone,
-          userAddress: address
-        }
+  success: true,
+  message: 'Order placed successfully',
+  data: {
+    order: {
+      id: orderRow.id,
+      order_number: orderNumber,
+      items,
+      subtotal: orderRow.subtotal,
+      total: orderRow.total,
+      orderType: orderRow.order_type,
+      paymentStatus: orderRow.payment_status,
+      status: orderRow.status,
+      userName: orderRow.user_name,
+      userEmail: orderRow.user_email,
+      userPhone: orderRow.user_phone,
+      userAddress: {
+        street: orderRow.user_address_street,
+        city: orderRow.user_address_city,
+        state: orderRow.user_address_state,
+        zipcode: orderRow.user_address_zipcode,
+        country: orderRow.user_address_country
+      },
+      // ✅ Explicitly include eventDetails
+      eventDetails: {
+        numberOfPersons: orderRow.event_number_of_persons,
+        eventDate: orderRow.event_date,
+        eventType: orderRow.event_type
       }
-    });
+    }
+  }
+});
   } catch (error) {
     console.error('Order place error:', error);
     res.status(500).json({ success: false, message: 'Failed to place order', error: error.message });
   }
 });
+
 
 // === 5. Cancel Order ===
 router.patch('/:id/cancel', authenticate, async (req, res) => {

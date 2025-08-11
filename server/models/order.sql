@@ -23,3 +23,4 @@ CREATE TABLE IF NOT EXISTS order_items (
   special_instructions VARCHAR(200),
   FOREIGN KEY (order_id) REFERENCES orders(id)
 );
+

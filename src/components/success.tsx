@@ -7,7 +7,7 @@ const Success: React.FC = () => {
   useEffect(() => {
     const sendEmail = async (): Promise<void> => {
       try {
-        const response = await fetch('https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/mail/send', {
+        const response = await fetch('http://localhost:5000/api/mail/send', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
