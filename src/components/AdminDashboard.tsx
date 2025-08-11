@@ -257,7 +257,7 @@ const AdminDashboard: React.FC = () => {
   // Fetch admin stats directly from API
   useEffect(() => {
     setLoadingStats(true);
-    axios.get('https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/admin/dashboard', {
+    axios.get('http://localhost:5000/api/admin/dashboard', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(response => {
