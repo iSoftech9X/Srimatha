@@ -1,8 +1,6 @@
 
-
-
 // import React, { useEffect, useState } from 'react';
-// import { Edit, Trash2, Phone, Mail, MapPin, X, Users, UserCheck, UserX, Activity, Search, Plus } from 'lucide-react';
+// import { Edit, Trash2, Phone, Mail, MapPin, X, Users, UserCheck, UserX, Activity, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 // import toast from 'react-hot-toast';
 
 // interface Customer {
@@ -21,25 +19,43 @@
 //   role: string;
 // }
 
+// interface PaginationData {
+//   total: number;
+//   page: number;
+//   totalPages: number;
+// }
+
 // const CustomerManagement: React.FC = () => {
 //   const [customers, setCustomers] = useState<Customer[]>([]);
 //   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 //   const [formData, setFormData] = useState<Partial<Customer>>({});
 //   const [searchTerm, setSearchTerm] = useState('');
 //   const [isLoading, setIsLoading] = useState(true);
+//   const [pagination, setPagination] = useState<PaginationData>({
+//     total: 0,
+//     page: 1,
+//     totalPages: 1
+//   });
 
 //   const token = localStorage.getItem('token');
 
-//   const fetchCustomers = async () => {
+//   const fetchCustomers = async (page = 1) => {
 //     setIsLoading(true);
 //     try {
-//       const res = await fetch('https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers', {
+//       const res = await fetch('http://localhost:5000/api/customers', {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
 //         },
 //       });
 //       const result = await res.json();
-//       if (result.success) setCustomers(result.data.customers);
+//       if (result.success) {
+//         setCustomers(result.data.customers);
+//         setPagination({
+//           total: result.data.total,
+//           page: result.data.page,
+//           totalPages: result.data.totalPages
+//         });
+//       }
 //     } catch (err) {
 //       toast.error('Failed to load customers');
 //     } finally {
@@ -69,7 +85,7 @@
 
 //     try {
 //       const res = await fetch(
-//         `https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers/${editingCustomer.id}`,
+//         `http://localhost:5000/api/customers/${editingCustomer.id}`,
 //         {
 //           method: 'PATCH',
 //           headers: {
@@ -102,7 +118,7 @@
 
 //     try {
 //       const res = await fetch(
-//         `https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers/${id}`,
+//         `http://localhost:5000/api/customers/${id}`,
 //         {
 //           method: 'DELETE',
 //           headers: {
@@ -115,7 +131,8 @@
 
 //       if (result.success) {
 //         toast.success('Customer deleted successfully');
-//         setCustomers((prev) => prev.filter((c) => c.id !== id));
+//         // Refetch current page to maintain pagination state
+//         fetchCustomers(pagination.page);
 //       } else {
 //         toast.error(result.message || 'Delete failed');
 //       }
@@ -124,17 +141,24 @@
 //     }
 //   };
 
-//   // Filter customers based on search term
+//   // Filter customers based on search term (client-side filtering)
 //   const filteredCustomers = customers.filter(customer =>
 //     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //     customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //     customer.phone.toLowerCase().includes(searchTerm.toLowerCase())
 //   );
 
-//   // Calculate stats
-//   const totalCustomers = customers.length;
+//   // Calculate stats based on all customers (not just current page)
+//   const totalCustomers = pagination.total;
 //   const activeCustomers = customers.filter(c => c.is_active).length;
-//   const inactiveCustomers = totalCustomers - activeCustomers;
+//   // Note: This is just for the current page, not all customers
+//   // For accurate stats, you might need an API endpoint that provides these counts
+
+//   const handlePageChange = (newPage: number) => {
+//     if (newPage >= 1 && newPage <= pagination.totalPages) {
+//       fetchCustomers(newPage);
+//     }
+//   };
 
 //   return (
 //     <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -144,7 +168,6 @@
 //             <h2 className="text-3xl font-bold text-gray-800">Customer Management</h2>
 //             <p className="text-gray-600 mt-2">Manage your customer accounts and information</p>
 //           </div>
-       
 //         </div> 
         
 //         {/* Stats Cards */}
@@ -164,7 +187,7 @@
 //               <UserCheck className="w-6 h-6" />
 //             </div>
 //             <div>
-//               <p className="text-gray-500 text-sm font-medium">Active</p>
+//               <p className="text-gray-500 text-sm font-medium">Active (Page)</p>
 //               <p className="text-2xl font-bold text-gray-800">{activeCustomers}</p>
 //             </div>
 //           </div>
@@ -174,8 +197,8 @@
 //               <UserX className="w-6 h-6" />
 //             </div>
 //             <div>
-//               <p className="text-gray-500 text-sm font-medium">Inactive</p>
-//               <p className="text-2xl font-bold text-gray-800">{inactiveCustomers}</p>
+//               <p className="text-gray-500 text-sm font-medium">Inactive (Page)</p>
+//               <p className="text-2xl font-bold text-gray-800">{customers.length - activeCustomers}</p>
 //             </div>
 //           </div>
           
@@ -184,9 +207,9 @@
 //               <Activity className="w-6 h-6" />
 //             </div>
 //             <div>
-//               <p className="text-gray-500 text-sm font-medium">Active Rate</p>
+//               <p className="text-gray-500 text-sm font-medium">Active Rate (Page)</p>
 //               <p className="text-2xl font-bold text-gray-800">
-//                 {totalCustomers > 0 ? Math.round((activeCustomers / totalCustomers) * 100) : 0}%
+//                 {customers.length > 0 ? Math.round((activeCustomers / customers.length) * 100) : 0}%
 //               </p>
 //             </div>
 //           </div>
@@ -201,20 +224,23 @@
 //               </div>
 //               <input
 //                 type="text"
-//                 placeholder="Search customers by name, email or phone"
+//                 placeholder="Search current page by name, email or phone"
 //                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 //                 value={searchTerm}
 //                 onChange={(e) => setSearchTerm(e.target.value)}
 //               />
 //             </div>
-           
 //           </div>
 //         </div>
 
 //         {/* Customer List */}
 //         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-//           <div className="p-4 border-b border-gray-200 bg-gray-50">
+//           <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
 //             <h3 className="text-lg font-semibold text-gray-800">Customer List</h3>
+//             <div className="text-sm text-gray-500">
+//               Showing {(pagination.page - 1) * 10 + 1}-
+//               {Math.min(pagination.page * 10, pagination.total)} of {pagination.total} customers
+//             </div>
 //           </div>
           
 //           {isLoading ? (
@@ -223,7 +249,7 @@
 //             </div>
 //           ) : filteredCustomers.length === 0 ? (
 //             <div className="p-8 text-center text-gray-500">
-//               {searchTerm ? 'No customers match your search' : 'No customers found'}
+//               {searchTerm ? 'No customers on this page match your search' : 'No customers found on this page'}
 //             </div>
 //           ) : (
 //             <div className="divide-y divide-gray-200">
@@ -279,6 +305,76 @@
 //                   </div>
 //                 </div>
 //               ))}
+//             </div>
+//           )}
+
+//           {/* Pagination */}
+//           {!isLoading && (
+//             <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between sm:px-6">
+//               <div className="flex-1 flex justify-between sm:hidden">
+//                 <button
+//                   onClick={() => handlePageChange(pagination.page - 1)}
+//                   disabled={pagination.page === 1}
+//                   className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+//                 >
+//                   Previous
+//                 </button>
+//                 <button
+//                   onClick={() => handlePageChange(pagination.page + 1)}
+//                   disabled={pagination.page === pagination.totalPages}
+//                   className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+//                 >
+//                   Next
+//                 </button>
+//               </div>
+//               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+//                 <div>
+//                   <p className="text-sm text-gray-700">
+//                     Showing <span className="font-medium">{(pagination.page - 1) * 10 + 1}</span> to{' '}
+//                     <span className="font-medium">{Math.min(pagination.page * 10, pagination.total)}</span> of{' '}
+//                     <span className="font-medium">{pagination.total}</span> results
+//                   </p>
+//                 </div>
+//                 <div>
+//                   <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+//                     <button
+//                       onClick={() => handlePageChange(1)}
+//                       disabled={pagination.page === 1}
+//                       className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+//                     >
+//                       <span className="sr-only">First</span>
+//                       <ChevronsLeft className="h-5 w-5" aria-hidden="true" />
+//                     </button>
+//                     <button
+//                       onClick={() => handlePageChange(pagination.page - 1)}
+//                       disabled={pagination.page === 1}
+//                       className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+//                     >
+//                       <span className="sr-only">Previous</span>
+//                       <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+//                     </button>
+//                     <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+//                       Page {pagination.page} of {pagination.totalPages}
+//                     </span>
+//                     <button
+//                       onClick={() => handlePageChange(pagination.page + 1)}
+//                       disabled={pagination.page === pagination.totalPages}
+//                       className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+//                     >
+//                       <span className="sr-only">Next</span>
+//                       <ChevronRight className="h-5 w-5" aria-hidden="true" />
+//                     </button>
+//                     <button
+//                       onClick={() => handlePageChange(pagination.totalPages)}
+//                       disabled={pagination.page === pagination.totalPages}
+//                       className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+//                     >
+//                       <span className="sr-only">Last</span>
+//                       <ChevronsRight className="h-5 w-5" aria-hidden="true" />
+//                     </button>
+//                   </nav>
+//                 </div>
+//               </div>
 //             </div>
 //           )}
 //         </div>
@@ -450,15 +546,21 @@ const CustomerManagement: React.FC = () => {
 
   const token = localStorage.getItem('token');
 
-  const fetchCustomers = async (page = 1) => {
+  const fetchCustomers = async (page = 1, search = '') => {
     setIsLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/customers', {
+      let url = `https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers?page=${page}&limit=10`;
+      if (search) {
+        url += `&search=${search}`;
+      }
+
+      const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       const result = await res.json();
+      
       if (result.success) {
         setCustomers(result.data.customers);
         setPagination({
@@ -466,17 +568,23 @@ const CustomerManagement: React.FC = () => {
           page: result.data.page,
           totalPages: result.data.totalPages
         });
+      } else {
+        toast.error(result.message || 'Failed to load customers');
       }
     } catch (err) {
-      toast.error('Failed to load customers');
+      toast.error('Failed to connect to server');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCustomers();
+    fetchCustomers(1);
   }, []);
+
+  const handleSearch = () => {
+    fetchCustomers(1, searchTerm);
+  };
 
   const openEditModal = (customer: Customer) => {
     setEditingCustomer(customer);
@@ -496,7 +604,7 @@ const CustomerManagement: React.FC = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/customers/${editingCustomer.id}`,
+        `https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers/${editingCustomer.id}`,
         {
           method: 'PATCH',
           headers: {
@@ -511,15 +619,13 @@ const CustomerManagement: React.FC = () => {
 
       if (result.success) {
         toast.success('Customer updated successfully');
-        setCustomers((prev) =>
-          prev.map((c) => (c.id === result.data.id ? result.data : c))
-        );
+        fetchCustomers(pagination.page, searchTerm);
         setEditingCustomer(null);
       } else {
         toast.error(result.message || 'Update failed');
       }
     } catch (err) {
-      toast.error('Something went wrong');
+      toast.error('Failed to connect to server');
     }
   };
 
@@ -529,7 +635,7 @@ const CustomerManagement: React.FC = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/customers/${id}`,
+        `https://ggm4eesv2d.ap-south-1.awsapprunner.com/api/customers/${id}`,
         {
           method: 'DELETE',
           headers: {
@@ -542,32 +648,18 @@ const CustomerManagement: React.FC = () => {
 
       if (result.success) {
         toast.success('Customer deleted successfully');
-        // Refetch current page to maintain pagination state
-        fetchCustomers(pagination.page);
+        fetchCustomers(pagination.page, searchTerm);
       } else {
         toast.error(result.message || 'Delete failed');
       }
     } catch (err) {
-      toast.error('Something went wrong');
+      toast.error('Failed to connect to server');
     }
   };
 
-  // Filter customers based on search term (client-side filtering)
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Calculate stats based on all customers (not just current page)
-  const totalCustomers = pagination.total;
-  const activeCustomers = customers.filter(c => c.is_active).length;
-  // Note: This is just for the current page, not all customers
-  // For accurate stats, you might need an API endpoint that provides these counts
-
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
-      fetchCustomers(newPage);
+      fetchCustomers(newPage, searchTerm);
     }
   };
 
@@ -589,7 +681,7 @@ const CustomerManagement: React.FC = () => {
             </div>
             <div>
               <p className="text-gray-500 text-sm font-medium">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-800">{totalCustomers}</p>
+              <p className="text-2xl font-bold text-gray-800">{pagination.total}</p>
             </div>
           </div>
           
@@ -598,8 +690,10 @@ const CustomerManagement: React.FC = () => {
               <UserCheck className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-gray-500 text-sm font-medium">Active (Page)</p>
-              <p className="text-2xl font-bold text-gray-800">{activeCustomers}</p>
+              <p className="text-gray-500 text-sm font-medium">Active</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {customers.filter(c => c.is_active).length}
+              </p>
             </div>
           </div>
           
@@ -608,8 +702,10 @@ const CustomerManagement: React.FC = () => {
               <UserX className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-gray-500 text-sm font-medium">Inactive (Page)</p>
-              <p className="text-2xl font-bold text-gray-800">{customers.length - activeCustomers}</p>
+              <p className="text-gray-500 text-sm font-medium">Inactive</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {customers.filter(c => !c.is_active).length}
+              </p>
             </div>
           </div>
           
@@ -618,9 +714,10 @@ const CustomerManagement: React.FC = () => {
               <Activity className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-gray-500 text-sm font-medium">Active Rate (Page)</p>
+              <p className="text-gray-500 text-sm font-medium">Active Rate</p>
               <p className="text-2xl font-bold text-gray-800">
-                {customers.length > 0 ? Math.round((activeCustomers / customers.length) * 100) : 0}%
+                {customers.length > 0 ? 
+                  Math.round((customers.filter(c => c.is_active).length / customers.length) * 100) : 0}%
               </p>
             </div>
           </div>
@@ -628,19 +725,26 @@ const CustomerManagement: React.FC = () => {
 
         {/* Search and Filter */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:w-96 mb-4 md:mb-0">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="relative flex-grow">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="text"
-                placeholder="Search current page by name, email or phone"
+                placeholder="Search customers by name, email or phone"
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
+            <button
+              onClick={handleSearch}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
+            >
+              Search
+            </button>
           </div>
         </div>
 
@@ -658,13 +762,13 @@ const CustomerManagement: React.FC = () => {
             <div className="p-8 flex justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
-          ) : filteredCustomers.length === 0 ? (
+          ) : customers.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              {searchTerm ? 'No customers on this page match your search' : 'No customers found on this page'}
+              {searchTerm ? 'No customers match your search' : 'No customers found'}
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {filteredCustomers.map((cust) => (
+              {customers.map((cust) => (
                 <div key={cust.id} className="p-6 hover:bg-gray-50 transition-colors">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div className="mb-4 md:mb-0">
@@ -720,7 +824,7 @@ const CustomerManagement: React.FC = () => {
           )}
 
           {/* Pagination */}
-          {!isLoading && (
+          {!isLoading && customers.length > 0 && (
             <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between sm:px-6">
               <div className="flex-1 flex justify-between sm:hidden">
                 <button
