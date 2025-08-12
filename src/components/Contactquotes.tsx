@@ -254,12 +254,12 @@ const Contactquotes = () => {
               <div className="flex items-end justify-center min-h-screen pt-6 px-8 text-center sm:block sm:p-0" style={{ paddingBottom:"250px" } }>
                 <div className="fixed inset-0 transition-opacity" aria-hidden="true">
                   <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={() => setSelectedContact(null)}></div>
-                </div>
+                </div> 
                 
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 
                 <div className="inline-block align-bottom bg-white rounded-t-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                  <div>
+                  <div> 
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="text-lg leading-6 font-medium text-gray-900">{selectedContact.subject}</h3>

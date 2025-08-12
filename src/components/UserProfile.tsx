@@ -5,7 +5,7 @@
 //   Save, 
 //   X, 
 //   User, 
-//   Mail, 
+//   Mail,  
 //   Phone, 
 //   MapPin, 
 //   Shield, 
@@ -1546,7 +1546,7 @@ const fetchOrderHistory = async () => {
           </div>
         </div>
       </div>
-    </div>
+    </div> 
   );
 };
 
