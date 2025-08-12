@@ -1026,7 +1026,7 @@ const OrderManagement: React.FC = () => {
               ))
             ) : (
               <div className="p-4 text-center text-gray-500">
-                No orders found matching your criteria
+                No orders found matching your criteria 
               </div>
             )}
           </div>
@@ -1161,7 +1161,7 @@ const OrderManagement: React.FC = () => {
                       </p>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-500">Phone:</span>
+                      <span className="text-sm text-gray-500">Phone Number:</span>
                       <p className="text-gray-800 font-semibold">
                         {selectedOrder.user_phone || selectedOrder.customer_phone || 'N/A'}
                       </p>
