@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect } from "react";
 // import {
 //   Star,
@@ -535,7 +534,7 @@
 //         }`}
 //       >
 //         <Header />
-     
+
 //          {!showOrderHistory && (
 //           <div
 //             className={`bg-white transition-all duration-300 ${
@@ -902,7 +901,7 @@
 //                         </h2>
 //                       </div>
 //                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                       
+
 //                         {items.map((item) => {
 //   const cartItem = cart.find(
 //     (cartItem) => cartItem.menuItem.id === item.id
@@ -1234,7 +1233,7 @@
 
 //             {cart.length > 0 && (
 //               <div className="border-t border-gray-200 p-6 bg-white">
-              
+
 //                 <button
 //                   onClick={handleCheckoutClick}
 //                   className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300"
@@ -1519,9 +1518,6 @@ type OrderItem = {
   special_instructions: string | null;
   name: string;
   description: string;
-  
-  
-
 };
 
 type EventDetails = {
@@ -1577,7 +1573,6 @@ type MenuItem = {
   isVegetarian: boolean;
   preparationTime: number;
   spiceLevel: string;
-
 };
 
 type CartItem = {
@@ -1638,13 +1633,15 @@ const CateringOrdering: React.FC = () => {
   ]);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [showDropdown, setShowDropdown] = useState<number | null>(null);
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
+  const [expandedDescriptions, setExpandedDescriptions] = useState<
+    Record<string, boolean>
+  >({});
   const [viewingComboId, setViewingComboId] = useState<string | null>(null);
 
   const toggleDescription = (itemId: string) => {
-    setExpandedDescriptions(prev => ({
+    setExpandedDescriptions((prev) => ({
       ...prev,
-      [itemId]: !prev[itemId]
+      [itemId]: !prev[itemId],
     }));
   };
 
@@ -1956,8 +1953,7 @@ const CateringOrdering: React.FC = () => {
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory =
-      activeCategory === "all" ||
-      (activeCategory === "combos" && item.isCombo);
+      activeCategory === "all" || (activeCategory === "combos" && item.isCombo);
 
     return matchesSearch && matchesCategory && item.available;
   });
@@ -2191,7 +2187,7 @@ const CateringOrdering: React.FC = () => {
 
                     <div className="mt-4 flex justify-between items-center">
                       <div className="text-sm text-gray-600">
-                        {order.order_type === 'catering' ? (
+                        {order.order_type === "catering" ? (
                           <span className="flex items-center gap-1">
                             <Gift size={14} /> Catering Order
                           </span>
@@ -2219,34 +2215,45 @@ const CateringOrdering: React.FC = () => {
 
                     {expandedOrderId === order.id && (
                       <div className="mt-4 bg-gray-50 p-4 rounded-lg space-y-4">
-                        {order.order_type === 'catering' && order.eventDetails && (
-                          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-                            <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                              <Gift size={16} className="text-[#501608]" />
-                              Event Details
-                            </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <div>
-                                <span className="text-sm text-gray-500">Event Type:</span>
-                                <p className="text-gray-800 font-medium">
-                                  {order.eventDetails.eventType || 'N/A'}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="text-sm text-gray-500">Event Date:</span>
-                                <p className="text-gray-800 font-medium">
-                                  {formatDate(order.eventDetails.eventDate || order.created_at)}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="text-sm text-gray-500">Number of Persons:</span>
-                                <p className="text-gray-800 font-medium">
-                                  {order.eventDetails.numberOfPersons || 'N/A'}
-                                </p>
+                        {order.order_type === "catering" &&
+                          order.eventDetails && (
+                            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                              <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                                <Gift size={16} className="text-[#501608]" />
+                                Event Details
+                              </h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                  <span className="text-sm text-gray-500">
+                                    Event Type:
+                                  </span>
+                                  <p className="text-gray-800 font-medium">
+                                    {order.eventDetails.eventType || "N/A"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-sm text-gray-500">
+                                    Event Date:
+                                  </span>
+                                  <p className="text-gray-800 font-medium">
+                                    {formatDate(
+                                      order.eventDetails.eventDate ||
+                                        order.created_at
+                                    )}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-sm text-gray-500">
+                                    Number of Persons:
+                                  </span>
+                                  <p className="text-gray-800 font-medium">
+                                    {order.eventDetails.numberOfPersons ||
+                                      "N/A"}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
                         <div>
                           <h4 className="font-medium text-gray-700 mb-3">
@@ -2269,9 +2276,12 @@ const CateringOrdering: React.FC = () => {
                                       </p>
                                     )}
                                   </div>
-                                  <p className="text-sm font-semibold">
-                                    ₹{(parseFloat(item.price) * item.quantity).toFixed(2)}
-                                  </p>
+                                  {/* <p className="text-sm font-semibold">
+                                    ₹
+                                    {(
+                                      parseFloat(item.price) * item.quantity
+                                    ).toFixed(2)}
+                                  </p> */}
                                 </div>
                               ))
                             ) : (
@@ -2282,7 +2292,7 @@ const CateringOrdering: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="border-t pt-3 mt-3">
+                        {/* <div className="border-t pt-3 mt-3">
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Subtotal:</span>
                             <span className="font-medium">₹{order.subtotal}</span>
@@ -2291,7 +2301,7 @@ const CateringOrdering: React.FC = () => {
                             <span className="text-gray-600">Total:</span>
                             <span className="font-bold">₹{order.total}</span>
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     )}
 
@@ -2465,10 +2475,14 @@ const CateringOrdering: React.FC = () => {
                                 </div>
                                 <div className="flex-grow">
                                   <div className="flex justify-between items-start mb-3">
-                                    <h4 className="text-lg font-bold text-gray-800">{item.name}</h4>
+                                    <h4 className="text-lg font-bold text-gray-800">
+                                      {item.name}
+                                    </h4>
                                     {item.isCombo && (
                                       <button
-                                        onClick={() => setViewingComboId(item.id)}
+                                        onClick={() =>
+                                          setViewingComboId(item.id)
+                                        }
                                         className="text-[#501608] hover:text-[#722010] p-1"
                                         title="View combo items"
                                       >
@@ -2479,19 +2493,26 @@ const CateringOrdering: React.FC = () => {
                                   <div className="text-gray-600 mb-4 text-sm relative">
                                     <p
                                       className={`${
-                                        expandedDescriptions[item.id] ? '' : 'line-clamp-2'
+                                        expandedDescriptions[item.id]
+                                          ? ""
+                                          : "line-clamp-2"
                                       } transition-all duration-200`}
                                     >
                                       {item.description}
                                     </p>
-                                    {item.description && item.description.length > 100 && (
-                                      <button
-                                        onClick={() => toggleDescription(item.id)}
-                                        className="text-[#501608] hover:underline text-xs mt-1"
-                                      >
-                                        {expandedDescriptions[item.id] ? 'Show less' : 'Show more'}
-                                      </button>
-                                    )}
+                                    {item.description &&
+                                      item.description.length > 100 && (
+                                        <button
+                                          onClick={() =>
+                                            toggleDescription(item.id)
+                                          }
+                                          className="text-[#501608] hover:underline text-xs mt-1"
+                                        >
+                                          {expandedDescriptions[item.id]
+                                            ? "Show less"
+                                            : "Show more"}
+                                        </button>
+                                      )}
                                   </div>
                                   {item.isCombo && (
                                     <div className="flex items-center justify-between">
@@ -2506,27 +2527,35 @@ const CateringOrdering: React.FC = () => {
                               <div className="p-4 border-t mt-auto flex justify-end">
                                 {item.isCombo ? (
                                   <button
-                                    onClick={() => !isComboAdded && handleAddToCart(item)}
+                                    onClick={() =>
+                                      !isComboAdded && handleAddToCart(item)
+                                    }
                                     disabled={isComboAdded}
                                     className={`py-2 px-4 rounded-full font-semibold transition-colors duration-300 ${
                                       isComboAdded
-                                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                        : 'bg-[#501608] hover:bg-[#722010] text-white'
+                                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                                        : "bg-[#501608] hover:bg-[#722010] text-white"
                                     }`}
                                   >
-                                    {isComboAdded ? 'Added' : 'Add'}
+                                    {isComboAdded ? "Added" : "Add"}
                                   </button>
                                 ) : quantity > 0 ? (
                                   <div className="flex items-center gap-2">
                                     <button
-                                      onClick={() => handleDecrement(cartItem!.id)}
+                                      onClick={() =>
+                                        handleDecrement(cartItem!.id)
+                                      }
                                       className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full p-2 transition-colors duration-300"
                                     >
                                       <Minus size={16} />
                                     </button>
-                                    <span className="w-8 text-center">{quantity}</span>
+                                    <span className="w-8 text-center">
+                                      {quantity}
+                                    </span>
                                     <button
-                                      onClick={() => handleIncrement(cartItem!.id)}
+                                      onClick={() =>
+                                        handleIncrement(cartItem!.id)
+                                      }
                                       className="bg-[#501608] hover:bg-[#722010] text-white rounded-full p-2 transition-colors duration-300"
                                     >
                                       <Plus size={16} />
@@ -2572,26 +2601,29 @@ const CateringOrdering: React.FC = () => {
 
               <div className="mb-4">
                 <h4 className="font-medium text-gray-800 mb-2">
-                  {menuItems.find(item => item.id === viewingComboId)?.name}
+                  {menuItems.find((item) => item.id === viewingComboId)?.name}
                 </h4>
                 <p className="text-[#501608] font-bold text-lg">
-                 ₹ {menuItems.find(item => item.id === viewingComboId)?.price}
+                  ₹{" "}
+                  {menuItems.find((item) => item.id === viewingComboId)?.price}
                 </p>
               </div>
 
               <div className="space-y-4">
-                {menuItems.find(item => item.id === viewingComboId)?.comboItems?.map((comboItem, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-800">
-                        {comboItem.name}
-                      </h4>
+                {menuItems
+                  .find((item) => item.id === viewingComboId)
+                  ?.comboItems?.map((comboItem, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-800">
+                          {comboItem.name}
+                        </h4>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
 
               <div className="mt-6 flex justify-end">
@@ -2731,11 +2763,14 @@ const CateringOrdering: React.FC = () => {
                             <div className="text-xs text-gray-500 mt-1">
                               <p className="font-medium">Includes:</p>
                               <ul className="list-disc list-inside">
-                                {item.menuItem.comboItems?.map((comboItem, idx) => (
-                                  <li key={idx}>
-                                    {comboItem.quantity}x {comboItem.name} ({comboItem.spice_level})
-                                  </li>
-                                ))}
+                                {item.menuItem.comboItems?.map(
+                                  (comboItem, idx) => (
+                                    <li key={idx}>
+                                      {comboItem.quantity}x {comboItem.name} (
+                                      {comboItem.spice_level})
+                                    </li>
+                                  )
+                                )}
                               </ul>
                             </div>
                           )}
