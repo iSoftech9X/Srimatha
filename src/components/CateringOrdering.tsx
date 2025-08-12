@@ -3840,12 +3840,12 @@ const CateringOrdering: React.FC = () => {
                                       </p>
                                     )}
                                   </div>
-                                  <p className="text-sm font-semibold">
+                                  {/* <p className="text-sm font-semibold">
                                     ₹
                                     {(
                                       parseFloat(item.price) * item.quantity
                                     ).toFixed(2)}
-                                  </p>
+                                  </p> */}
                                 </div>
                               ))
                             ) : (
@@ -3858,15 +3858,9 @@ const CateringOrdering: React.FC = () => {
 
                         <div className="border-t pt-3 mt-3">
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Subtotal:</span>
-                            <span className="font-medium">
-                              ₹{order.subtotal}
-                            </span>
+                           
                           </div>
-                          <div className="flex justify-between text-sm mt-1">
-                            <span className="text-gray-600">Total:</span>
-                            <span className="font-bold">₹{order.total}</span>
-                          </div>
+                         
                         </div>
                       </div>
                     )}
