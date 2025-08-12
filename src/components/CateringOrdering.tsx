@@ -3115,7 +3115,6 @@ type ApiOrder = {
   event_type?: string;
 };
 
-
 type Address = {
   street: string;
   city: string;
@@ -3290,7 +3289,7 @@ const CateringOrdering: React.FC = () => {
       const response = await ordersAPI.getMyOrders({
         includeItems: true,
         expand: "items.menu_item",
-        limit: 1000000 // Added high limit to fetch all orders
+        limit: 1000000, // Added high limit to fetch all orders
       });
       setOrders(response.data.orders || response.data.data?.orders || []);
     } catch (err) {
@@ -3550,8 +3549,6 @@ const CateringOrdering: React.FC = () => {
       year: "numeric",
       month: "short",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
@@ -3805,7 +3802,9 @@ const CateringOrdering: React.FC = () => {
                                   Event Date:
                                 </span>
                                 <p className="text-gray-800 font-medium">
-                                  {order.event_date ? formatDate(order.event_date) : "N/A"}
+                                  {order.event_date
+                                    ? formatDate(order.event_date)
+                                    : "N/A"}
                                 </p>
                               </div>
                               <div>
@@ -3860,7 +3859,9 @@ const CateringOrdering: React.FC = () => {
                         <div className="border-t pt-3 mt-3">
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Subtotal:</span>
-                            <span className="font-medium">₹{order.subtotal}</span>
+                            <span className="font-medium">
+                              ₹{order.subtotal}
+                            </span>
                           </div>
                           <div className="flex justify-between text-sm mt-1">
                             <span className="text-gray-600">Total:</span>
@@ -4616,7 +4617,7 @@ const CateringOrdering: React.FC = () => {
           </div>
         </div>
       )}
-    </div> 
+    </div>
   );
 };
 
