@@ -7,7 +7,7 @@ import { attachDb } from './middleware/auth.js';
 // Import real database service
 import dbService from './services/dbService.js';
 
-// Import routes
+// Import routes 
 import authRoutes from './routes/auth.js';
 import customerRoutes from './routes/customers.js';
 import menuRoutes from './routes/menu.js';
