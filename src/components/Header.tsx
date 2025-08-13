@@ -90,15 +90,18 @@ const Header: React.FC = () => {
               <nav className="flex gap-8 items-center text-white">
                 <button onClick={handleRestaurantOrder} className="flex items-center gap-1 hover:text-orange-300">
                   <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                  Restaurant
+                  <span className='text-white-800 font-bold ml-2 mr-4'>Restaurant</span>
+                  
                 </button>
                 <button onClick={handleFoodCourtOrder} className="flex items-center gap-1 hover:text-orange-300">
                   <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                  Food Court
+                   <span className='text-white-800 font-bold ml-2  mr-4'> Food Court</span>
+                 
                 </button>
                 <button onClick={handleCateringOrder} className="flex items-center gap-1 hover:text-orange-300">
                   <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  Catering
+                  <span className='text-white-800 font-bold  ml-2 mr-4'> Catering</span>
+             
                 </button>
               </nav>
             </div>
