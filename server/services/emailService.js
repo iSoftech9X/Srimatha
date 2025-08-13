@@ -114,9 +114,9 @@ const sendEmail = async ({ to, subject, text }) => {
 export default sendEmail;
 
 // 3. Send OTP Email (NEW)
-export const sendOtpEmail = async (to, otp) => {
+export const sendOtpEmail = async (to, otp) => { 
   const subject = `Your OTP Code for Password Reset`;
-  const text = `Hello,${userName},\n\n Your One-Time Password (OTP) for password reset is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you did not request this, please ignore this Email.\n\n Regards,\nSrimatha Team`;
+  const text = `Hello,${name},\n\n Your One-Time Password (OTP) for password reset is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you did not request this, please ignore this Email.\n\n Regards,\nSrimatha Team`;
   await sendEmail({ to, subject, text });
 };
 
