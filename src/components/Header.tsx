@@ -74,23 +74,7 @@ const Header: React.FC = () => {
   return (
     <>
       {/* Top Bar */}
-      {/* <div className="hidden md:block bg-orange-600 text-white py-2">
-        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-sm">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2"><Phone size={14} /><span>040-4859 5886/7</span></div>
-            <div className="flex items-center gap-2"><MapPin size={14} /><span>Secunderabad-500 003</span></div>
-          </div>
-          <div className="flex items-center gap-4">
-            <span>24/7 Catering Service Available</span>
-            <button
-              onClick={() => navigate('/admin')}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded text-xs font-medium"
-            >
-              Admin
-            </button>
-          </div>
-        </div>
-      </div> */}
+      
 
       {/* Header */}
       <header className="shadow-lg sticky top-0 z-50 bg-[#501608]">
