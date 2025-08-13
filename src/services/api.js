@@ -43,6 +43,15 @@ api.interceptors.response.use(
 );
 
 // Auth API
+// export const authAPI = {
+//   register: (userData) => api.post('/auth/register', userData),
+//   login: (credentials) => api.post('/auth/login', credentials),
+//   getProfile: () => api.get('/auth/profile'),
+//   patchProfile: (userData) => api.patch('/auth/profile', userData),
+//   updateProfile: (userData) => api.put('/auth/profile', userData),
+//   changePassword: (passwordData) => api.put('/auth/change-password', passwordData),
+//   logout: () => api.post('/auth/logout'),
+// };
 export const authAPI = {
   register: (userData) => api.post('/auth/register', userData),
   login: (credentials) => api.post('/auth/login', credentials),
@@ -51,8 +60,12 @@ export const authAPI = {
   updateProfile: (userData) => api.put('/auth/profile', userData),
   changePassword: (passwordData) => api.put('/auth/change-password', passwordData),
   logout: () => api.post('/auth/logout'),
+  
+  // Password reset functionality
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  verifyOtp: (email, otp) => api.post('/auth/verify-otp', { email, otp }),
+  resetPassword: (email, newPassword) => api.post('/auth/reset-password', { email, newPassword }),
 };
-
 // Menu API
 export const menuAPI = {
   getItems: (params) => api.get('/menu', { params }),
