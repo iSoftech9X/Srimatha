@@ -55,7 +55,7 @@ router.post('/order-cancelled', async (req, res) => {
   }
 });
 
-// ✅ New User Signup
+// ✅ New User signup
 router.post('/user-signup', async (req, res) => {
   try {
     const { userEmail, userName, isRestaurant } = req.body;

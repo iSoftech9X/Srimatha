@@ -127,7 +127,7 @@ export const sendOrderPlacedEmail = async (to, name, orderId) => {
   await sendEmail({ to, subject, text });
 };
 
-// 4. Payment Status Email
+// 4. Payment Status email
 export const sendPaymentStatusEmail = async (to, name, orderId, status) => {
   const subject = `Payment ${status === 'success' ? 'Successful' : 'Failed'} - Order #${orderId}`;
   const text =
