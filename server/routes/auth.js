@@ -319,7 +319,7 @@ router.post('/verify-otp', async (req, res) => {
       // data: { resetToken },
     });
   } catch (error) {
-    console.error('Verify OTP error:', error);
+    console.error('verify OTP error:', error);
     res.status(500).json({ success: false, message: 'Something went wrong' });
   }
 });
