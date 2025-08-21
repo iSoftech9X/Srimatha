@@ -1291,7 +1291,7 @@ const MenuManagement: React.FC = () => {
       )}
 
       {/* Combo Items View Modal */}
-      {viewComboModal && currentComboItems && (
+      {/* {viewComboModal && currentComboItems && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in">
             <div className="p-5 text-white" style={{ backgroundColor: "#501608" }}>
@@ -1347,8 +1347,68 @@ const MenuManagement: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
+{/* Combo Items View Modal */}
+{viewComboModal && currentComboItems && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+      {/* Header */}
+      <div className="p-5 text-white" style={{ backgroundColor: "#501608" }}>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Combo Items: {currentComboItems.name}</h2>
+          <button
+            onClick={() => {
+              setViewComboModal(false);
+              setCurrentComboItems(null);
+            }}
+            className="text-white hover:text-gray-200"
+          >
+            <X size={24} />
+          </button>
+        </div>
+      </div>
 
+      {/* Scrollable content */}
+      <div className="overflow-y-auto flex-1 p-5">
+        {currentComboItems.comboItems && currentComboItems.comboItems.length > 0 ? (
+          <div className="space-y-3">
+            {currentComboItems.comboItems.map((item, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <span className="font-medium text-gray-700">{index + 1}.</span>
+                  <div>
+                    <p className="font-medium">{item.name}</p>
+                    {item.spiceLevel && (
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <Flame size={12} /> Spice: {item.spiceLevel}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">No combo items found</div>
+        )}
+      </div>
+
+      {/* Fixed footer */}
+      <div className="p-5 border-t">
+        <button
+          onClick={() => {
+            setViewComboModal(false);
+            setCurrentComboItems(null);
+          }}
+          className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       {/* Create/Edit Item Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-4">

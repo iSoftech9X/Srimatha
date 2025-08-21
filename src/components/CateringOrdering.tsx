@@ -1080,7 +1080,7 @@ const CateringOrdering: React.FC = () => {
         )}
       </div>
 
-      {viewingComboId && (
+      {/* {viewingComboId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
@@ -1134,8 +1134,70 @@ const CateringOrdering: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
+{viewingComboId && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-800">
+            Combo Items
+          </h3>
+          <button
+            onClick={() => setViewingComboId(null)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={24} />
+          </button>
+        </div>
+      </div>
 
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="mb-4">
+          <h4 className="font-medium text-gray-800 mb-2">
+            {menuItems.find((item) => item.id === viewingComboId)?.name}
+          </h4>
+          <p className="text-[#501608] font-bold text-lg">
+            ₹{" "}
+            {menuItems.find((item) => item.id === viewingComboId)?.price}
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {menuItems
+            .find((item) => item.id === viewingComboId)
+            ?.comboItems?.map((comboItem, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg"
+              >
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-800">
+                    {comboItem.name}
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    Quantity: {comboItem.quantity}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Spice Level: {comboItem.spice_level}
+                  </p>
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+
+      <div className="p-6 border-t border-gray-200">
+        <button
+          onClick={() => setViewingComboId(null)}
+          className="w-full px-4 py-2 bg-[#501608] text-white rounded-md hover:bg-[#722010]"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       {showCart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
           <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
