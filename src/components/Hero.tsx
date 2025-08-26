@@ -131,11 +131,11 @@ const Hero: React.FC = () => {
   }, []);
 
   const handleRestaurantOrder = () => {
-    window.location.href = 'https://srimatha.co.in/';
+    window.location.href = 'https://orders.srimatha.co.in';
   };
 
   const handleFoodCourtOrder = () => {
-    window.location.href = 'https://srimatha.co.in/';
+    window.location.href = 'https://orders.srimatha.co.in';
   };
 
   const handleCateringOrder = () => {

@@ -58,8 +58,8 @@ const Header: React.FC = () => {
     }
   };
 
-  const handleRestaurantOrder = () => window.location.href = 'https://srimatha.co.in/';
-  const handleFoodCourtOrder = () => window.location.href = 'https://srimatha.co.in/';
+  const handleRestaurantOrder = () => window.location.href = 'https://orders.srimatha.co.in';
+  const handleFoodCourtOrder = () => window.location.href = 'https://orders.srimatha.co.in';
   const handleCateringOrder = () => navigate('/catering');
 
   const handleAuthAction = () => {
