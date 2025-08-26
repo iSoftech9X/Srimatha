@@ -16,6 +16,7 @@ import adminRoutes from './routes/admin.js';
 import contactRoutes from './routes/contact.js';
 import cateringRoutes from './routes/catering.js';
 import emailRoutes from './routes/email.js';
+import offersRoutes from "./routes/offersRoutes.js";
 
 
 dotenv.config();
@@ -77,6 +78,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/catering', cateringRoutes);
 app.use('/api/email', emailRoutes);
+app.use("/api/offers", offersRoutes);
 
 
 // Health check endpoint

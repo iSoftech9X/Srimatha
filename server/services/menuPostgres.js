@@ -335,5 +335,131 @@ export async function updateMenuItem(id, updates) {
   return result.rows[0];
 }
 
+export async function addOffer(offer) {
+  const {
+    title,
+    description,
+    discount_type,
+    discount_value,
+    start_date,
+    end_date,
+    is_active,
+    applicable_menu_items,
+    price,
+    image
+  } = offer;
 
+  const result = await pool.query(
+    `INSERT INTO offers 
+      (title, description, discount_type, discount_value, start_date, end_date, is_active, applicable_menu_items, price, image)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+     RETURNING *`,
+    [
+      title,
+      description,
+      discount_type,
+      discount_value,
+      start_date,
+      end_date,
+      is_active ?? true,
+      JSON.stringify(applicable_menu_items || []),
+      price || null,
+      image || null
+    ]
+  );
+
+  return result.rows[0];
+}
+
+export async function updateOffer(id, data) {
+  const {
+    title,
+    description,
+    discount_type,
+    discount_value,
+    start_date,
+    end_date,
+    is_active,
+    applicable_menu_items,
+    price,
+    image
+  } = data;
+
+  const result = await pool.query(
+    `UPDATE offers 
+     SET title=$1,
+         description=$2,
+         discount_type=$3,
+         discount_value=$4,
+         start_date=$5,
+         end_date=$6,
+         is_active=$7,
+         applicable_menu_items=$8,
+         price=$9,
+         image=$10,
+         updated_at=now()
+     WHERE id=$11
+     RETURNING *`,
+    [
+      title,
+      description,
+      discount_type,
+      discount_value,
+      start_date,
+      end_date,
+      is_active,
+      JSON.stringify(applicable_menu_items || []),
+      price || null,
+      image || null,
+      id
+    ]
+  );
+
+  return result.rows[0];
+}
+
+export async function getOffers() {
+  const result = await pool.query('SELECT * FROM offers ORDER BY created_at DESC');
+  return result.rows.map(row => ({
+    ...row,
+    applicable_menu_items: row.applicable_menu_items 
+      ? JSON.parse(row.applicable_menu_items) 
+      : []
+  }));
+}
+
+export async function deleteOffer(id) {
+  const result = await pool.query(
+    'DELETE FROM offers WHERE id = $1 RETURNING *',
+    [id]
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error('Offer not found');
+  }
+
+  return result.rows[0]; // return deleted offer
+}
+
+export async function getActiveOffers() {
+  const result = await pool.query(
+    `SELECT * FROM offers 
+     WHERE is_active = true 
+       AND start_date <= CURRENT_DATE 
+       AND end_date >= CURRENT_DATE 
+     ORDER BY created_at DESC`
+  );
+  return result.rows.map(row => ({
+    ...row,
+    applicable_menu_items: row.applicable_menu_items 
+      ? JSON.parse(row.applicable_menu_items) 
+      : []
+  }));
+}
+
+export async function getAllOffers() {
+  const query = `SELECT * FROM offers ORDER BY start_date DESC`;
+  const result = await pool.query(query);
+  return result.rows;
+}
 
