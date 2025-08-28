@@ -2988,11 +2988,7 @@ const CateringOrdering: React.FC = () => {
                             <Plus size={16} />
                           </button>
                         </div>
-                        {!item.menuItem.isCombo && (
-                          <span className="text-[#501608] font-bold">
-                            ₹ {(parseFloat(item.menuItem.price) * item.quantity).toFixed(2)}
-                          </span>
-                        )}
+                        
                       </div>
                     ))}
                   </div>
@@ -3003,10 +2999,7 @@ const CateringOrdering: React.FC = () => {
             {cart.length > 0 && (
               <div className="border-t border-gray-200 p-6 bg-white">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-semibold">Total:</span>
-                  <span className="text-xl font-bold text-[#501608]">
-                    ₹ {cartTotal.toFixed(2)}
-                  </span>
+                  
                 </div>
                 <button
                   onClick={handleCheckoutClick}
