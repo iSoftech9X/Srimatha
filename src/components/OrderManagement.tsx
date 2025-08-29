@@ -1,7 +1,6 @@
 
-
 // import React, { useState, useEffect } from 'react';
-// import { Search, Eye, Clock, CheckCircle, XCircle, Truck, Download, RefreshCw, Phone, MapPin, Users, Calendar, Gift } from 'lucide-react';
+// import { Search, Eye, Clock, CheckCircle, XCircle, Truck, Download, RefreshCw, Phone, MapPin, Users, Calendar, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
 // import { useApp } from '../context/AppContext';
 // import { Order } from '../types';
 // import toast from 'react-hot-toast';
@@ -15,39 +14,23 @@
 //   price: string;
 // }
 
-// interface Address {
-//   street?: string;
-//   city?: string;
-//   state?: string;
-//   zipcode?: string;
-//   country?: string;
-// }
-
 // interface EventDetails {
 //   numberOfPersons?: number;
 //   eventDate?: string;
 //   eventType?: string;
 // }
 
-// interface Customer {
-//   id?: number;
-//   name?: string;
-//   phone?: string;
-//   email?: string;
-//   address?: Address;
-// }
-
 // interface ExtendedOrder extends Order {
 //   id: number;
 //   order_number: string;
-//   user?: Customer;
-//   customer?: Customer;
 //   user_name?: string;
-//   customer_name?: string;
-//   user_phone?: string;
-//   customer_phone?: string;
 //   user_email?: string;
-//   user_address?: Address;
+//   user_phone?: string;
+//   user_address_street?: string;
+//   user_address_city?: string;
+//   user_address_state?: string;
+//   user_address_zipcode?: string;
+//   user_address_country?: string;
 //   order_type: 'dine-in' | 'takeaway' | 'delivery' | 'catering' | string;
 //   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled' | string;
 //   created_at: string;
@@ -69,6 +52,48 @@
 //   const [orders, setOrders] = useState<ExtendedOrder[]>([]);
 //   const [isLoading, setIsLoading] = useState<boolean>(false);
 //   const [isMobileView, setIsMobileView] = useState<boolean>(window.innerWidth < 768);
+//   const [currentPage, setCurrentPage] = useState<number>(1);
+//   const ordersPerPage = 20;
+
+//   // Date formatting functions
+//   const formatDate = (dateString: string): string => {
+//     try {
+//       const date = new Date(dateString);
+//       if (isNaN(date.getTime())) return 'Invalid Date';
+      
+//       const day = date.getDate().toString().padStart(2, '0');
+//       const month = (date.getMonth() + 1).toString().padStart(2, '0');
+//       const year = date.getFullYear();
+//       const hours = date.getHours().toString().padStart(2, '0');
+//       const minutes = date.getMinutes().toString().padStart(2, '0');
+//       return `${day}/${month}/${year} ${hours}:${minutes}`;
+//     } catch (e) {
+//       console.error('Error formatting date:', e);
+//       return 'Invalid Date';
+//     }
+//   };
+
+//   const formatDateTime = (dateString: string): string => {
+//     try {
+//       const date = new Date(dateString);
+//       if (isNaN(date.getTime())) return 'Invalid Date';
+      
+//       const day = date.getDate().toString().padStart(2, '0');
+//       const month = (date.getMonth() + 1).toString().padStart(2, '0');
+//       const year = date.getFullYear();
+//       const hours = date.getHours().toString().padStart(2, '0');
+//       const minutes = date.getMinutes().toString().padStart(2, '0');
+//       return `${day}/${month}/${year}`;
+//     } catch (e) {
+//       console.error('Error formatting datetime:', e);
+//       return 'Invalid Date';
+//     }
+//   };
+
+//   const formatEventDate = (dateString?: string) => {
+//     if (!dateString) return 'N/A';
+//     return formatDateTime(dateString);
+//   };
 
 //   useEffect(() => {
 //     const handleResize = () => {
@@ -86,8 +111,9 @@
 //   const fetchOrders = async () => {
 //     setIsLoading(true);
 //     try {
-//       const response = await ordersAPI.getAllOrders({ limit: "100000000" });
+//       const response = await ordersAPI.getAllOrders({ limit: "1000000" });
 //       setOrders(response.data?.data?.orders || []);
+//       setCurrentPage(1);
 //     } catch (error) {
 //       console.error('Failed to fetch orders:', error);
 //       toast.error('Failed to load orders');
@@ -125,18 +151,15 @@
 
 //   const filteredOrders = orders.filter(order => {
 //     if (!order) return false;
-
-//     const userAddress = order.user_address || {};
-//     const customerAddress = order.customer?.address || {};
     
 //     const matchesSearch = 
 //       (order.order_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-//       (order.user_name?.toLowerCase() || order.customer_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-//       (order.user_phone || order.customer_phone || '').toString().includes(searchTerm) ||
-//       (userAddress.street?.toLowerCase() || customerAddress.street?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-//       (userAddress.city?.toLowerCase() || customerAddress.city?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-//       (userAddress.state?.toLowerCase() || customerAddress.state?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-//       (userAddress.zipcode?.toString() || customerAddress.zipcode?.toString() || '').includes(searchTerm);
+//       (order.user_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+//       (order.user_phone || '').toString().includes(searchTerm) ||
+//       (order.user_address_street?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+//       (order.user_address_city?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+//       (order.user_address_state?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+//       (order.user_address_zipcode?.toString() || '').includes(searchTerm);
 
 //     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
 //     const matchesType = typeFilter === 'all' || order.order_type === typeFilter;
@@ -158,6 +181,14 @@
 
 //     return matchesSearch && matchesStatus && matchesType && matchesDate;
 //   });
+
+//   // Pagination logic
+//   const indexOfLastOrder = currentPage * ordersPerPage;
+//   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+//   const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+//   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+
+//   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
 //   const getStatusColor = (status: string) => {
 //     switch (status) {
@@ -201,20 +232,19 @@
 //     const csvContent = [
 //       ['Order Number', 'Customer', 'Phone', 'Email', 'Street', 'City', 'State', 'Zipcode', 'Country', 'Type', 'Status', 'Date', 'Subtotal', 'Total'].join(','),
 //       ...filteredOrders.map(order => {
-//         const address = order.user_address || {};
 //         return [
 //           order.order_number,
-//           order.user_name || order.customer_name || 'N/A',
-//           order.user_phone || order.customer_phone || 'N/A',
+//           order.user_name || 'N/A',
+//           order.user_phone || 'N/A',
 //           order.user_email || 'N/A',
-//           address.street || '',
-//           address.city || '',
-//           address.state || '',
-//           address.zipcode || '',
-//           address.country || '',
+//           order.user_address_street || '',
+//           order.user_address_city || '',
+//           order.user_address_state || '',
+//           order.user_address_zipcode || '',
+//           order.user_address_country || '',
 //           order.order_type,
 //           order.status,
-//           new Date(order.created_at).toLocaleDateString(),
+//           formatDate(order.created_at),
 //           order.subtotal || '0.00',
 //           order.total || '0.00'
 //         ].join(',');
@@ -232,22 +262,15 @@
 //   };
 
 //   const formatAddress = (order: ExtendedOrder) => {
-//     const address = order.user_address || {};
 //     const parts = [
-//       address.street,
-//       address.city,
-//       address.state,
-//       address.zipcode,
-//       address.country
+//       order.user_address_street,
+//       order.user_address_city,
+//       order.user_address_state,
+//       order.user_address_zipcode,
+//       order.user_address_country
 //     ].filter(Boolean);
     
 //     return parts.join(', ');
-//   };
-
-//   const formatEventDate = (dateString?: string) => {
-//     if (!dateString) return 'N/A';
-//     const date = new Date(dateString);
-//     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 //   };
 
 //   return (
@@ -364,8 +387,8 @@
 //         {isMobileView ? (
 //           /* Mobile View - Cards */
 //           <div className="space-y-2 p-2">
-//             {filteredOrders.length > 0 ? (
-//               filteredOrders.map((order) => (
+//             {currentOrders.length > 0 ? (
+//               currentOrders.map((order) => (
 //                 <div key={order.id} className="border rounded-lg p-3 hover:shadow-md transition-shadow duration-200">
 //                   <div className="flex justify-between items-start">
 //                     <div>
@@ -378,7 +401,7 @@
 //                         )}
 //                       </div>
 //                       <div className="text-xs text-gray-500">
-//                         {new Date(order.created_at).toLocaleDateString()}
+//                         {formatDate(order.created_at)}
 //                       </div>
 //                     </div>
 //                     <div className="flex items-center gap-1">
@@ -394,13 +417,13 @@
                   
 //                   <div className="mt-2">
 //                     <div className="text-xs text-gray-500">Customer</div>
-//                     <div className="text-sm font-medium">{order.user_name || order.customer_name || 'N/A'}</div>
+//                     <div className="text-sm font-medium">{order.user_name || 'N/A'}</div>
 //                   </div>
                   
 //                   <div className="mt-2">
 //                     <div className="flex items-center gap-1 text-xs text-gray-500">
 //                       <Phone size={12} />
-//                       {order.user_phone || order.customer_phone || 'N/A'}
+//                       {order.user_phone || 'N/A'}
 //                     </div>
 //                   </div>
                   
@@ -445,8 +468,8 @@
 //                 </tr>
 //               </thead>
 //               <tbody className="bg-white divide-y divide-gray-200">
-//                 {filteredOrders.length > 0 ? (
-//                   filteredOrders.map((order) => (
+//                 {currentOrders.length > 0 ? (
+//                   currentOrders.map((order) => (
 //                     <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-200">
 //                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
 //                         <div>
@@ -459,19 +482,19 @@
 //                             )}
 //                           </div>
 //                           <div className="text-sm text-gray-500">
-//                             {new Date(order.created_at).toLocaleString()}
+//                             {formatDate(order.created_at)}
 //                           </div>
 //                         </div>
 //                       </td>
 //                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
 //                         <div className="text-sm font-medium text-gray-900">
-//                           {order.user_name || order.customer_name || 'N/A'}
+//                           {order.user_name || 'N/A'}
 //                         </div>
 //                       </td>
 //                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
 //                         <div className="text-sm text-gray-500 flex items-center gap-2">
 //                           <Phone size={12} />
-//                           {order.user_phone || order.customer_phone || 'N/A'}
+//                           {order.user_phone || 'N/A'}
 //                         </div>
 //                       </td>
 //                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
@@ -521,6 +544,68 @@
 //             </table>
 //           </div>
 //         )}
+
+//         {/* Pagination Controls */}
+//         {filteredOrders.length > ordersPerPage && (
+//           <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
+//             <div className="flex-1 flex justify-between sm:hidden">
+//               <button
+//                 onClick={() => paginate(currentPage - 1)}
+//                 disabled={currentPage === 1}
+//                 className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+//               >
+//                 Previous
+//               </button>
+//               <button
+//                 onClick={() => paginate(currentPage + 1)}
+//                 disabled={currentPage === totalPages}
+//                 className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+//               >
+//                 Next
+//               </button>
+//             </div>
+//             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+//               <div>
+//                 <p className="text-sm text-gray-700">
+//                   Showing <span className="font-medium">{indexOfFirstOrder + 1}</span> to{' '}
+//                   <span className="font-medium">
+//                     {Math.min(indexOfLastOrder, filteredOrders.length)}
+//                   </span>{' '}
+//                   of <span className="font-medium">{filteredOrders.length}</span> results
+//                 </p>
+//               </div>
+//               <div>
+//                 <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+//                   <button
+//                     onClick={() => paginate(currentPage - 1)}
+//                     disabled={currentPage === 1}
+//                     className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+//                   >
+//                     <span className="sr-only">Previous</span>
+//                     <ChevronLeft size={16} />
+//                   </button>
+//                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+//                     <button
+//                       key={number}
+//                       onClick={() => paginate(number)}
+//                       className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === number ? 'z-10 bg-orange-50 border-orange-500 text-orange-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`}
+//                     >
+//                       {number}
+//                     </button>
+//                   ))}
+//                   <button
+//                     onClick={() => paginate(currentPage + 1)}
+//                     disabled={currentPage === totalPages}
+//                     className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+//                   >
+//                     <span className="sr-only">Next</span>
+//                     <ChevronRight size={16} />
+//                   </button>
+//                 </nav>
+//               </div>
+//             </div>
+//           </div>
+//         )}
 //       </div>
 
 //       {/* Order Details Modal */}
@@ -547,7 +632,7 @@
 //                   <div>
 //                     <span className="text-sm text-gray-500">Order Date:</span>
 //                     <p className="text-gray-800 font-semibold">
-//                       {new Date(selectedOrder.created_at).toLocaleString()}
+//                       {formatDate(selectedOrder.created_at)}
 //                     </p>
 //                   </div>
 //                 </div>
@@ -558,13 +643,13 @@
 //                     <div>
 //                       <span className="text-sm text-gray-500">Name:</span>
 //                       <p className="text-gray-800 font-semibold">
-//                         {selectedOrder.user_name || selectedOrder.customer_name || 'N/A'}
+//                         {selectedOrder.user_name || 'N/A'}
 //                       </p>
 //                     </div>
 //                     <div>
 //                       <span className="text-sm text-gray-500">Phone Number:</span>
 //                       <p className="text-gray-800 font-semibold">
-//                         {selectedOrder.user_phone || selectedOrder.customer_phone || 'N/A'}
+//                         {selectedOrder.user_phone || 'N/A'}
 //                       </p>
 //                     </div>
 //                     <div>
@@ -576,17 +661,17 @@
 //                     <div className="md:col-span-2">
 //                       <span className="text-sm text-gray-500">Address:</span>
 //                       <div className="text-gray-800 font-semibold">
-//                         {selectedOrder.user_address?.street && (
-//                           <div>{selectedOrder.user_address.street}</div>
+//                         {selectedOrder.user_address_street && (
+//                           <div>{selectedOrder.user_address_street}</div>
 //                         )}
-//                         {selectedOrder.user_address?.city && selectedOrder.user_address?.state && (
-//                           <div>{selectedOrder.user_address.city}, {selectedOrder.user_address.state}</div>
+//                         {selectedOrder.user_address_city && selectedOrder.user_address_state && (
+//                           <div>{selectedOrder.user_address_city}, {selectedOrder.user_address_state}</div>
 //                         )}
-//                         {selectedOrder.user_address?.zipcode && (
-//                           <div>{selectedOrder.user_address.zipcode}</div>
+//                         {selectedOrder.user_address_zipcode && (
+//                           <div>{selectedOrder.user_address_zipcode}</div>
 //                         )}
-//                         {selectedOrder.user_address?.country && (
-//                           <div>{selectedOrder.user_address.country}</div>
+//                         {selectedOrder.user_address_country && (
+//                           <div>{selectedOrder.user_address_country}</div>
 //                         )}
 //                       </div>
 //                     </div>
@@ -611,12 +696,6 @@
 //                           : '⏳ Pending'}
 //                       </p>
 //                     </div>
-//                     {/* <div>
-//                       <span className="text-sm text-gray-500">Total Amount:</span>
-//                       <p className="text-gray-800 font-semibold">
-//                         ₹{selectedOrder.total || '0.00'}
-//                       </p>
-//                     </div> */}
 //                   </div>
 //                 </div>
 
@@ -700,6 +779,8 @@ import { useApp } from '../context/AppContext';
 import { Order } from '../types';
 import toast from 'react-hot-toast';
 import { ordersAPI } from '../services/api';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface OrderItem {
   id: number;
@@ -956,6 +1037,143 @@ const OrderManagement: React.FC = () => {
     toast.success('Orders exported successfully!');
   };
 
+  // PDF Export Function
+  const exportOrdersPDF = () => {
+    // Create new PDF document
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(20);
+    doc.text('Order Report', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22);
+    
+    // Prepare data for the table
+    const tableData = filteredOrders.map(order => [
+      order.order_number,
+      order.user_name || 'N/A',
+      order.user_phone || 'N/A',
+      order.order_type,
+      order.status.toUpperCase(),
+      formatDate(order.created_at),
+      `₹${order.total || '0.00'}`
+    ]);
+    
+    // Add table to PDF
+    autoTable(doc, {
+      head: [['Order #', 'Customer', 'Phone', 'Type', 'Status', 'Date', 'Total']],
+      body: tableData,
+      startY: 30,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [241, 105, 1] } // Orange color for header
+    });
+    
+    // Add summary statistics
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.text('Order Summary', 14, finalY);
+    
+    doc.setFontSize(10);
+    doc.text(`Total Orders: ${stats.total}`, 14, finalY + 8);
+    doc.text(`Pending: ${stats.pending}`, 14, finalY + 16);
+    doc.text(`Confirmed: ${stats.confirmed}`, 14, finalY + 24);
+    doc.text(`Preparing: ${stats.preparing}`, 14, finalY + 32);
+    doc.text(`Ready: ${stats.ready}`, 14, finalY + 40);
+    doc.text(`Delivered: ${stats.delivered}`, 14, finalY + 48);
+    doc.text(`Cancelled: ${stats.cancelled}`, 14, finalY + 56);
+    
+    // Save the PDF
+    doc.save(`orders-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success('PDF exported successfully!');
+  };
+
+  // Detailed PDF Export Function
+  const exportDetailedPDF = (order: ExtendedOrder) => {
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(20);
+    doc.text('Order Details', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Order #: ${order.order_number}`, 14, 25);
+    doc.text(`Date: ${formatDate(order.created_at)}`, 14, 32);
+    
+    // Customer Information
+    doc.setFontSize(12);
+    doc.text('Customer Information', 14, 45);
+    doc.setFontSize(10);
+    doc.text(`Name: ${order.user_name || 'N/A'}`, 14, 52);
+    doc.text(`Phone: ${order.user_phone || 'N/A'}`, 14, 59);
+    doc.text(`Email: ${order.user_email || 'N/A'}`, 14, 66);
+    
+    // Address
+    const addressLines = doc.splitTextToSize(
+      `Address: ${formatAddress(order)}`,
+      180
+    );
+    doc.text(addressLines, 14, 73);
+    
+    // Order Details
+    let yPosition = 90;
+    doc.setFontSize(12);
+    doc.text('Order Details', 14, yPosition);
+    yPosition += 10;
+    
+    doc.setFontSize(10);
+    doc.text(`Type: ${order.order_type}`, 14, yPosition);
+    yPosition += 7;
+    doc.text(`Status: ${order.status}`, 14, yPosition);
+    yPosition += 7;
+    doc.text(`Payment: ${order.payment_status === 'paid' || order.paymentStatus === 'paid' ? 'Paid' : 'Pending'}`, 14, yPosition);
+    yPosition += 12;
+    
+    // Event Details (for catering orders)
+    if (order.order_type === 'catering' && order.eventDetails) {
+      doc.setFontSize(12);
+      doc.text('Event Details', 14, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(10);
+      doc.text(`Event Type: ${order.eventDetails.eventType || 'N/A'}`, 14, yPosition);
+      yPosition += 7;
+      doc.text(`Event Date: ${formatEventDate(order.eventDetails.eventDate)}`, 14, yPosition);
+      yPosition += 7;
+      doc.text(`Number of Persons: ${order.eventDetails.numberOfPersons || 'N/A'}`, 14, yPosition);
+      yPosition += 12;
+    }
+    
+    // Order Items
+    if (order.items && order.items.length > 0) {
+      doc.setFontSize(12);
+      doc.text('Order Items', 14, yPosition);
+      yPosition += 10;
+      
+      const itemData = order.items.map(item => [
+        item.name,
+        item.quantity.toString(),
+        `₹${item.price}`
+      ]);
+      
+      autoTable(doc, {
+        head: [['Item', 'Qty', 'Price']],
+        body: itemData,
+        startY: yPosition,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [241, 105, 1] }
+      });
+      
+      yPosition = (doc as any).lastAutoTable.finalY + 10;
+    }
+    
+    // Total
+    doc.setFontSize(12);
+    doc.text(`Total: ₹${order.total || '0.00'}`, 160, yPosition, { align: 'right' });
+    
+    // Save the PDF
+    doc.save(`order-${order.order_number}-details.pdf`);
+    toast.success('Order details exported as PDF!');
+  };
+
   const formatAddress = (order: ExtendedOrder) => {
     const parts = [
       order.user_address_street,
@@ -982,7 +1200,14 @@ const OrderManagement: React.FC = () => {
             className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold flex items-center gap-1 sm:gap-2 transition-colors duration-300 text-sm sm:text-base"
           >
             <Download size={16} className="sm:size-5" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">Export CSV</span>
+          </button>
+          <button
+            onClick={exportOrdersPDF}
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold flex items-center gap-1 sm:gap-2 transition-colors duration-300 text-sm sm:text-base"
+          >
+            <Download size={16} className="sm:size-5" />
+            <span className="hidden sm:inline">Export PDF</span>
           </button>
           <button
             onClick={fetchOrders}
@@ -1453,6 +1678,13 @@ const OrderManagement: React.FC = () => {
               </div>
             </div>
             <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 rounded-b-lg flex justify-end gap-2">
+              <button
+                onClick={() => exportDetailedPDF(selectedOrder)}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors duration-300 text-sm sm:text-base flex items-center gap-2"
+              >
+                <Download size={16} />
+                Export PDF
+              </button>
               <button
                 onClick={() => setSelectedOrder(null)}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors duration-300 text-sm sm:text-base"
