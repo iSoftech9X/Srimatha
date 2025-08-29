@@ -2721,7 +2721,7 @@ const CateringOrdering: React.FC = () => {
                                   
                                     <button
                                       onClick={() => setViewingComboId(item.id)}
-                                      className="text-[#501608] hover:text-[#722010] flex items-center gap-1 text-sm font-medium"
+                                      className="text-[#501608]  hover:text-[#722010] flex items-center gap-1  text-sm font-medium " style={{marginRight: "25px"}}
                                     >
                                       <Eye size={16} />
                                       View Items

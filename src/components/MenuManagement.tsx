@@ -417,13 +417,21 @@ const MenuManagement: React.FC = () => {
           {filteredItems.map((item) => (
             <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden transition-all hover:shadow-md border relative">
               {item.isCombo && (
+                // <button
+                //   onClick={() => handleView(item)}
+                //   className="absolute top-3 right-3 text-gray-500 hover:text-blue-600 p-1 bg-white rounded-full shadow"
+                //   title="View Combo Items"
+                // >
+                //   <Eye size={18} />
+                // </button>order
                 <button
-                  onClick={() => handleView(item)}
-                  className="absolute top-3 right-3 text-gray-500 hover:text-blue-600 p-1 bg-white rounded-full shadow"
-                  title="View Combo Items"
-                >
-                  <Eye size={18} />
-                </button>
+  onClick={() => handleView(item)}
+  className="absolute top-3 right-3 text-gray-500 hover:text-blue-600 p-2 bg-white rounded-full shadow flex items-center gap-1"
+  title="View Combo Items"
+>
+  <Eye size={16} />
+  <span className="text-xs font-medium">View Items</span>
+</button>
               )}
 
               {/* Item Image */}
