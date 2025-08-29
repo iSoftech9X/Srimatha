@@ -1,5 +1,4 @@
 
-
 // import React, { useState, useEffect } from "react";
 // import {
 //   Star,
@@ -453,7 +452,7 @@
 
 //         const filterCategories = [
 //           { id: "all", name: "All Dishes" },
-//           { id: "combos", name: "Combos" },
+//           // { id: "combos", name: "Combos" },
 //           // Add all other categories
 //           ...categories.map(cat => ({ id: cat.id, name: cat.name }))
 //         ];
@@ -1042,22 +1041,9 @@
 //                                   />
 //                                 </div>
 //                                 <div className="flex-grow">
-//                                   <div className="flex justify-between items-start mb-3">
-//                                     <h4 className="text-lg font-bold text-gray-800">
-//                                       {item.name}
-//                                     </h4>
-//                                     {item.isCombo && (
-//                                       <button
-//                                         onClick={() =>
-//                                           setViewingComboId(item.id)
-//                                         }
-//                                         className="text-[#501608] hover:text-[#722010] p-1"
-//                                         title="View combo items"
-//                                       >
-//                                         <Eye size={18} />
-//                                       </button>
-//                                     )}
-//                                   </div>
+//                                   <h4 className="text-lg font-bold text-gray-800 mb-3">
+//                                     {item.name}
+//                                   </h4>
 //                                   <div className="text-gray-600 mb-4 text-sm relative">
 //                                     <p
 //                                       className={`${
@@ -1092,21 +1078,31 @@
 //                                 </div>
 //                               </div>
 
-//                               <div className="p-4 border-t mt-auto flex justify-end">
-//                                 {item.isCombo ? (
-//                                   <button
-//                                     onClick={() =>
-//                                       !isComboAdded && handleAddToCart(item)
-//                                     }
-//                                     disabled={isComboAdded}
-//                                     className={`py-2 px-4 rounded-full font-semibold transition-colors duration-300 ${
-//                                       isComboAdded
-//                                         ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-//                                         : "bg-[#501608] hover:bg-[#722010] text-white"
-//                                     }`}
-//                                   >
-//                                     {isComboAdded ? "Added" : "Add"}
-//                                   </button>
+//                               <div className="p-4 border-t mt-auto flex justify-between items-center">
+//                                 <div></div>  {item.isCombo ? (
+//                                   <div className="flex items-center gap-2">
+                                  
+//                                     <button
+//                                       onClick={() => setViewingComboId(item.id)}
+//                                       className="text-[#501608]  hover:text-[#722010] flex items-center gap-1  text-sm font-medium " style={{marginRight: "25px"}}
+//                                     >
+//                                       <Eye size={16} />
+//                                       View Items
+//                                     </button>
+//                                     <button
+//                                       onClick={() =>
+//                                         !isComboAdded && handleAddToCart(item)
+//                                       }
+//                                       disabled={isComboAdded}
+//                                       className={`py-2 px-4 rounded-full font-semibold transition-colors duration-300 ${
+//                                         isComboAdded
+//                                           ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+//                                           : "bg-[#501608] hover:bg-[#722010] text-white"
+//                                       }`}
+//                                     >
+//                                       {isComboAdded ? "Added" : "Add"}
+//                                     </button>
+//                                   </div>
 //                                 ) : quantity > 0 ? (
 //                                   <div className="flex items-center gap-2">
 //                                     <button
@@ -1374,7 +1370,7 @@
 //                             <Plus size={16} />
 //                           </button>
 //                         </div>
-                        
+                     
 //                       </div>
 //                     ))}
 //                   </div>
@@ -1384,9 +1380,7 @@
 
 //             {cart.length > 0 && (
 //               <div className="border-t border-gray-200 p-6 bg-white">
-//                 <div className="flex justify-between items-center mb-4">
-                  
-//                 </div>
+             
 //                 <button
 //                   onClick={handleCheckoutClick}
 //                   className="w-full bg-[#501608] hover:bg-[#722010] text-white py-3 rounded-lg font-semibold transition-colors duration-300"
@@ -1795,6 +1789,9 @@ const CateringOrdering: React.FC = () => {
   // New state variables for category toggle
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [visibleCategoriesCount, setVisibleCategoriesCount] = useState(5);
+  
+  // New state for categories sticky behavior
+  const [isCategoriesSticky, setIsCategoriesSticky] = useState(false);
 
   const toggleDescription = (itemId: string) => {
     setExpandedDescriptions((prev) => ({
@@ -1805,8 +1802,13 @@ const CateringOrdering: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 50);
+      
+      // Make categories sticky after scrolling past the hero section
+      setIsCategoriesSticky(scrollY > 300);
     };
+    
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -2089,7 +2091,7 @@ const CateringOrdering: React.FC = () => {
 
         const filterCategories = [
           { id: "all", name: "All Dishes" },
-          { id: "combos", name: "Combos" },
+          // { id: "combos", name: "Combos" },
           // Add all other categories
           ...categories.map(cat => ({ id: cat.id, name: cat.name }))
         ];
@@ -2361,7 +2363,7 @@ const CateringOrdering: React.FC = () => {
                               viewBox="0 0 20 20"
                               fill="currentColor"
                             >
-                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                              <path d="M10 极 a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                             </svg>
                           </button>
                           {showDropdown === order.id && (
@@ -2587,42 +2589,44 @@ const CateringOrdering: React.FC = () => {
               </div>
             </div>
 
-            {/* Categories with Show More/Less functionality */}
-            <div className="flex flex-col items-center gap-4 mb-8">
-              <div className="flex flex-wrap justify-center gap-2 w-full">
-                {displayedCategories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setActiveCategory(category.id)}
-                    className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
-                      activeCategory === category.id
-                        ? "bg-[#501608] hover:bg-[#722010] text-white shadow-lg"
-                        : "bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600"
-                    }`}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-                
-                {/* Show More/Less button */}
-                {menuCategories.length > visibleCategoriesCount && (
-                  <button
-                    onClick={toggleShowAllCategories}
-                    className="px-4 py-2 rounded-full font-medium text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-300 flex items-center gap-1"
-                  >
-                    {showAllCategories ? (
-                      <>
-                        <span>Show Less</span>
-                        <ChevronUp size={16} />
-                      </>
-                    ) : (
-                      <>
-                        <span>Show More</span>
-                        <ChevronDown size={16} />
-                      </>
-                    )}
-                  </button>
-                )}
+            {/* Categories with Show More/Less functionality - Made sticky */}
+            <div className={`sticky top-40 z-40 bg-white py-4 mb-8 transition-all duration-300 ${isCategoriesSticky ? 'shadow-md' : ''}`}>
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-wrap justify-center gap-2 w-full">
+                  {displayedCategories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => setActiveCategory(category.id)}
+                      className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
+                        activeCategory === category.id
+                          ? "bg-[#501608] hover:bg-[#722010] text-white shadow-lg"
+                          : "bg-white text-gray-700 hover:bg-orange-100 hover:text-orange-600"
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                  
+                  {/* Show More/Less button */}
+                  {menuCategories.length > visibleCategoriesCount && (
+                    <button
+                      onClick={toggleShowAllCategories}
+                      className="px-4 py-2 rounded-full font-medium text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-300 flex items-center gap-1"
+                    >
+                      {showAllCategories ? (
+                        <>
+                          <span>Show Less</span>
+                          <ChevronUp size={16} />
+                        </>
+                      ) : (
+                        <>
+                          <span>Show More</span>
+                          <ChevronDown size={16} />
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
