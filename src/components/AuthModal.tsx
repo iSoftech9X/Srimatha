@@ -839,7 +839,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const fillDemoCredentials = (type: 'admin' | 'user') => {
     if (type === 'admin') {
       setFormData(prev => ({
-        ...prev,
+        ...prev, 
         email: 'admin@srimatha.com',
         password: 'admin123'
       }));
@@ -1335,7 +1335,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
           {renderFooter()}
 
-          {mode === 'login' && (
+          {/* {mode === 'login' && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600 text-center mb-3">
                 <strong>Demo Credentials:</strong>
@@ -1359,7 +1359,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 </button>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
