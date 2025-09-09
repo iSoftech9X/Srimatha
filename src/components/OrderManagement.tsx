@@ -1155,7 +1155,7 @@ const OrderManagement: React.FC = () => {
       ]);
       
       autoTable(doc, {
-        head: [['Item', 'Qty', 'Price']],
+        head: [['Item', 'Qty',]],
         body: itemData,
         startY: yPosition,
         styles: { fontSize: 9 },
@@ -1167,7 +1167,7 @@ const OrderManagement: React.FC = () => {
     
     // Total
     doc.setFontSize(12);
-    doc.text(`Total: ₹${order.total || '0.00'}`, 160, yPosition, { align: 'right' });
+    // doc.text(`Total: ₹${order.total || '0.00'}`, 160, yPosition, { align: 'right' });
     
     // Save the PDF
     doc.save(`order-${order.order_number}-details.pdf`);
@@ -1670,8 +1670,8 @@ const OrderManagement: React.FC = () => {
                       ))}
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm font-semibold">Total:</span>
-                      <span className="text-sm font-semibold">₹{selectedOrder.total || '0.00'}</span>
+                      {/* <span className="text-sm font-semibold">Total:</span>
+                      <span className="text-sm font-semibold">₹{selectedOrder.total || '0.00'}</span> */}
                     </div>
                   </div>
                 )}
