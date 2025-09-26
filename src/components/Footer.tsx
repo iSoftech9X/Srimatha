@@ -196,6 +196,15 @@ const Footer: React.FC = () => {
                   <div>{restaurantInfo.mobile}</div>
                 </div>
               </li>
+               <li 
+                className="flex items-center group cursor-pointer"
+                onClick={handlePhoneClick}
+              >
+                <Phone className="mr-3 flex-shrink-0 text-orange-400" size={18} />
+                <div className="text-gray-300 text-sm group-hover:text-orange-400 transition-colors duration-200 underline-offset-4 group-hover:underline">
+                  <div>{restaurantInfo.landline}</div>
+                </div>
+              </li>
               <li 
                 className="flex items-center group cursor-pointer"
                 onClick={handleEmailClick}
@@ -209,7 +218,7 @@ const Footer: React.FC = () => {
               <h5 className="font-semibold mb-2 text-orange-400">Operating Hours</h5>
               <p className="text-gray-300 text-sm">
                 Monday - Sunday<br />
-                11:00 AM - 11:00 PM
+                11:00 AM - 11:30 PM
               </p>
             </div>
           </div>
