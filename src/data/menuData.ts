@@ -23,13 +23,14 @@ export const restaurantInfo = {
   name: 'Srimatha',
   tagline: 'Serving Culinary Delights that Satisfy Every Palate!',
   phone: '040-4859 5886/7',
-  mobile: '(+91)74166 70123',
+  mobile: '(+91)7416672223', // also on WhatsApp, same as
+  landline:'+91 40-48595886',
   website: 'www.srimatha.co.in',
   email: 'info@srimatha.com',
   address: {
     line1: 'Plot1/P, Sri Sai Balaji Towers',
     line2: 'Rajeev Gandhi Nagar Colony,',
-    line3: 'Secunderabad-500 003'
+    line3: 'Bachupally 500090'
   },
   qrCode: 'Scan QR CODE for Menu selection',
   socialMedia: {
